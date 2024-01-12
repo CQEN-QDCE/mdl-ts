@@ -9,11 +9,15 @@ export class MockTransportLayer implements TransportLayer {
     
     private readonly TAG = "MockTransportLayer";
 
-    private readonly credentialTypeRepository: CredentialTypeRepository;
-    private readonly oidcServer: OidcServer;
-    private readonly webApiServer: WebApiServer;
+    private credentialTypeRepository: CredentialTypeRepository;
+    private oidcServer: OidcServer;
+    private webApiServer: WebApiServer;
 
     constructor() {
+
+    }
+
+    public async init(): Promise<void> {
       this.credentialTypeRepository = new CredentialTypeRepository();
       this.credentialTypeRepository.addCredentialType(new DrivingLicense().getCredentialType());
 //        this.oidcServer = new OidcServer("https://utopiadot.gov", 
@@ -21,9 +25,10 @@ export class MockTransportLayer implements TransportLayer {
      //                                    TestKeysAndCertificates.jwtCertificateChain,
        //                                  credentialTypeRepository)
       let testKeysAndCertificates = new TestKeysAndCertificates();
-      testKeysAndCertificates.init();
+      await testKeysAndCertificates.init();
       
       this.webApiServer = new WebApiServer(testKeysAndCertificates.jwtSignerPrivateKey,
+                                           testKeysAndCertificates.jwtSignerPublicKey,
                                            testKeysAndCertificates.jwtCertificateChain,
                                            this.credentialTypeRepository);
     }
@@ -49,7 +54,7 @@ export class MockTransportLayer implements TransportLayer {
 
     async doPost(url: string, requestBody: any): Promise<string> {
       if (url.includes("/identity")) {
-        return this.webApiServer.serverRetrieval(requestBody);
+        return await this.webApiServer.serverRetrieval(requestBody);
       }
 
       if (url.includes("/connect/register")) {

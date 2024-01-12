@@ -5,6 +5,8 @@ export class TestKeysAndCertificates {
 
     public jwtSignerPrivateKey: CryptoKey;
 
+    public jwtSignerPublicKey: CryptoKey;
+
     public jwtSignerCertificate: x509.X509Certificate;
 
     public caCertificate: x509.X509Certificate;
@@ -32,6 +34,7 @@ export class TestKeysAndCertificates {
         const caKeyPair = await crypto.subtle.generateKey(algorithm, true, ["sign", "verify"]);
         const jwtSignerkeyPair = await crypto.subtle.generateKey(algorithm, true, ["sign", "verify"]);
         this.jwtSignerPrivateKey = jwtSignerkeyPair.privateKey;
+        this.jwtSignerPublicKey = jwtSignerkeyPair.publicKey;
 
         this.caCertificate = await x509.X509CertificateGenerator.createSelfSigned(
             {

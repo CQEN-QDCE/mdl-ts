@@ -17,8 +17,9 @@ describe('testing WebApiServerRetrievalProcess', () => {
             }
             map1.set(namespace, map2);
         }
-
-        const response = new WebApiServerRetrievalProcess(new WebApiClient("https://utopiadot.gov", new MockTransportLayer())).process(
+        let transportLayer = new MockTransportLayer();
+        await transportLayer.init();
+        const response = await new WebApiServerRetrievalProcess(new WebApiClient("https://utopiadot.gov", transportLayer)).process(
                 "Test server retrieval token",
                 drivingLicenseInfo.docType,
                 map1

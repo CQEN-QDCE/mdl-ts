@@ -1,15 +1,18 @@
 import * as x509 from "@peculiar/x509";
 import { CredentialTypeRepository } from "../credential-type/credential-type-repository";
 import { ServerRequest2 } from "./server-request2";
+import { Jwt } from "../Jwt";
+import { JsonStringifier } from "../../utils/json.stringifier";
 
 export class WebApiServer {
     
     constructor(private readonly privateKey: CryptoKey,
+                private readonly publicKey: CryptoKey,
                 private readonly certificateChain: x509.X509Certificate[] = [],
                 private readonly credentialTypeRepository: CredentialTypeRepository) {
     }
 
-    public serverRetrieval(serverRequest: ServerRequest2): string {
+    public async serverRetrieval(serverRequest: ServerRequest2): Promise<string> {
         //const serverRequestJson = JSON.parse(serverRequest);
         const docRequests = serverRequest['docRequests'];
         let filteredDocRequests: any[] = [];
@@ -44,10 +47,26 @@ export class WebApiServer {
         for (const docRequest of filteredDocRequests) {
             unknownDocuments.push(docRequest['docType']);
         }
-
-        //this.credentialTypeRepository.getMdocCredentialType();
-        //const claimsSet
-        return "serverResponse";
+        let documents: any[] = [];
+        for (const claimsSet of claimsSets) {
+            let test = await Jwt.encode(claimsSet, this.privateKey, this.certificateChain);
+            let verif = await Jwt.verify(test, this.publicKey);
+            documents.push(await Jwt.encode(claimsSet, this.privateKey, this.certificateChain));
+        }
+        let response: any = {};
+        response['version'] = '1.0';
+        response['documents'] = documents;
+        if (unknownDocuments.length > 0) {
+            // TODO: check if this is correct
+//            put("documentErrors", buildJsonArray {
+ //               unknownDocuments.forEach {
+   //                 add(buildJsonObject {
+     //                   put(it, 0) // Error code 0 - Data not returned
+       //             })
+         //       }
+           // })
+        }
+        return JsonStringifier.stringify(response);
     }
 
     private getDataElementsPerNamespace(token: string, docRequest: any, unknownElements: Map<string, string[]>): any {

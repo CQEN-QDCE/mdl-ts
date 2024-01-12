@@ -11,6 +11,12 @@ export class Base64 {
         Base64.initialized = true;
     }
 
+    static urlEncode(buffer: ArrayBuffer): string {
+        return Base64.encode(buffer).replace(/\+/g, '-')
+                                    .replace(/\//g, '_')
+                                    .replace(/=+$/, '');
+    }
+
     static encode(buffer: ArrayBuffer): string {
         Base64.initialize();
         const bytes = new Uint8Array(buffer);
@@ -31,6 +37,13 @@ export class Base64 {
         }
 
         return base64;
+    }
+
+    static urlDecode(base64: string): ArrayBuffer {
+        const m = base64.length % 4;
+        return Base64.decode(base64.replace(/-/g, '+')
+                                   .replace(/_/g, '/')
+                                   .padEnd(base64.length + (m === 0 ? 0 : 4 - m), '='))
     }
 
     static decode(base64: string): ArrayBuffer {
