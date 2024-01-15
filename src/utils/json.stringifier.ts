@@ -4,7 +4,7 @@ export class JsonStringifier {
       return JSON.stringify(obj, JsonStringifier.stringifyReplacer);
     }
 
-    public static parse(obj: any): string {
+    public static parse(obj: any): any {
       return JSON.parse(obj, JsonStringifier.parseReviver);
     }
 

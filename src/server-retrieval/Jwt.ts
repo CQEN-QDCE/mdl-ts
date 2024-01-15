@@ -7,7 +7,7 @@ export class Jwt {
     
     private readonly SIGNATURE_ALGORITHM = "SHA256withECDSA"
 
-    constructor(private readonly header: any, private readonly payload: any, private readonly signature: ArrayBuffer) {
+    constructor(private readonly header: any, public readonly payload: any, private readonly signature: ArrayBuffer) {
     }
 
     public static async verify(encodedJwt: string, publicKey: CryptoKey = null): Promise<boolean> {
@@ -36,7 +36,7 @@ export class Jwt {
         return await crypto.subtle.verify(algo, publicKey, signature, enc.encode(decoded[0] + '.' + decoded[1]));
     }
 
-    private static decode(encodedJwt: string): Jwt {
+    public static decode(encodedJwt: string): Jwt {
         const decoded = encodedJwt.split(".");
         if (decoded.length != 3) throw "Invalid JWT";
         const val0 = Base64.urlDecode(decoded[0]);

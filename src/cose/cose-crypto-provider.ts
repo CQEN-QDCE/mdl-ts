@@ -6,6 +6,6 @@ export interface COSECryptoProvider {
 
     verify1(coseSign1: COSESign1, keyID: string): Promise<boolean>;
 
-    verifyX5Chain(coseSign1: COSESign1, keyID: string | null): boolean;
+    verifyX5Chain(coseSign1: COSESign1, keyID: string | null): Promise<boolean>;
     
 }

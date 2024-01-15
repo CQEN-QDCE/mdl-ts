@@ -39,7 +39,7 @@ export class TestKeysAndCertificates {
         this.caCertificate = await x509.X509CertificateGenerator.createSelfSigned(
             {
                 serialNumber: "01",
-                name: "CN=MDOC Test CA",
+                name: "CN=JWT CA",
                 notBefore: new Date("2023/01/01"),
                 notAfter: new Date("2025/01/01"),
                 signingAlgorithm: algorithm,
@@ -54,19 +54,27 @@ export class TestKeysAndCertificates {
         this.jwtSignerCertificate = await x509.X509CertificateGenerator.createSelfSigned(
             {
                 serialNumber: "02",
-                name: "CN=MDOC Test Issuer",
+                name: "CN=JWT Signer",
                 notBefore: new Date("2023/01/01"),
-                    notAfter: new Date("2025/01/01"),
-                    signingAlgorithm: algorithm,
-                    keys: jwtSignerkeyPair,
-                    extensions: [
+                notAfter: new Date("2025/01/01"),
+                signingAlgorithm: algorithm,
+                keys: jwtSignerkeyPair,
+                extensions: [
                         new x509.BasicConstraintsExtension(true, 2, true),
-                        new x509.ExtendedKeyUsageExtension(["1.2.3.4.5.6.7", "2.3.4.5.6.7.8"], true),
-                        new x509.KeyUsagesExtension(x509.KeyUsageFlags.keyCertSign | x509.KeyUsageFlags.cRLSign, true),
+                        new x509.KeyUsagesExtension(x509.KeyUsageFlags.digitalSignature, true),
+                        await x509.AuthorityKeyIdentifierExtension.create(this.caCertificate),
                         await x509.SubjectKeyIdentifierExtension.create(jwtSignerkeyPair.publicKey),
                     ]
             }
         );
+
+        const chain = new x509.X509ChainBuilder({
+            certificates: [
+                this.jwtSignerCertificate
+            ],
+          });
+
+        const items = await chain.build(this.caCertificate);
 
         this.jwtCertificateChain.push(this.jwtSignerCertificate);
         this.jwtCertificateChain.push(this.caCertificate);

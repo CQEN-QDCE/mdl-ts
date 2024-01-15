@@ -8,7 +8,7 @@ import { ByteStringElement } from "./data-element/byte-string-element";
 import { MapElement } from "./data-element/map-element";
 import { DataElement } from "./data-element/data-element";
 import { MapKey } from "./data-element/map-key";
-import { NullElement } from "./data-element/null-element";
+import { ArrayBufferComparer } from './utils/array-buffer-comparer';
 
 export class SimpleCOSECryptoProvider implements COSECryptoProvider {
 
@@ -39,11 +39,28 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
         const signature = await crypto.subtle.sign(algo, keyInfo.privateKey, payload2);
         const f1 = new ByteStringElement(new Int8Array([-95, 1, 38]).buffer);
         const map = new Map<MapKey, DataElement>();
-        map.set(new MapKey(33), new NullElement);
+        let acc = Uint8Array.from([]).buffer;
+        for (const x5c of keyInfo.x5Chain) {
+            acc = this.concatenateArrayBuffers(acc, x5c.rawData);
+        }
+
+        const certs = new x509.X509Certificates(keyInfo.x5Chain);
+        //certs.import()
+        //x509.X509Certificates.
+        let bla = certs.export('raw');
+
+        map.set(new MapKey(33), new ByteStringElement(bla));
         const f2 = new MapElement(map);
         const f3 = new ByteStringElement(payload);
         const f4 = new ByteStringElement(signature);
         return new COSESign1([f1, f2, f3, f4]);
+    }
+
+    private concatenateArrayBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer): ArrayBuffer {
+        var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+        tmp.set(new Uint8Array(buffer1), 0);
+        tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+        return tmp.buffer;
     }
 
     async verify1(coseSign1: COSESign1, keyID: string): Promise<boolean> {
@@ -63,10 +80,29 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
         return await crypto.subtle.verify(algo, keyInfo.publicKey, coseSign1.signatureOrTag, payload);
     }
     
-    verifyX5Chain(coseSign1: COSESign1, keyID: string): boolean {
+    async verifyX5Chain(coseSign1: COSESign1, keyID: string): Promise<boolean> {
+        const crypto = new Crypto();
+        x509.cryptoProvider.set(crypto);
         const keyInfo = this._keyMap.get(keyID);
         if (!keyInfo) throw new Error("No key ID given, or key with given ID not found");
-        //const test = coseSign1.x5Chain;
+        const test = coseSign1.x5Chain;
+        const certificateChain = new x509.X509Certificates();
+        certificateChain.import(test);
+        let lastCertificate = certificateChain[certificateChain.length - 1];
+        let bla = lastCertificate.publicKey.rawData;
+        let bla3 = await lastCertificate.publicKey.export();
+        let bla4 = <Uint8Array>await crypto.subtle.exportKey('raw', bla3);
+        let bla2 = <Uint8Array>await crypto.subtle.exportKey('raw', keyInfo.publicKey);
+
+        let equals = ArrayBufferComparer.equals(bla2.buffer, bla4.buffer);
+        return certificateChain.length > 0  && 
+               ArrayBufferComparer.equals(bla2.buffer, bla4.buffer) && 
+               this.validateCertificateChain(certificateChain, keyInfo);
         throw new Error("Method not implemented.");
+    }
+
+    private validateCertificateChain(certChain: x509.X509Certificate[], keyInfo: SimpleCOSECryptoProviderKeyInfo): boolean {
+        // TODO: Implement
+        return true;
     }
 }

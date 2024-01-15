@@ -83,8 +83,8 @@ export class MobileDocument {
         return await cryptoProvider.verify1(deviceSignature.attachPayload(this.getDeviceSignedPayload(deviceAuthentication)), keyID);
     }
 
-    private verifyCertificateChain(cryptoProvider: COSECryptoProvider, keyID: string | null = null): boolean {
-        return cryptoProvider.verifyX5Chain(this.issuerSigned.issuerAuth, keyID);
+    private async verifyCertificateChain(cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<boolean> {
+        return await cryptoProvider.verifyX5Chain(this.issuerSigned.issuerAuth, keyID);
     }
 
     private verifyValidity(): boolean {
@@ -129,7 +129,7 @@ export class MobileDocument {
         for (const verificationType of verificationParams.verificationTypes) {
             switch (verificationType) {
                 case VerificationType.CERTIFICATE_CHAIN:
-                    if (!this.verifyCertificateChain(cryptoProvider, verificationParams.issuerKeyID)) return false;
+                    if (!await this.verifyCertificateChain(cryptoProvider, verificationParams.issuerKeyID)) return false;
                     break;
                 case VerificationType.VALIDITY:
                     if (!this.verifyValidity()) return false;

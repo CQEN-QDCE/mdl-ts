@@ -101,7 +101,7 @@ describe('testing mdoc', () => {
         const params = new MDocVerificationParams();
         params.verificationTypes = [//VerificationType.VALIDITY, // TODO: Implement validity verification
                                     VerificationType.DOC_TYPE, 
-                                    //VerificationType.CERTIFICATE_CHAIN, // TODO: Implement certificate chain verification
+                                    VerificationType.CERTIFICATE_CHAIN, // TODO: Implement certificate chain verification
                                     VerificationType.ITEMS_TAMPER_CHECK, 
                                     VerificationType.ISSUER_SIGNATURE];
         params.issuerKeyID = ISSUER_KEY_ID;
