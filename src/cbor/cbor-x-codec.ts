@@ -1,14 +1,18 @@
-import cbor, { Tagged } from 'cbor';
+import { addExtension, Encoder, decode, encode } from 'cbor-x';
 import { CborCodec } from './cbor-codec';
 
 export class CborXCodec implements CborCodec {
 
-    encode(...objs: any[]): ArrayBuffer {
-        return cbor.encode(objs);
+    encode(value: any): ArrayBuffer {
+        return encode(value);
     }
 
     decode(value: ArrayBuffer): any {
-        return cbor.decodeFirstSync(value);
+        return decode(new Uint8Array(value));
     }
+
+//    bla(): void {
+//        addExtension(Encoder);
+//    }
 
 }

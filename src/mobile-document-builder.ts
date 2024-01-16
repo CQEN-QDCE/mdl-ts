@@ -6,7 +6,7 @@ import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
 import { IssuerSignedItem } from "./issuer-signed/issuer-signed-item";
 import { MobileDocument } from "./mobile-document";
 import { DeviceSigned } from "./mdoc/device-signed";
-import { IssuerSigned } from "./mdoc/issuer-signed";
+import { IssuerSigned } from "./issuer-signed/issuer-signed";
 import { MobileSecurityObject } from "./mdoc/mobile-security-object";
 import { DeviceKeyInfo } from "./mso/device-key-info";
 import { ValidityInfo } from "./mso/validity-info";

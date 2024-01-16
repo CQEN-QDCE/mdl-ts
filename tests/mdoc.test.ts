@@ -17,7 +17,7 @@ import { FullDateElement } from "../src/data-element/full-date-element";
 import { MapKey } from "../src/data-element/map-key";
 import { NumberElement } from "../src/data-element/number-element";
 import { MobileDocument } from "../src/mobile-document";
-import { IssuerSigned } from "../src/mdoc/issuer-signed";
+import { IssuerSigned } from "../src/issuer-signed/issuer-signed";
 import { DeviceSigned } from "../src/mdoc/device-signed";
 import * as x509 from "@peculiar/x509";
 import { Crypto } from "@peculiar/webcrypto";

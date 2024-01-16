@@ -7,7 +7,7 @@ import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
 import { MobileDocument } from "../mobile-document";
 import { DeviceSigned } from "../mdoc/device-signed";
-import { IssuerSigned } from "../mdoc/issuer-signed";
+import { IssuerSigned } from "../issuer-signed/issuer-signed";
 import { Hex } from "../utils/hex";
 import { DeviceResponseStatus } from "./device-response-status.enum";
 

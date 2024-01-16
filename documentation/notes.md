@@ -25,3 +25,5 @@ https://github.com/a-sit-plus/kmm-vc-library/blob/b37bcd436622bea36b5b53e4773eed
         )
 
 https://github.com/Sphereon-Opensource/OID4VC-demo/tree/develop/packages
+
+https://github.com/orgs/openid/repositories

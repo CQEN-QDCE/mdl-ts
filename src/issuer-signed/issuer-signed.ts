@@ -5,8 +5,11 @@ import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 
 export class IssuerSigned {
-    private nameSpaces: Map<string, EncodedCBORElement[]>;
-    private issuerAuth: COSESign1;
+
+    nameSpaces: Map<string, EncodedCBORElement[]>;
+    
+    issuerAuth: COSESign1;
+    
     constructor(nameSpaces: Map<string, EncodedCBORElement[]>, issuerAuth: COSESign1) {
         this.nameSpaces = nameSpaces;
         this.issuerAuth = issuerAuth;
@@ -14,14 +17,17 @@ export class IssuerSigned {
 
     toMapElement(): MapElement {
         const map = new Map<MapKey, DataElement>();
-        //map.set(new MapKey('nameSpaces'), this.nameSpaces);
-        //map.set(new MapKey('issuerAuth'), this.issuerAuth.data.toDataElement());
+        map.set(new MapKey('issuerAuth'), this.issuerAuth.toDataElement());
         return new MapElement(map);
     }
 
     static fromMapElement(mapElement: MapElement): IssuerSigned {
-        //let nameSpaces = mapElement.value.get(new MapKey('nameSpaces')) as EncodedCBORElement;
-        //let deviceAuth = DeviceAuth.fromMapElement(mapElement.value.get(new MapKey('deviceAuth')));
-        return new IssuerSigned(null, null);
+        const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
+        const issuerAuth = mapElement.get(new MapKey('issuerAuth'));
+        const nameSpaces2 = new Map<string, EncodedCBORElement[]>();
+        for (const [key, value] of (<MapElement>nameSpaces).value) {
+            nameSpaces2.set(key.str, <EncodedCBORElement[]>value.value);
+        }
+        return new IssuerSigned(nameSpaces2, new COSESign1(issuerAuth.value));
     }
 }

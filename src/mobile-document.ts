@@ -13,7 +13,7 @@ import { DeviceAuthentication } from "./mdoc-auth/device-authentication";
 import { MDocRequest } from "./mdoc-request";
 import { DeviceAuth } from "./mdoc/device-auth";
 import { DeviceSigned } from "./mdoc/device-signed";
-import { IssuerSigned } from "./mdoc/issuer-signed";
+import { IssuerSigned } from "./issuer-signed/issuer-signed";
 import { MDocVerificationParams } from "./mdoc/mdoc-verification-params";
 import { MobileSecurityObject } from "./mdoc/mobile-security-object";
 import { VerificationType } from "./mdoc/verification-type.enum";
