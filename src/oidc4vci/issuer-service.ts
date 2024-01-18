@@ -3,7 +3,7 @@ import { Iso, IssuedCredential, Issuer, VcJwt, VcSdJwt } from "../oidc/issuer";
 import { OpenIdConstants } from "../oidc/openid-constants";
 import { VcDataModelConstants } from "../oidc/vc-data-model-constants";
 import { CredentialRepresentation } from "../oidc/vc/credential-representation.enum";
-import { CredentialScheme } from "../oidc/vc/credential-scheme";
+import { CredentialScheme, MobileDrivingLicence2023 } from "../oidc/vc/credential-scheme";
 import { CodeService } from "./code-service";
 import { CredentialFormatEnum } from "./credential-format.enum";
 import { CredentialRequestParameters } from "./credential-request-parameters";
@@ -16,80 +16,95 @@ import { TokenRequestParameters } from "./token-request-parameters";
 import { TokenResponseParameters } from "./token-response-parameters";
 import { TokenService } from "./token-service";
 
+export interface IssuerServiceOptions {
+    issuer: Issuer;
+    credentialSchemes: CredentialScheme[];
+    codeService: CodeService;
+    tokenService: TokenService;
+    clientNonceService: NonceService;
+    authorizationServer: string;
+    publicContext: string;
+    authorizationEndpointPath: string;
+    tokenEndpointPath: string;
+    credentialEndpointPath: string;
+    display: any[];
+}
+
 export class IssuerService {
 
-    private metatdata: IssuerMetadata;
+    public readonly metadata: IssuerMetadata;
 
-    constructor(private readonly issuer: Issuer,
-                private readonly credentialSchemes: CredentialScheme[],
-                private readonly codeService: CodeService,
-                private readonly tokenService: TokenService,
-                private readonly clientNonceService: NonceService,
-                private readonly authorizationServer: string,
-                private readonly publicContext: string,
-                private readonly authorizationEndpointPath: string = '/authorize',
-                private readonly tokenEndpointPath: string = '/token',
-                private readonly credentialEndpointPath: string = '/credential',
-                public readonly display: any[] = []) {
- /*       
-        this.metatdata = new IssuerMetadata(
+    private readonly issuer: Issuer;
+    private readonly credentialSchemes: CredentialScheme[];
+    private readonly codeService: CodeService = new CodeService();
+    private readonly tokenService: TokenService = new TokenService();
+    private readonly clientNonceService: NonceService = new NonceService();
+    private readonly authorizationServer: string | null = null;
+    private readonly publicContext: string = "https://wallet.a-sit.at";
+    private readonly authorizationEndpointPath: string = '/authorize';
+    private readonly tokenEndpointPath: string = '/token';
+    private readonly credentialEndpointPath: string = '/credential';
+    public readonly display: any[] = [];
+
+    constructor(initializer?: Partial<IssuerServiceOptions>) {
+        Object.assign(this, initializer);
+        this.metadata = new IssuerMetadata(
             {
-                issuer: publicContext, 
-                credentialIssuer: publicContext,
-                authorizationServer: authorizationServer,
-                authorizationEndpointUrl: `${publicContext}/${authorizationEndpointPath}`,
-                tokenEndpointUrl: `${publicContext}/${tokenEndpointPath}`,
-                credentialEndpointUrl: `${publicContext}/${credentialEndpointPath}`,
-                supportedCredentialFormat: credentialSchemes
-                );
-
-                */
-        
+                issuer: this.publicContext, 
+                credentialIssuer: this.publicContext,
+                authorizationServer: this.authorizationServer,
+                authorizationEndpointUrl: `${this.publicContext}${this.authorizationEndpointPath}`,
+                tokenEndpointUrl: `${this.publicContext}${this.tokenEndpointPath}`,
+                credentialEndpointUrl: `${this.publicContext}${this.credentialEndpointPath}`,
+                supportedCredentialFormat: this.toSupportedCredentialFormat(this.credentialSchemes)
+            }
+        );
     }
 
-    private toSupportedCredentialFormat(credentialScheme: CredentialScheme): SupportedCredentialFormat[] {
+    private toSupportedCredentialFormat(credentialSchemes: CredentialScheme[]): SupportedCredentialFormat[] {
         let supportedCredentialFormats: SupportedCredentialFormat[] = [];
-        supportedCredentialFormats.push(new SupportedCredentialFormat(
-            {
-                format: CredentialFormatEnum.MSO_MDOC,
-                id: credentialScheme.vcType,
-                types: [credentialScheme.vcType],
-                docType: credentialScheme.isoDocType,
-                claims: this.buildIsoClaims(credentialScheme),
-                supportedBindingMethods: [OpenIdConstants.BINDING_METHOD_COSE_KEY],
-                supportedCryptographicSuites: ['ES256']
-
-            }
-        ));
-        supportedCredentialFormats.push(new SupportedCredentialFormat(
-            {
-                format: CredentialFormatEnum.JWT_VC,
-                id: credentialScheme.vcType,
-                types: [VcDataModelConstants.VERIFIABLE_CREDENTIAL, credentialScheme.vcType],
-                supportedBindingMethods: [OpenIdConstants.PREFIX_DID_KEY, OpenIdConstants.URN_TYPE_JWK_THUMBPRINT],
-                supportedCryptographicSuites: ['ES256']
-
-            }
-        ));
-        supportedCredentialFormats.push(new SupportedCredentialFormat(
-            {
-                format: CredentialFormatEnum.JWT_VC_SD,
-                id: credentialScheme.vcType,
-                types: [VcDataModelConstants.VERIFIABLE_CREDENTIAL, credentialScheme.vcType],
-                supportedBindingMethods: [OpenIdConstants.PREFIX_DID_KEY, OpenIdConstants.URN_TYPE_JWK_THUMBPRINT],
-                supportedCryptographicSuites: ['ES256']
-
-            }
-        ));
+        for (let credentialScheme of credentialSchemes) {
+            supportedCredentialFormats.push(new SupportedCredentialFormat(
+                {
+                    format: CredentialFormatEnum.MSO_MDOC,
+                    id: credentialScheme.vcType,
+                    types: [credentialScheme.vcType],
+                    docType: credentialScheme.isoDocType,
+                    claims: this.buildIsoClaims(credentialScheme),
+                    supportedBindingMethods: [OpenIdConstants.BINDING_METHOD_COSE_KEY],
+                    supportedCryptographicSuites: ['ES256']
+                }
+            ));
+            supportedCredentialFormats.push(new SupportedCredentialFormat(
+                {
+                    format: CredentialFormatEnum.JWT_VC,
+                    id: credentialScheme.vcType,
+                    types: [VcDataModelConstants.VERIFIABLE_CREDENTIAL, credentialScheme.vcType],
+                    supportedBindingMethods: [OpenIdConstants.PREFIX_DID_KEY, OpenIdConstants.URN_TYPE_JWK_THUMBPRINT],
+                    supportedCryptographicSuites: ['ES256']
+                }
+            ));
+            supportedCredentialFormats.push(new SupportedCredentialFormat(
+                {
+                    format: CredentialFormatEnum.JWT_VC_SD,
+                    id: credentialScheme.vcType,
+                    types: [VcDataModelConstants.VERIFIABLE_CREDENTIAL, credentialScheme.vcType],
+                    supportedBindingMethods: [OpenIdConstants.PREFIX_DID_KEY, OpenIdConstants.URN_TYPE_JWK_THUMBPRINT],
+                    supportedCryptographicSuites: ['ES256']
+                }
+            ));
+        }
         return supportedCredentialFormats;
     }
 
     private buildIsoClaims(credentialScheme: CredentialScheme): Map<string, Map<string, RequestedCredentialClaimSpecification>> {
         let result = new Map<string, Map<string, RequestedCredentialClaimSpecification>>();
-        for (let [key, value] of credentialScheme.isoNamespace) {
-            throw new Error('Not implemented');
+        let mdl = new MobileDrivingLicence2023();
+        let claims = new Map<string, RequestedCredentialClaimSpecification>();
+        for (let claimName of mdl.claimNames) {
+            claims.set(claimName, new RequestedCredentialClaimSpecification());
         }
-        
+        result.set(credentialScheme.isoNamespace, claims);
         return result;
     }
 

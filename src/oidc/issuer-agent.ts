@@ -31,4 +31,8 @@ export class IssuerAgent implements Issuer {
         throw new Error("Method not implemented.");
     }
 
+    public static newDefaultInstance(cryptoService: any, dataProvider: any): IssuerAgent {
+        throw new Error("Method not implemented.");
+    }
+
 }

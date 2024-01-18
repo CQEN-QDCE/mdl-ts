@@ -1,3 +1,4 @@
+import { AuthorizationDetails } from "../oidc4vci/authorization-details";
 import { AuthnRequestClaims } from "./authn-request-claims";
 import { RelyingPartyMetadata } from "./relying-party-metadata";
 
@@ -47,7 +48,7 @@ export class AuthenticationRequestParameters {
         public readonly presentationDefinition: string | null = null;
 
         // @SerialName("authorization_details")
-        public readonly authorizationDetails: string | null = null;
+        public readonly authorizationDetails: AuthorizationDetails | null = null;
 
         // @SerialName("client_id_scheme")
         public readonly clientIdScheme: string | null = null;

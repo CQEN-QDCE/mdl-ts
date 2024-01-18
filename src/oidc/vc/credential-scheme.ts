@@ -1,3 +1,5 @@
+import { MobileDrivingLicenceAllDataElement } from "./mobile-driving-licence-data-elements.enum";
+
 export interface CredentialScheme {
     schemaUri: string;
     vcType: string;
@@ -20,4 +22,11 @@ export class MobileDrivingLicence2023 implements CredentialScheme {
     public readonly isoNamespace = 'org.iso.18013.5.1';
     public readonly isoDocType = 'org.iso.18013.5.1.mDL';
     public readonly claimNames = ['givenName', 'familyName', 'birthDate'];
+    constructor() {
+        const claimNames: string[] = [];
+        for (let element of MobileDrivingLicenceAllDataElement.ALL) {
+            claimNames.push(element.toString());
+        }
+        this.claimNames = claimNames;
+    }
 }
