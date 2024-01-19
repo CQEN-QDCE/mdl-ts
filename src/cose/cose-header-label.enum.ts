@@ -1,11 +1,10 @@
-export enum COSEHeaders {
+export enum CoseHeaderLabel {
     RESERVED = 0,
     ALG = 1,
     CRITICAL = 2,
     CONTENT_TYPE = 3,
     KID = 4,
-    //IV = 5, // Full Initialization Vector 
-    HMAC256 = 5, // TODO: Cette valeur ne va pas ici
+    IV = 5, // Full Initialization Vector 
     PARTIAL_IV = 6,
     COUNTER_SIGN = 7,
     COUNTER_SIGN0 = 9,

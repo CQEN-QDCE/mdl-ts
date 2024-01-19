@@ -1,4 +1,4 @@
-import { COSEHeaders } from "../src/cose/cose-headers.enum";
+import { CoseHeaderLabel } from "../src/cose/cose-header-label.enum";
 import { DataElementDeserializer } from "../src/data-element/data-element-deserializer";
 import { EncodedCBORElement } from "../src/data-element/encoded-cbor-element";
 import { ListElement } from "../src/data-element/list-element";
@@ -36,6 +36,7 @@ import { NullElement } from "../src/data-element/null-element";
 import { MDL } from "../src/mdl";
 import { COSEKey } from "../src/cose/cose-key";
 import { ItemsRequest } from "../src/items-request";
+import { CoseAlgorithm } from "../src/cose/cose-algorithm.enum";
 
 describe('testing mdoc', () => {
     
@@ -423,7 +424,7 @@ describe('testing mdoc', () => {
         const deviceResponse = DeviceResponse.fromMapElement(<MapElement>dataElement);
         const deviceMac = deviceResponse.documents[0].deviceSigned.deviceAuth.deviceMac;
         expect(deviceMac).not.toBeNull();
-        expect(deviceMac.algorithm).toBe(COSEHeaders.HMAC256);
+        expect(deviceMac.algorithm).toBe(CoseAlgorithm.HMAC256);
         expect(deviceMac.payload).toBeNull();
         expect(Buffer.from(deviceMac.signatureOrTag).equals(Buffer.from("E99521A85AD7891B806A07F8B5388A332D92C189A7BF293EE1F543405AE6824D", 'hex'))).toBe(true);
 

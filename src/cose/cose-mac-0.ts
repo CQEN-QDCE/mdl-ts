@@ -9,11 +9,12 @@ import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 import { Hex } from "../utils/hex";
-import { COSEHeaders } from "./cose-headers.enum";
-import { COSEBase } from "./cose-base";
+import { CoseHeaderLabel } from "./cose-header-label.enum";
+import { COSEObject } from "./cose-object";
 import { sha256 } from 'js-sha256';
+import { CoseAlgorithm } from "./cose-algorithm.enum";
 
-export class COSEMac0 extends COSEBase<COSEMac0> {
+export class COSEMac0 extends COSEObject<COSEMac0> {
    
     constructor(dataElements: DataElement[]) {
         super(dataElements);
@@ -29,7 +30,7 @@ export class COSEMac0 extends COSEBase<COSEMac0> {
 
     verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): boolean {
         if (!this.payload) throw 'No payload given.';
-        if (this.algorithm !== COSEHeaders.HMAC256) throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
+        if (this.algorithm !== CoseAlgorithm.HMAC256) throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
         const macStructure = COSEMac0.createMacStructure(this.protectedHeader, this.payload, externalData);
         const mac0Content = DataElementSerializer.toCBOR(macStructure);
         const tag = Hex.decode(sha256.hmac(sharedSecret, mac0Content));
@@ -38,7 +39,7 @@ export class COSEMac0 extends COSEBase<COSEMac0> {
 
     static createWithHMAC256(payload: ArrayBuffer, sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): COSEMac0 {
         const protectedHeaderMap = new Map<MapKey, NumberElement>();
-        protectedHeaderMap.set(new MapKey(COSEHeaders.ALG), new NumberElement(COSEHeaders.HMAC256));
+        protectedHeaderMap.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(CoseAlgorithm.HMAC256));
         const protectedHeaderData = new MapElement(protectedHeaderMap).toCBOR();
         const mac0Content = DataElementSerializer.toCBOR(COSEMac0.createMacStructure(protectedHeaderData, payload, externalData));
         const tag5 = sha256.hmac(sharedSecret, mac0Content);

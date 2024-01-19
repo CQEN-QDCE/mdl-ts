@@ -5,14 +5,21 @@ import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { NumberElement } from "../data-element/number-element";
-import { COSEHeaders } from "./cose-headers.enum";
+import { CoseHeaderLabel } from "./cose-header-label.enum";
+import { CoseHeaders } from "./cose-headers";
 
-export abstract class COSEBase<T> {
+export abstract class COSEObject<T> {
 
     protected dataElements: DataElement[] = [];
 
+    protected readonly coseHeaders = new CoseHeaders();
+
     constructor(dataElements: DataElement[]) {
         this.dataElements = dataElements;
+    }
+
+    get headers(): CoseHeaders {
+        return this.coseHeaders;
     }
 
     get payload(): ArrayBuffer | null {
@@ -25,7 +32,7 @@ export abstract class COSEBase<T> {
     get x5Chain(): ArrayBuffer | null {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
         const unprotectedHeader = this.dataElements[1] as MapElement;
-        const x5Chain = unprotectedHeader.get(new MapKey(COSEHeaders.X5_CHAIN)) as ByteStringElement;
+        const x5Chain = unprotectedHeader.get(new MapKey(CoseHeaderLabel.X5_CHAIN)) as ByteStringElement;
         return x5Chain.value;
     }
 
@@ -37,7 +44,7 @@ export abstract class COSEBase<T> {
     get algorithm(): number {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
         const protectedHeaderMapElement = <MapElement>DataElementDeserializer.fromCBOR(this.protectedHeader);
-        const numberElement = <NumberElement>protectedHeaderMapElement.get(new MapKey(COSEHeaders.ALG));
+        const numberElement = <NumberElement>protectedHeaderMapElement.get(new MapKey(CoseHeaderLabel.ALG));
         return numberElement.value;
     }
 
