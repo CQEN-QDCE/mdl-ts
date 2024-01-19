@@ -1,6 +1,7 @@
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { DataElement } from "../data-element/data-element";
+import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 
@@ -27,6 +28,6 @@ export class DeviceAuth {
         if (!deviceMac) deviceMac = null;
         let deviceSignature = mapElement.get(new MapKey('deviceSignature'));
         if (!deviceSignature) deviceSignature = null;
-        return new DeviceAuth(new COSEMac0(deviceMac.value), deviceSignature ? new COSESign1(deviceSignature.value) : null);
+        return new DeviceAuth(COSEMac0.fromDataElement(new ListElement(deviceMac.value)), deviceSignature ? COSESign1.fromDataElement(new ListElement(deviceSignature.value)) : null);
     }
 }

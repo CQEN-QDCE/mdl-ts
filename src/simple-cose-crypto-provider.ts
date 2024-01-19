@@ -9,6 +9,7 @@ import { MapElement } from "./data-element/map-element";
 import { DataElement } from "./data-element/data-element";
 import { MapKey } from "./data-element/map-key";
 import { ArrayBufferComparer } from './utils/array-buffer-comparer';
+import { ListElement } from './data-element/list-element';
 
 export class SimpleCOSECryptoProvider implements COSECryptoProvider {
 
@@ -53,7 +54,7 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
         const f2 = new MapElement(map);
         const f3 = new ByteStringElement(payload);
         const f4 = new ByteStringElement(signature);
-        return new COSESign1([f1, f2, f3, f4]);
+        return COSESign1.fromDataElement(new ListElement([f1, f2, f3, f4]));
     }
 
     private concatenateArrayBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer): ArrayBuffer {

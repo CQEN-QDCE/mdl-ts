@@ -16,16 +16,16 @@ import { CoseAlgorithm } from "./cose-algorithm.enum";
 
 export class COSEMac0 extends COSEObject<COSEMac0> {
    
-    constructor(dataElements: DataElement[]) {
-        super(dataElements);
+    constructor() {
+        super();
     }
 
     detachPayload(): COSEMac0 {
-        return new COSEMac0(this.replacePayload(new NullElement()));
+        return COSEMac0.fromDataElement(new ListElement(this.replacePayload(new NullElement())));
     }
 
     attachPayload(payload: ArrayBuffer): COSEMac0 {
-        return new COSEMac0(this.replacePayload(new ByteStringElement(payload)));
+        return COSEMac0.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
     }
 
     verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): boolean {
@@ -51,7 +51,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         dataElements.push(new MapElement(new Map<MapKey, DataElement>()))
         dataElements.push(new ByteStringElement(payload))
         dataElements.push(new ByteStringElement(g))
-        return new COSEMac0(dataElements);
+        return COSEMac0.fromDataElement(new ListElement(dataElements));
     }
 
     private static createMacStructure(protectedHeaderData: ArrayBuffer, payload: ArrayBuffer, externalData: ArrayBuffer): ListElement {
@@ -61,5 +61,11 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         dataElements.push(new ByteStringElement(externalData));
         dataElements.push(new ByteStringElement(payload));
         return new ListElement(dataElements);
+    }
+
+    public static fromDataElement(dataElement: ListElement): COSEMac0 {
+        const coseMac0 = new COSEMac0();
+        coseMac0.dataElements = dataElement.value;
+        return coseMac0;
     }
 }

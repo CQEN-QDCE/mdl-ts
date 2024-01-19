@@ -1,4 +1,5 @@
 import { CoseAlgorithm } from "./cose-algorithm.enum";
+import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { CoseHeaderValue } from "./cose-header-value";
 
 export class CoseHeaders {
@@ -9,7 +10,7 @@ export class CoseHeaders {
 
     // @CborLabel(2)
     // @SerialName("crit")
-    public readonly criticalHeaders = new CoseHeaderValue<string>(null).unprotect();
+    public readonly criticalHeaders = new CoseHeaderValue<CoseHeaderLabel[]>(null).unprotect();
 
     // @CborLabel(3)
     // @SerialName("content type")

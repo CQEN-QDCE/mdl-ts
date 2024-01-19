@@ -1,6 +1,7 @@
 import { COSESign1 } from "../cose/cose-sign-1";
 import { DataElement } from "../data-element/data-element";
 import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
+import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 
@@ -28,6 +29,6 @@ export class IssuerSigned {
         for (const [key, value] of (<MapElement>nameSpaces).value) {
             nameSpaces2.set(key.str, <EncodedCBORElement[]>value.value);
         }
-        return new IssuerSigned(nameSpaces2, new COSESign1(issuerAuth.value));
+        return new IssuerSigned(nameSpaces2, COSESign1.fromDataElement(new ListElement(issuerAuth.value)));
     }
 }

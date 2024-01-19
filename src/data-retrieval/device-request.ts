@@ -32,7 +32,7 @@ export class DeviceRequest {
             for (const mdocRequest of docRequests.value) {
                 const itemsRequest = <EncodedCBORElement>mdocRequest.get(new MapKey('itemsRequest'));
                 const readerAuth = <ListElement>mdocRequest.get(new MapKey('readerAuth'));
-                docRequests2.push(new MDocRequest(itemsRequest, readerAuth ? new COSESign1(readerAuth.value) : null));
+                docRequests2.push(new MDocRequest(itemsRequest, readerAuth ? COSESign1.fromDataElement(new ListElement(readerAuth.value)) : null));
             }
         }
         let version = mapElement.get(new MapKey('version'));

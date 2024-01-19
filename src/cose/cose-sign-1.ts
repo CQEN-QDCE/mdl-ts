@@ -3,6 +3,7 @@ import { DataElement } from "../data-element/data-element";
 import { NullElement } from "../data-element/null-element";
 import { COSEObject } from "./cose-object";
 import { CoseHeaders } from "./cose-headers";
+import { ListElement } from "../data-element/list-element";
 
 export class COSESign1 extends COSEObject<COSESign1> {
    
@@ -12,16 +13,22 @@ export class COSESign1 extends COSEObject<COSESign1> {
 
     private readonly unprotectedHeaders = new CoseHeaders();
 
-    constructor(dataElements: DataElement[]) {
-        super(dataElements);
+    constructor() {
+        super();
     }
 
     detachPayload(): COSESign1 {
-        return new COSESign1(this.replacePayload(new NullElement()));
+        return COSESign1.fromDataElement(new ListElement(this.replacePayload(new NullElement())));
     }
 
     attachPayload(payload: ArrayBuffer): COSESign1 {
-        return new COSESign1(this.replacePayload(new ByteStringElement(payload)));
+        return COSESign1.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
+    }
+
+    public static fromDataElement(dataElement: ListElement): COSESign1 {
+        const coseMac0 = new COSESign1();
+        coseMac0.dataElements = dataElement.value;
+        return coseMac0;
     }
 
 }

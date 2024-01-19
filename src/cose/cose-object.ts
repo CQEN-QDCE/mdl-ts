@@ -14,8 +14,7 @@ export abstract class COSEObject<T> {
 
     protected readonly coseHeaders = new CoseHeaders();
 
-    constructor(dataElements: DataElement[]) {
-        this.dataElements = dataElements;
+    constructor() {
     }
 
     get headers(): CoseHeaders {

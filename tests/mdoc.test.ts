@@ -403,7 +403,7 @@ describe('testing mdoc', () => {
         const deviceRequest = DeviceRequest.fromCBORHex(deviceRequestCborHex);
         expect(deviceRequest.version).toBe('1.0');
         expect(deviceRequest.mdocRequests.length).toBe(1);
-        expect(deviceRequest[0].docType).toBe(MDL.DocType);
+        expect(deviceRequest.mdocRequests[0].docType).toBe(MDL.DocType);
 
 //        devRequest.docRequests[0].nameSpaces shouldContain "org.iso.18013.5.1"
 //        devRequest.docRequests[0].getRequestedItemsFor("org.iso.18013.5.1") shouldBe mapOf(
