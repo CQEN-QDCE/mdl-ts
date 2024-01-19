@@ -6,7 +6,7 @@ export class CoseHeaders {
 
     // @CborLabel(1)
     // @SerialName("alg")
-    public readonly algorithm = new CoseHeaderValue<CoseAlgorithm>(CoseAlgorithm.ES256).protect();
+    public readonly algorithm: CoseHeaderValue<CoseAlgorithm>;
 
     // @CborLabel(2)
     // @SerialName("crit")
@@ -30,6 +30,13 @@ export class CoseHeaders {
 
     // @CborLabel(33)
     // @SerialName("x5chain")
-    public readonly x5Chain = new CoseHeaderValue<ArrayBuffer>(null).unprotect();
+    public readonly x5Chain: CoseHeaderValue<ArrayBuffer>;
+
+    constructor() {
+        this.algorithm = new CoseHeaderValue<CoseAlgorithm>(CoseAlgorithm.ES256);
+        this.algorithm.protect();
+        this.x5Chain = new CoseHeaderValue<ArrayBuffer>(null);
+        this.x5Chain.unprotect();
+    }
 
 }

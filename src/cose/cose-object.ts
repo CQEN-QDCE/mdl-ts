@@ -14,6 +14,8 @@ export abstract class COSEObject<T> {
 
     protected readonly coseHeaders = new CoseHeaders();
 
+    protected content: ArrayBuffer | null = null;
+
     constructor() {
     }
 
@@ -21,18 +23,24 @@ export abstract class COSEObject<T> {
         return this.coseHeaders;
     }
 
+    public setContent(content: ArrayBuffer): void {
+        this.content = content;
+    }
+
     get payload(): ArrayBuffer | null {
-        if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-        if (this.dataElements[2].type === DataElement.Type.nil) return null;
-        if (this.dataElements[2].type === DataElement.Type.byteString) return (<ByteStringElement>this.dataElements[2]).value
-        throw 'Invalid COSE_Sign1 payload.';
+//        if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
+//        if (this.dataElements[2].type === DataElement.Type.nil) return null;
+//        if (this.dataElements[2].type === DataElement.Type.byteString) return (<ByteStringElement>this.dataElements[2]).value
+//        throw 'Invalid COSE_Sign1 payload.';
+        return this.content;
     }
 
     get x5Chain(): ArrayBuffer | null {
-        if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-        const unprotectedHeader = this.dataElements[1] as MapElement;
-        const x5Chain = unprotectedHeader.get(new MapKey(CoseHeaderLabel.X5_CHAIN)) as ByteStringElement;
-        return x5Chain.value;
+//        if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
+//        const unprotectedHeader = this.dataElements[1] as MapElement;
+//        const x5Chain = unprotectedHeader.get(new MapKey(CoseHeaderLabel.X5_CHAIN)) as ByteStringElement;
+//        return x5Chain.value;
+        return this.headers.x5Chain.value;
     }
 
     get protectedHeader(): ArrayBuffer {
@@ -69,9 +77,7 @@ export abstract class COSEObject<T> {
 
     abstract attachPayload(payload: Buffer): T
 
-    toDataElement(): ListElement {
-        return new ListElement(this.dataElements);
-    }
+    abstract toDataElement(): ListElement;
 
     toCBOR(): ArrayBuffer {
         return this.toDataElement().toCBOR();

@@ -10,6 +10,7 @@ import { DataElement } from "./data-element/data-element";
 import { MapKey } from "./data-element/map-key";
 import { ArrayBufferComparer } from './utils/array-buffer-comparer';
 import { ListElement } from './data-element/list-element';
+import { CoseAlgorithm } from './cose/cose-algorithm.enum';
 
 export class SimpleCOSECryptoProvider implements COSECryptoProvider {
 
@@ -23,8 +24,17 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
     }
 
     async sign1(payload: ArrayBuffer, keyID: string): Promise<COSESign1> {
+        
         const keyInfo = this._keyMap.get(keyID);
         if (!keyInfo) throw new Error('No key ID given, or key with given ID not found');
+        
+        const coseSign1 = new COSESign1();
+        coseSign1.headers.algorithm.value = CoseAlgorithm.ES256;
+        coseSign1.headers.x5Chain.value = new x509.X509Certificates(keyInfo.x5Chain).export('raw');
+        coseSign1.setContent(payload);
+        await coseSign1.sign(keyInfo.privateKey);
+        return coseSign1;
+        /*
         const cborArray = [];
         cborArray.push('Signature1');
         cborArray.push(new Int8Array([-95, 1, 38]).buffer); // TODO: This is the protected header, but it's not clear what it should be
@@ -46,15 +56,15 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
         }
 
         const certs = new x509.X509Certificates(keyInfo.x5Chain);
-        //certs.import()
-        //x509.X509Certificates.
         let bla = certs.export('raw');
 
         map.set(new MapKey(33), new ByteStringElement(bla));
         const f2 = new MapElement(map);
         const f3 = new ByteStringElement(payload);
         const f4 = new ByteStringElement(signature);
+
         return COSESign1.fromDataElement(new ListElement([f1, f2, f3, f4]));
+        */
     }
 
     private concatenateArrayBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer): ArrayBuffer {
@@ -65,6 +75,11 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
     }
 
     async verify1(coseSign1: COSESign1, keyID: string): Promise<boolean> {
+
+        const keyInfo = this._keyMap.get(keyID);
+        if (!keyInfo) throw new Error('No key ID given, or key with given ID not found');
+        return await coseSign1.verify(keyInfo.publicKey);
+        /*
         const cborArray = [];
         cborArray.push('Signature1');
         cborArray.push(coseSign1.protectedHeader);
@@ -79,6 +94,7 @@ export class SimpleCOSECryptoProvider implements COSECryptoProvider {
             hash: { name: "SHA-256" },
         };
         return await crypto.subtle.verify(algo, keyInfo.publicKey, coseSign1.signatureOrTag, payload);
+        */
     }
     
     async verifyX5Chain(coseSign1: COSESign1, keyID: string): Promise<boolean> {

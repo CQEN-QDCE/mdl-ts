@@ -13,6 +13,7 @@ import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { COSEObject } from "./cose-object";
 import { sha256 } from 'js-sha256';
 import { CoseAlgorithm } from "./cose-algorithm.enum";
+import { DataElementDeserializer } from "../data-element/data-element-deserializer";
 
 export class COSEMac0 extends COSEObject<COSEMac0> {
    
@@ -64,8 +65,37 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
     }
 
     public static fromDataElement(dataElement: ListElement): COSEMac0 {
-        const coseMac0 = new COSEMac0();
-        coseMac0.dataElements = dataElement.value;
-        return coseMac0;
+        const message = new COSEMac0();
+        COSEMac0.decodeProtectedHeaders(dataElement.value[0], message);
+        COSEMac0.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
+        message.dataElements = dataElement.value;
+        message.content = dataElement.value[2].value;
+        return message;
+    }
+
+    private static decodeProtectedHeaders(protectedHeaders: ByteStringElement, message: COSEMac0): void {
+        for(const [key, value] of DataElementDeserializer.fromCBOR(protectedHeaders.value).value) {
+            switch(key.int) {
+                case CoseHeaderLabel.ALG:
+                    message.headers.algorithm.value = <CoseAlgorithm>value.value;
+                    break;
+            }
+        };
+    }
+
+    private static decodeUnprotectedHeaders(unprotectedHeaders: MapElement, message: COSEMac0): void {
+        for(const [key, value] of unprotectedHeaders.value) {
+            switch(key.int) {
+                case CoseHeaderLabel.ALG:
+                    throw new Error('Algorithm must be in protected headers');
+                 case CoseHeaderLabel.X5_CHAIN:
+                    message.headers.x5Chain.value = value.value;
+                    break;
+                }
+        };
+    }
+
+    toDataElement(): ListElement {
+        return new ListElement(this.dataElements);
     }
 }
