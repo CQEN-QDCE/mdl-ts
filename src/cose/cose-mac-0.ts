@@ -1,3 +1,4 @@
+import { Crypto } from "@peculiar/webcrypto";
 import { ByteStringElement } from "../data-element/byte-string-element";
 import { DataElement } from "../data-element/data-element";
 import { DataElementSerializer } from "../data-element/data-element-serializer";
@@ -17,8 +18,13 @@ import { DataElementDeserializer } from "../data-element/data-element-deserializ
 
 export class COSEMac0 extends COSEObject<COSEMac0> {
    
+    private readonly context = 'MAC0';
+
+    private digest: ArrayBuffer  | null = null;
+
     constructor() {
         super();
+        this.headers.algorithm.value = CoseAlgorithm.HMAC256;
     }
 
     detachPayload(): COSEMac0 {
@@ -27,6 +33,29 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
 
     attachPayload(payload: ArrayBuffer): COSEMac0 {
         return COSEMac0.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
+    }
+
+    public async mac(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<void> {
+        const crypto = new Crypto();
+        // TODO: Faire une mappage avec this.headers.algorithm.value
+        const algo =   {
+            name: "HMAC",
+            hash: { name: "SHA-256" },
+        };
+        const key = await crypto.subtle.importKey(
+            'raw',
+            sharedSecret,
+            algo,
+            false,
+            ["sign", "verify"]
+        );
+        const cborArray = [];
+        cborArray.push(new StringElement(this.context));
+        cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
+        cborArray.push(new ByteStringElement(externalData));
+        cborArray.push(new ByteStringElement(this.content));
+        const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
+        this.digest = await crypto.subtle.sign(algo, key, data);
     }
 
     verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): boolean {
@@ -71,6 +100,12 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         message.dataElements = dataElement.value;
         message.content = dataElement.value[2].value;
         return message;
+    }
+
+    private encodeProtectedHeaders(): ArrayBuffer {
+        let map = new Map<MapKey, DataElement>();
+        map.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(this.headers.algorithm.value));
+        return DataElementSerializer.toCBOR(new MapElement(map));
     }
 
     private static decodeProtectedHeaders(protectedHeaders: ByteStringElement, message: COSEMac0): void {

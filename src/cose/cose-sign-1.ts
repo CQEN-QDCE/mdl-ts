@@ -1,6 +1,5 @@
 import { Crypto } from "@peculiar/webcrypto";
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { NullElement } from "../data-element/null-element";
 import { COSEObject } from "./cose-object";
 import { ListElement } from "../data-element/list-element";
 import { DataElementDeserializer } from "../data-element/data-element-deserializer";
@@ -51,7 +50,7 @@ export class COSESign1 extends COSEObject<COSESign1> {
         this.signature = await crypto.subtle.sign(algo, privateKey, data);
     }
 
-    async verify(publicKey: CryptoKey): Promise<boolean> {
+    public async verify(publicKey: CryptoKey): Promise<boolean> {
         const crypto = new Crypto();
         // TODO: Faire une mappage avec this.headers.algorithm.value
         const algo =   {
