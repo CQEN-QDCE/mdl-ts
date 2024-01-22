@@ -5,7 +5,6 @@ import { DataElementSerializer } from "../data-element/data-element-serializer";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { NullElement } from "../data-element/null-element";
 import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
@@ -20,7 +19,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
    
     private readonly context = 'MAC0';
 
-    private digest: ArrayBuffer  | null = null;
+    private digest: ArrayBuffer | null = null;
 
     constructor() {
         super();
@@ -28,11 +27,15 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
     }
 
     detachPayload(): COSEMac0 {
-        return COSEMac0.fromDataElement(new ListElement(this.replacePayload(new NullElement())));
+        //return COSESign1.fromDataElement(new ListElement(this.replacePayload(new NullElement())));
+        this.content = null;
+        return this;
     }
 
     attachPayload(payload: ArrayBuffer): COSEMac0 {
-        return COSEMac0.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
+        //return COSESign1.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
+        this.content = payload;
+        return this;
     }
 
     public async mac(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<void> {
@@ -58,15 +61,40 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         this.digest = await crypto.subtle.sign(algo, key, data);
     }
 
-    verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): boolean {
-        if (!this.payload) throw 'No payload given.';
-        if (this.algorithm !== CoseAlgorithm.HMAC256) throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
-        const macStructure = COSEMac0.createMacStructure(this.protectedHeader, this.payload, externalData);
-        const mac0Content = DataElementSerializer.toCBOR(macStructure);
-        const tag = Hex.decode(sha256.hmac(sharedSecret, mac0Content));
-        return ArrayBufferComparer.equals(this.signatureOrTag, tag);
+    get tag(): ArrayBuffer {
+        return this.digest;
     }
 
+    async verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<boolean> {
+        if (!this.payload) throw 'No payload given.';
+        if (this.headers.algorithm.value !== CoseAlgorithm.HMAC256) throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
+        
+        const crypto = new Crypto();
+        // TODO: Faire une mappage avec this.headers.algorithm.value
+        const algo =   {
+            name: "HMAC",
+            hash: { name: "SHA-256" },
+        };
+        const key = await crypto.subtle.importKey(
+            'raw',
+            sharedSecret,
+            algo,
+            false,
+            ["sign", "verify"]
+        );
+        const cborArray = [];
+        cborArray.push(new StringElement(this.context));
+        cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
+        cborArray.push(new ByteStringElement(externalData));
+        cborArray.push(new ByteStringElement(this.content));
+        const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
+        const digest = await crypto.subtle.sign(algo, key, data);
+//        const macStructure = COSEMac0.createMacStructure(this.protectedHeader, this.payload, externalData);
+//        const mac0Content = DataElementSerializer.toCBOR(macStructure);
+//        const tag = Hex.decode(sha256.hmac(sharedSecret, mac0Content));
+        return ArrayBufferComparer.equals(this.tag, digest);
+    }
+/*
     static createWithHMAC256(payload: ArrayBuffer, sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): COSEMac0 {
         const protectedHeaderMap = new Map<MapKey, NumberElement>();
         protectedHeaderMap.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(CoseAlgorithm.HMAC256));
@@ -83,7 +111,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         dataElements.push(new ByteStringElement(g))
         return COSEMac0.fromDataElement(new ListElement(dataElements));
     }
-
+*/
     private static createMacStructure(protectedHeaderData: ArrayBuffer, payload: ArrayBuffer, externalData: ArrayBuffer): ListElement {
         const dataElements: DataElement[] = [];
         dataElements.push(new StringElement('MAC0'));
@@ -99,6 +127,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         COSEMac0.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
         message.dataElements = dataElement.value;
         message.content = dataElement.value[2].value;
+        message.digest = dataElement.value[3].value;
         return message;
     }
 

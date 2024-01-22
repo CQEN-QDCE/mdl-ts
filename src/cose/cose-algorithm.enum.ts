@@ -7,10 +7,6 @@ export enum CoseAlgorithm {
     ES256 = -7,
     ES384 = -35,
     ES512 = -36,
-    // HMAC-size with SHA-size
-    HS256 = 5,
-    HS384 = 6,
-    HS512 = 7,
     // RSASSA-PSS with SHA-size
     PS256 = -37,
     PS384 = -38,

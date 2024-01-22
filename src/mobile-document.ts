@@ -71,10 +71,10 @@ export class MobileDocument {
         return await cryptoProvider.verify1(this.issuerSigned.issuerAuth, keyID);
     }
 
-    private verifyDeviceMAC(deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): boolean {
+    private async verifyDeviceMAC(deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): Promise<boolean> {
         const deviceMac = this.deviceSigned?.deviceAuth?.deviceMac;
         if (!deviceMac) throw new Error("No device MAC found on MDoc.");
-        return deviceMac.attachPayload(this.getDeviceSignedPayload(deviceAuthentication)).verify(ephemeralMACKey);
+        return await deviceMac.attachPayload(this.getDeviceSignedPayload(deviceAuthentication)).verify(ephemeralMACKey);
     }
 
     private async verifyDeviceSignature(deviceAuthentication: DeviceAuthentication, cryptoProvider: COSECryptoProvider, keyID: string = null): Promise<boolean> {
@@ -106,7 +106,7 @@ export class MobileDocument {
         const deviceAuthenticationPayload = verificationParams.deviceAuthentication;
         if (!deviceAuthenticationPayload) throw new Error("No device authentication payload given, for check of device signature or MAC.");
         if (mdocDeviceAuthentication.deviceMac != null) {
-            return this.verifyDeviceMAC(deviceAuthenticationPayload, verificationParams.ephemeralMacKey);
+            return await this.verifyDeviceMAC(deviceAuthenticationPayload, verificationParams.ephemeralMacKey);
         } else if (mdocDeviceAuthentication.deviceSignature != null) {
             return await this.verifyDeviceSignature(deviceAuthenticationPayload,
                                               cryptoProvider, 
@@ -162,8 +162,12 @@ export class MobileDocument {
                                   new DeviceSigned(namespaces, deviceAuth));
     }
 
-    public presentWithDeviceMAC(mobileDocumentRequest: MDocRequest, deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): MobileDocument {
-        const coseMac0 = COSEMac0.createWithHMAC256(this.getDeviceSignedPayload(deviceAuthentication), ephemeralMACKey).detachPayload();
+    public async presentWithDeviceMAC(mobileDocumentRequest: MDocRequest, deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): Promise<MobileDocument> {
+        //const coseMac0 = COSEMac0.createWithHMAC256(this.getDeviceSignedPayload(deviceAuthentication), ephemeralMACKey).detachPayload();
+        const coseMac0 = new COSEMac0();
+        coseMac0.attachPayload(this.getDeviceSignedPayload(deviceAuthentication));
+        await coseMac0.mac(ephemeralMACKey);
+        coseMac0.detachPayload();
         return new MobileDocument(this.docType, 
                                   this.selectDisclosures(mobileDocumentRequest), 
                                   new DeviceSigned(new EncodedCBORElement(new MapElement(new Map<MapKey, DataElement>).toCBOR()), 
