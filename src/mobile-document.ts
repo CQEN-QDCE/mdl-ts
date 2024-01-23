@@ -57,7 +57,7 @@ export class MobileDocument {
 
     public getIssuerSignedItems(namespace: string): IssuerSignedItem[] {
         const issuerSignedItems: IssuerSignedItem[] = [];
-        const encodedCBORElements: EncodedCBORElement[] = this.issuerSigned.nameSpaces.get(namespace);
+        const encodedCBORElements: EncodedCBORElement[] = this.issuerSigned.namespaces.get(namespace);
         for (const encodedCBORElement of encodedCBORElements) {
             const dataElement = encodedCBORElement.decode();
             IssuerSignedItem.fromMapElement(<MapElement>dataElement);
@@ -90,14 +90,14 @@ export class MobileDocument {
     private verifyValidity(): boolean {
         const mso = this.mso;
         if (!mso) throw new Error("No MSO found on this mdoc.");
-        const validityInfo = mso.validityInfo;
+        const validityInfo = mso.validity;
         return validityInfo.validFrom.value <= new Date() && validityInfo.validUntil.value >= new Date();
     }
 
     private verifyDocType(): boolean {
         const mso = this.mso;
         if (!mso) throw new Error("No MSO found on this mdoc.");
-        return mso.docType.value === this.docType;
+        return mso.docType === this.docType;
     }
 
     private async verifyDeviceSigOrMac(verificationParams: MDocVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
@@ -119,7 +119,7 @@ export class MobileDocument {
     private async verifyIssuerSignedItems(): Promise<boolean> {
         const mso = this.mso;
         if (!mso) throw new Error("No MSO found on this mdoc.");
-        for (const [nameSpace, issuerSignedItems] of this.issuerSigned.nameSpaces) {
+        for (const [nameSpace, issuerSignedItems] of this.issuerSigned.namespaces) {
             if (!await mso.verifySignedItems(nameSpace, issuerSignedItems)) return false;
         }
         return true;
@@ -176,7 +176,7 @@ export class MobileDocument {
 
     private selectDisclosures(mDocRequest: MDocRequest): IssuerSigned {
         const nameSpaces = new Map<string, EncodedCBORElement[]>();
-        for (const [key, value] of this.issuerSigned.nameSpaces) {
+        for (const [key, value] of this.issuerSigned.namespaces) {
             const requestedItems = mDocRequest.getRequestedItemsFor(key);
             const list: EncodedCBORElement[] = [];
             for (const encodedCBORElement of value) {
@@ -202,13 +202,13 @@ export class MobileDocument {
     }
 
     private initIssuerNamespaces(): Set<string> {
-        return new Set<string>([...this.issuerSigned.nameSpaces.keys()]);
+        return new Set<string>([...this.issuerSigned.namespaces.keys()]);
     }
 
     toMapElement(): MapElement {
         const map = new Map<MapKey, DataElement>();
         map.set(new MapKey('docType'), new StringElement(this.docType));
-        map.set(new MapKey('issuerSigned'), this.issuerSigned.toMapElement());
+        map.set(new MapKey('issuerSigned'), this.issuerSigned.toDataElement());
         if (this.deviceSigned) map.set(new MapKey('deviceSigned'), this.deviceSigned.toMapElement());
         if (this.errors) {
             const namespacesMap = new Map<MapKey, DataElement>();

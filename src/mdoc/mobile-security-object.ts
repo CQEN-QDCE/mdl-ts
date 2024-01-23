@@ -15,25 +15,25 @@ import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 // Mobile security object (MSO), representing the payload of the issuer signature, for the issuer signed part of the mdoc.
 export class MobileSecurityObject {
 
-    version: StringElement;
-    digestAlgorithm: StringElement;
-    valueDigests: MapElement;
-    deviceKeyInfo: DeviceKeyInfo;
-    docType: StringElement;
-    validityInfo: ValidityInfo;
+    public readonly version: string;
+    public readonly digestAlgorithm: DigestAlgorithm;
+    public readonly valueDigests: MapElement;
+    public readonly deviceKeyInfo: DeviceKeyInfo;
+    public readonly docType: string;
+    public readonly validity: ValidityInfo;
 
-    constructor(version: StringElement, 
-                digestAlgorithm: StringElement,
+    constructor(version: string, 
+                digestAlgorithm: DigestAlgorithm,
                 valueDigests: MapElement,
                 deviceKeyInfo: DeviceKeyInfo,
-                docType: StringElement,
+                docType: string,
                 validityInfo: ValidityInfo) {
         this.version = version;
         this.digestAlgorithm = digestAlgorithm;
         this.valueDigests = valueDigests;
         this.deviceKeyInfo = deviceKeyInfo;
         this.docType = docType;
-        this.validityInfo = validityInfo;
+        this.validity = validityInfo;
     }
 
     getValueDigestsFor(nameSpace: string): Map<number, ArrayBuffer> {
@@ -53,7 +53,6 @@ export class MobileSecurityObject {
         for (const [key, value] of this.valueDigests.value) {
             nameSpaces.push(key.str);
         }
-        //new Set<string>([...this.valueDigests.value.keys()]);
         return nameSpaces;
     }
 
@@ -64,23 +63,23 @@ export class MobileSecurityObject {
         const deviceKeyInfo = DeviceKeyInfo.fromMapElement(<MapElement>mapElement.get(new MapKey('deviceKeyInfo')));
         const docType = <StringElement>mapElement.get(new MapKey('docType'));
         const validityInfo = ValidityInfo.fromMapElement(<MapElement>mapElement.get(new MapKey('validityInfo')));
-        return new MobileSecurityObject(version, digestAlgorithm, valueDigests, deviceKeyInfo, docType, validityInfo);
+        return new MobileSecurityObject(version.value, <DigestAlgorithm>digestAlgorithm.value, valueDigests, deviceKeyInfo, docType.value, validityInfo);
     }
 
     toMapElement(): MapElement {
         const map = new Map<MapKey, DataElement>();
-        map.set(new MapKey('version'), this.version);
-        map.set(new MapKey('digestAlgorithm'), this.digestAlgorithm);
+        map.set(new MapKey('version'), new StringElement(this.version));
+        map.set(new MapKey('digestAlgorithm'), new StringElement(this.digestAlgorithm));
         map.set(new MapKey('valueDigests'), this.valueDigests);
         map.set(new MapKey('deviceKeyInfo'), this.deviceKeyInfo.toMapElement());
-        map.set(new MapKey('docType'), this.docType);
-        map.set(new MapKey('validityInfo'), this.validityInfo.toMapElement());
+        map.set(new MapKey('docType'), new StringElement(this.docType));
+        map.set(new MapKey('validityInfo'), this.validity.toMapElement());
         return new MapElement(map);
     }
 
     async verifySignedItems(nameSpace: string, items: EncodedCBORElement[]): Promise<boolean> {
         const valueDigests = this.getValueDigestsFor(nameSpace);
-        const digestAlgorithm: DigestAlgorithm = <DigestAlgorithm>this.digestAlgorithm.value;
+        const digestAlgorithm: DigestAlgorithm = this.digestAlgorithm;
         for (const item of items) {
             const issuerSignedItem = IssuerSignedItem.fromMapElement(<MapElement>item.decode());
             const digestID = issuerSignedItem.digestID.value;
@@ -93,12 +92,13 @@ export class MobileSecurityObject {
         return true;
     }
 
-    static async digestItem(encodedItem: EncodedCBORElement, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
+    private static async digestItem(encodedItem: EncodedCBORElement, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
         const crypto = new Crypto();
         const hash = await crypto.subtle.digest(digestAlgorithm, DataElementSerializer.toCBOR(encodedItem));
         return hash
     }
 
+    // TODO: Créer un builder pour cette méthode
     static async createFor(nameSpaces: Map<string, IssuerSignedItem[]>,
                      deviceKeyInfo: DeviceKeyInfo,
                      docType: string,
@@ -113,11 +113,11 @@ export class MobileSecurityObject {
             }
             valueDigests.set(new MapKey(namespace), new MapElement(nameSpaceDigests));
         }
-        const mso = new MobileSecurityObject(new StringElement('1.0'), 
-                                             new StringElement(digestAlgorithm.toString()), 
+        const mso = new MobileSecurityObject('1.0', 
+                                             digestAlgorithm, 
                                              new MapElement(valueDigests), 
                                              deviceKeyInfo, 
-                                             new StringElement(docType), 
+                                             docType, 
                                              validityInfo);
         return mso;
     }

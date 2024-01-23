@@ -7,22 +7,22 @@ import { MapKey } from "../data-element/map-key";
 
 export class IssuerSigned {
 
-    nameSpaces: Map<string, EncodedCBORElement[]>;
+    namespaces: Map<string, EncodedCBORElement[]>;
     
     issuerAuth: COSESign1;
     
     constructor(nameSpaces: Map<string, EncodedCBORElement[]>, issuerAuth: COSESign1) {
-        this.nameSpaces = nameSpaces;
+        this.namespaces = nameSpaces;
         this.issuerAuth = issuerAuth;
     }
 
-    toMapElement(): MapElement {
+    public toDataElement(): MapElement {
         const map = new Map<MapKey, DataElement>();
         map.set(new MapKey('issuerAuth'), this.issuerAuth.toDataElement());
         return new MapElement(map);
     }
 
-    static fromMapElement(mapElement: MapElement): IssuerSigned {
+    public static fromDataElement(mapElement: MapElement): IssuerSigned {
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
         const issuerAuth = mapElement.get(new MapKey('issuerAuth'));
         const nameSpaces2 = new Map<string, EncodedCBORElement[]>();

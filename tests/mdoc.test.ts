@@ -36,10 +36,14 @@ import { MDL } from "../src/mdl";
 import { CoseKey } from "../src/cose/cose-key";
 import { ItemsRequest } from "../src/items-request";
 import { CoseAlgorithm } from "../src/cose/cose-algorithm.enum";
+import { COSECryptoProvider } from "../src/cose/cose-crypto-provider";
+import { DigestAlgorithm } from "../src/mdoc/digest-algorithm.enum";
 
 describe('testing mdoc', () => {
     
     let testCertificates: TestCertificates;
+
+    let coseCryptoProvider: COSECryptoProvider;
 
     const ISSUER_KEY_ID = 'issuer-key-id';
 
@@ -49,54 +53,54 @@ describe('testing mdoc', () => {
 
     beforeAll(async () => {
         testCertificates = await TestCertificatesBuilder.build();
+
+        const issuerKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
+            'ECDSA_256',
+            testCertificates.issuerKeyPair.publicKey, 
+            testCertificates.issuerKeyPair.privateKey, 
+            [testCertificates.issuerCertificate],
+            [testCertificates.caCertificate]);
+
+        const deviceKeyInfo = new SimpleCOSECryptoProviderKeyInfo(DEVICE_KEY_ID, 
+            'ECDSA_256',
+            testCertificates.deviceKeyPair.publicKey, 
+            testCertificates.deviceKeyPair.privateKey);
+
+        coseCryptoProvider = new SimpleCOSECryptoProvider([issuerKeyInfo, deviceKeyInfo]);
     });
 
     test('Sign mDL', async () => {
-        const issuerKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
-                                                                  'ECDSA_256',
-                                                                  testCertificates.issuerKeyPair.publicKey, 
-                                                                  testCertificates.issuerKeyPair.privateKey, 
-                                                                  [testCertificates.issuerCertificate],
-                                                                  [testCertificates.caCertificate]);
-        
-        const deviceKeyInfo = new SimpleCOSECryptoProviderKeyInfo(DEVICE_KEY_ID, 
-                                                                  'ECDSA_256',
-                                                                  testCertificates.deviceKeyPair.publicKey, 
-                                                                  testCertificates.deviceKeyPair.privateKey);
-        
-        const coseCryptoProvider = new SimpleCOSECryptoProvider([issuerKeyInfo, deviceKeyInfo]);
-        
-        const crypto = new Crypto();
 
-        const coseKey = await CoseKey.new(issuerKeyInfo.publicKey);
+        const coseKey = await CoseKey.new(testCertificates.issuerKeyPair.publicKey);
 
-        const deviceKeyInfo2 = new DeviceKeyInfo(coseKey)
+        const deviceKeyInfo = new DeviceKeyInfo(coseKey)
 
-        const validityInfo = new ValidityInfo(new Date(), new Date(), new Date());
+        const days = 15;
+        const validityInfo = new ValidityInfo(new Date(), new Date(), new Date( Date.now() + days * 24 * 60 * 60 * 1000));
 
         const mdoc = await new MobileDocumentBuilder(MDL.DocType).addItemToSign(MDL.NameSpace, "family_name", new StringElement("Doe"))
                                                                    .addItemToSign(MDL.NameSpace, "given_name", new StringElement("John"))
                                                                    .addItemToSign(MDL.NameSpace, "birth_date", new FullDateElement(new Date(1990, 0, 15, 0, 0, 0, 0)))
                                                                    .sign(validityInfo, 
-                                                                         deviceKeyInfo2, 
+                                                                         deviceKeyInfo, 
                                                                          coseCryptoProvider, 
                                                                          ISSUER_KEY_ID);
         expect(mdoc.mso).not.toBeNull();
-        expect(mdoc.mso.digestAlgorithm.value).toBe('SHA-256');
+        expect(mdoc.mso.digestAlgorithm).toBe(DigestAlgorithm.SHA256);
         const issuerSignedItems = mdoc.getIssuerSignedItems(MDL.NameSpace);
         expect(issuerSignedItems.length).toBe(3);
         expect(issuerSignedItems[0].digestID.value).toBe(0);
         expect(mdoc.mso.valueDigests.get(new MapKey(MDL.NameSpace))).not.toBeNull();
 
         const params = new MDocVerificationParams();
-        params.verificationTypes = [//VerificationType.VALIDITY, // TODO: Implement validity verification
+        params.verificationTypes = [VerificationType.VALIDITY,
                                     VerificationType.DOC_TYPE, 
-                                    VerificationType.CERTIFICATE_CHAIN, // TODO: Implement certificate chain verification
+                                    VerificationType.CERTIFICATE_CHAIN,
                                     VerificationType.ITEMS_TAMPER_CHECK, 
                                     VerificationType.ISSUER_SIGNATURE];
         params.issuerKeyID = ISSUER_KEY_ID;
-        const mdocVerified = await mdoc.verify(params, coseCryptoProvider);
-        expect(mdocVerified).toBeTruthy();
+
+        expect(await mdoc.verify(params, coseCryptoProvider)).toBeTruthy();
 
         const tamperedMdoc = new MobileDocumentBuilder(MDL.DocType).addItemToSign(MDL.NameSpace, "family_name", new StringElement("Foe"))
                                                                      .build(mdoc.issuerSigned.issuerAuth);
@@ -108,27 +112,15 @@ describe('testing mdoc', () => {
         const tamperedMdocVerified = await tamperedMdoc.verify(params, coseCryptoProvider);
         expect(tamperedMdocVerified).toBeFalsy();
 
-        const ephemeralReaderKeyPair = TestCertificatesBuilder.generateKey();
-        const jsonWebPublicKey2 = await crypto.subtle.exportKey('jwk', (await ephemeralReaderKeyPair).publicKey);
-        const jsonWebPrivateKey2 = await crypto.subtle.exportKey('jwk', (await ephemeralReaderKeyPair).privateKey);
+        const ephemeralReaderKeyPair = await TestCertificatesBuilder.generateKey();
 
-        const x2 = new Int8Array(Buffer.from(jsonWebPublicKey2.x, 'base64')).buffer; // EC2_X -2
-        const y2 = new Int8Array(Buffer.from(jsonWebPublicKey2.y, 'base64')).buffer; // EC2_Y -3
-        const d2 = new Int8Array(Buffer.from(jsonWebPrivateKey2.d, 'base64')).buffer; // EC2_D -4
-        const map2 = new Map<MapKey, DataElement>();
-        map2.set(new MapKey(KeyKeys.KeyType), new NumberElement(2));
-        map2.set(new MapKey(KeyKeys.EC2Curve), new NumberElement(1));
-        map2.set(new MapKey(KeyKeys.EC2X), new ByteStringElement(x2));
-        map2.set(new MapKey(KeyKeys.EC2Y), new ByteStringElement(y2));
-        map2.set(new MapKey(KeyKeys.EC2D), new ByteStringElement(d2));
-
-        const map3 = new Map<MapKey, DataElement>();
+        const ephemeralReaderCoseKey = await CoseKey.new(ephemeralReaderKeyPair.publicKey, ephemeralReaderKeyPair.privateKey);
 
         const deviceAuthentication = new DeviceAuthentication(new ListElement([new NullElement(), 
-                                                                               EncodedCBORElement.encode(new MapElement(map2)), 
+                                                                               EncodedCBORElement.encode(ephemeralReaderCoseKey.toDataElement()), 
                                                                                new NullElement()]), 
                                                               mdoc.docType, 
-                                                              EncodedCBORElement.encode(new MapElement(map3)));
+                                                              EncodedCBORElement.encode(new MapElement(new Map<MapKey, DataElement>())));
         
         const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.NameSpace, "family_name", true).build();
 
@@ -162,7 +154,7 @@ describe('testing mdoc', () => {
 
         for (const documentElement of documentsElement.value) {
             const mdocMapElement = <MapElement>documentElement;
-            const issuerSigned = IssuerSigned.fromMapElement(<MapElement>mdocMapElement.get(new MapKey('issuerSigned')));
+            const issuerSigned = IssuerSigned.fromDataElement(<MapElement>mdocMapElement.get(new MapKey('issuerSigned')));
             const deviceSigned = DeviceSigned.fromMapElement(<MapElement>mdocMapElement.get(new MapKey('deviceSigned')));
             const mdoc2 = new MobileDocument(mdocMapElement.get(new MapKey('docType')).value, issuerSigned, deviceSigned);
             mdocs.push(mdoc2);
@@ -294,9 +286,7 @@ describe('testing mdoc', () => {
 
         const coseKey = await CoseKey.new(deviceKeyInfo.publicKey);
 
-        const mapElement = coseKey.toDataElement();
-
-        const deviceKeyInfo2 = new DeviceKeyInfo(CoseKey.fromDataElement(mapElement));
+        const deviceKeyInfo2 = new DeviceKeyInfo(coseKey);
 
         const validityInfo = new ValidityInfo(new Date(), new Date(), new Date());
 
@@ -309,7 +299,7 @@ describe('testing mdoc', () => {
                                                              ISSUER_KEY_ID);
 
         expect(mdoc.mso).not.toBeNull();
-        expect(mdoc.mso.digestAlgorithm.value).toBe('SHA-256');
+        expect(mdoc.mso.digestAlgorithm).toBe(DigestAlgorithm.SHA256);
         const signedItems = mdoc.getIssuerSignedItems("org.iso.23220.1");
         expect(signedItems.length).toBe(3);
         expect(signedItems[0].digestID.value).toBe(0);

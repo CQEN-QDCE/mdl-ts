@@ -52,7 +52,7 @@ export class DeviceResponse {
                 const issuerSigned = mapElement2.get(new MapKey('issuerSigned'));
                 const deviceSigned = mapElement2.get(new MapKey('deviceSigned'));
                 const mdoc = new MobileDocument((<StringElement>docType).value, 
-                                                 IssuerSigned.fromMapElement(<MapElement>issuerSigned), DeviceSigned.fromMapElement(<MapElement>deviceSigned));
+                                                 IssuerSigned.fromDataElement(<MapElement>issuerSigned), DeviceSigned.fromMapElement(<MapElement>deviceSigned));
                 documents2.push(mdoc);
             }
         }

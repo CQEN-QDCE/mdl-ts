@@ -31,6 +31,12 @@ export class CoseKey {
             keyMap.set(KeyKeys.EC2Y, y);
         }
 
+        if (privateKey) {
+            const jsonWebPrivateKey = await crypto.subtle.exportKey('jwk', privateKey);
+            const d = Base64.decode(jsonWebPrivateKey.d); // EC2_D -4
+            keyMap.set(KeyKeys.EC2D, d);
+        }
+
         return new CoseKey(keyMap);
     }
     
