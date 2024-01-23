@@ -12,6 +12,7 @@ import { BooleanElement } from './boolean-element';
 import { FullDateElement } from './full-date-element';
 import { TDateElement } from './tdate-element';
 import { Hex } from '../utils/hex';
+import { CborWebToken } from '../oidc4vci/cbor-web-token';
 
 export class DataElementDeserializer {
 
@@ -46,6 +47,8 @@ export class DataElementDeserializer {
         } else {
             if (object.tag === 24) { // ENCODED_CBOR = 24L
                 return new EncodedCBORElement(object.value);
+            } else if (object.tag === 61) { // CBOR Web Token (CWT) = 61L
+                return <ListElement>DataElementDeserializer.deserialize(object.value)
             } else if (object.tag === 0 || object.tag === 1) { // Cbor TDATE = 0L or TIME = 1L
                 throw new Error("Not implemented");
             } else if (object.tag === 18) { // COSE_SIGN1 = 18L

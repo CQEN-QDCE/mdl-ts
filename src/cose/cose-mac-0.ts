@@ -8,10 +8,8 @@ import { MapKey } from "../data-element/map-key";
 import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
-import { Hex } from "../utils/hex";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { COSEObject } from "./cose-object";
-import { sha256 } from 'js-sha256';
 import { CoseAlgorithm } from "./cose-algorithm.enum";
 import { DataElementDeserializer } from "../data-element/data-element-deserializer";
 
@@ -27,98 +25,60 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
     }
 
     detachPayload(): COSEMac0 {
-        //return COSESign1.fromDataElement(new ListElement(this.replacePayload(new NullElement())));
         this.content = null;
         return this;
     }
 
     attachPayload(payload: ArrayBuffer): COSEMac0 {
-        //return COSESign1.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
         this.content = payload;
         return this;
     }
 
-    public async mac(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<void> {
+    public async mac(secret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<void> {
+        
         const crypto = new Crypto();
-        // TODO: Faire une mappage avec this.headers.algorithm.value
-        const algo =   {
-            name: "HMAC",
-            hash: { name: "SHA-256" },
-        };
-        const key = await crypto.subtle.importKey(
-            'raw',
-            sharedSecret,
-            algo,
-            false,
-            ["sign", "verify"]
-        );
+        
+        const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
+
+        const key = await crypto.subtle.importKey('raw', secret, algorithm, false, ["sign", "verify"]);
+
         const cborArray = [];
         cborArray.push(new StringElement(this.context));
         cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
         cborArray.push(new ByteStringElement(externalData));
         cborArray.push(new ByteStringElement(this.content));
+        //cborArray.push(new StringElement(Buffer.from(this.content).toString("base64")));
         const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
-        this.digest = await crypto.subtle.sign(algo, key, data);
+
+        this.digest = await crypto.subtle.sign(algorithm, key, data);
     }
 
     get tag(): ArrayBuffer {
         return this.digest;
     }
 
-    async verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<boolean> {
+    public async verify(sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<boolean> {
+        
         if (!this.payload) throw 'No payload given.';
-        if (this.headers.algorithm.value !== CoseAlgorithm.HMAC256) throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
+        
+        if (this.headers.algorithm.value !== CoseAlgorithm.HMAC256_64 && 
+            this.headers.algorithm.value !== CoseAlgorithm.HMAC256) throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
         
         const crypto = new Crypto();
-        // TODO: Faire une mappage avec this.headers.algorithm.value
-        const algo =   {
-            name: "HMAC",
-            hash: { name: "SHA-256" },
-        };
-        const key = await crypto.subtle.importKey(
-            'raw',
-            sharedSecret,
-            algo,
-            false,
-            ["sign", "verify"]
-        );
+
+        const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
+
+        const key = await crypto.subtle.importKey('raw', sharedSecret, algorithm, false, ["sign", "verify"]);
+
         const cborArray = [];
         cborArray.push(new StringElement(this.context));
         cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
         cborArray.push(new ByteStringElement(externalData));
         cborArray.push(new ByteStringElement(this.content));
         const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
-        const digest = await crypto.subtle.sign(algo, key, data);
-//        const macStructure = COSEMac0.createMacStructure(this.protectedHeader, this.payload, externalData);
-//        const mac0Content = DataElementSerializer.toCBOR(macStructure);
-//        const tag = Hex.decode(sha256.hmac(sharedSecret, mac0Content));
-        return ArrayBufferComparer.equals(this.tag, digest);
-    }
-/*
-    static createWithHMAC256(payload: ArrayBuffer, sharedSecret: ArrayBuffer, externalData: ArrayBuffer = new Uint8Array([]).buffer): COSEMac0 {
-        const protectedHeaderMap = new Map<MapKey, NumberElement>();
-        protectedHeaderMap.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(CoseAlgorithm.HMAC256));
-        const protectedHeaderData = new MapElement(protectedHeaderMap).toCBOR();
-        const mac0Content = DataElementSerializer.toCBOR(COSEMac0.createMacStructure(protectedHeaderData, payload, externalData));
-        const tag5 = sha256.hmac(sharedSecret, mac0Content);
-        const g = Hex.decode(tag5);
-        const hash = sha256.hmac.create(sharedSecret);
-        hash.update(mac0Content);
-        const dataElements: DataElement[] = [];
-        dataElements.push(new ByteStringElement(protectedHeaderData));
-        dataElements.push(new MapElement(new Map<MapKey, DataElement>()))
-        dataElements.push(new ByteStringElement(payload))
-        dataElements.push(new ByteStringElement(g))
-        return COSEMac0.fromDataElement(new ListElement(dataElements));
-    }
-*/
-    private static createMacStructure(protectedHeaderData: ArrayBuffer, payload: ArrayBuffer, externalData: ArrayBuffer): ListElement {
-        const dataElements: DataElement[] = [];
-        dataElements.push(new StringElement('MAC0'));
-        dataElements.push(new ByteStringElement(protectedHeaderData));
-        dataElements.push(new ByteStringElement(externalData));
-        dataElements.push(new ByteStringElement(payload));
-        return new ListElement(dataElements);
+
+        const tag = await crypto.subtle.sign(algorithm, key, data);
+        return ArrayBufferComparer.equals(this.tag, tag);
     }
 
     public static fromDataElement(dataElement: ListElement): COSEMac0 {
@@ -160,6 +120,15 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
     }
 
     toDataElement(): ListElement {
-        return new ListElement(this.dataElements);
+        let list: DataElement[] = [];
+        list.push(new ByteStringElement(this.encodeProtectedHeaders()));
+        let map = new Map<MapKey, DataElement>();
+        if (this.headers.x5Chain.value) {
+            map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new ByteStringElement(this.headers.x5Chain.value));
+        }
+        list.push(new MapElement(new Map<MapKey, DataElement>()));
+        list.push(new ByteStringElement(this.content));
+        list.push(new ByteStringElement(this.tag));
+        return new ListElement(list);
     }
 }
