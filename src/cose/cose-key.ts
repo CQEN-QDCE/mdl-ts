@@ -1,21 +1,21 @@
-import * as CBOR from 'cbor';
 import { Crypto } from "@peculiar/webcrypto";
 import { KeyKeys } from "../../key-keys.enum";
 import { Base64 } from '../utils/base64';
+import { MapElement } from '../data-element/map-element';
+import { DataElement } from '../data-element/data-element';
+import { MapKey } from '../data-element/map-key';
+import { NumberElement } from '../data-element/number-element';
+import { ByteStringElement } from '../data-element/byte-string-element';
 
-export class COSEKey {
+export class CoseKey {
 
-    private publicKey: CryptoKey | null;
-    private privateKey: CryptoKey | null;
     private keyMap: Map<number, number | ArrayBuffer>;
 
-    private constructor(publicKey: CryptoKey | null, privateKey: CryptoKey | null, keyMap: Map<number, number | ArrayBuffer>) {
-        this.publicKey = publicKey;
-        this.privateKey = privateKey;
+    private constructor(keyMap: Map<number, number | ArrayBuffer>) {
         this.keyMap = keyMap;
     }
 
-    static async build(publicKey: CryptoKey | null = null, privateKey: CryptoKey | null = null): Promise<COSEKey> {
+    static async new(publicKey: CryptoKey | null = null, privateKey: CryptoKey | null = null): Promise<CoseKey> {
         
         const keyMap = new Map<number, number | ArrayBuffer>();
 
@@ -31,10 +31,22 @@ export class COSEKey {
             keyMap.set(KeyKeys.EC2Y, y);
         }
 
-        return new COSEKey(publicKey, privateKey, keyMap);
+        return new CoseKey(keyMap);
+    }
+    
+    static fromDataElement(element: MapElement): CoseKey {
+        const keyMap = new Map<number, number | ArrayBuffer>();
+        element.value.forEach((value, key) => {
+            keyMap.set(key.int, value.value);
+        });
+        return new CoseKey(keyMap);
     }
 
-    toCBOR(): ArrayBuffer {
-        return Uint8Array.from(CBOR.encode(this.keyMap)).buffer;
+    toDataElement(): MapElement {
+        const keyMap = new Map<MapKey, DataElement>();
+        for (const [key, value] of this.keyMap) {
+            keyMap.set(new MapKey(key), typeof value === 'number' ? new NumberElement(value) : new ByteStringElement(value));
+        }
+        return new MapElement(keyMap);
     }
 }

@@ -35,8 +35,8 @@ describe('#mac', () => {
         cwt.issuedAt = 1443944944;
         cwt.cwtId = new Uint8Array(Buffer.from("0b71", "hex")).buffer;
         
-        const enc = new TextEncoder(); // always utf-8
-        const secret = enc.encode("my-secret");
+        const textEncoder = new TextEncoder(); // always utf-8
+        const secret = textEncoder.encode("my-secret");
 
         await cwt.mac(secret);
         let token = cwt.serialize();

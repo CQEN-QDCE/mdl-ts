@@ -1,4 +1,3 @@
-import { CoseHeaderLabel } from "../src/cose/cose-header-label.enum";
 import { DataElementDeserializer } from "../src/data-element/data-element-deserializer";
 import { EncodedCBORElement } from "../src/data-element/encoded-cbor-element";
 import { ListElement } from "../src/data-element/list-element";
@@ -34,7 +33,7 @@ import { ByteStringElement } from "../src/data-element/byte-string-element";
 import { KeyKeys } from "../key-keys.enum";
 import { NullElement } from "../src/data-element/null-element";
 import { MDL } from "../src/mdl";
-import { COSEKey } from "../src/cose/cose-key";
+import { CoseKey } from "../src/cose/cose-key";
 import { ItemsRequest } from "../src/items-request";
 import { CoseAlgorithm } from "../src/cose/cose-algorithm.enum";
 
@@ -69,19 +68,9 @@ describe('testing mdoc', () => {
         
         const crypto = new Crypto();
 
-        const jsonWebPublicKey = await crypto.subtle.exportKey('jwk', issuerKeyInfo.publicKey);
-        // KeyType = 1 KeyType_EC2 = 2
-        // Ec2Curve = -1 EC2_P256 = 1
-        const x = Buffer.from(jsonWebPublicKey.x, 'base64'); // EC2_X -2
-        const y = Buffer.from(jsonWebPublicKey.y, 'base64'); // EC2_Y -3
-        //const key = AsnParser.parse(Buffer.from(test), x5092.ECPrivateKey);
-        const map = new Map<MapKey, DataElement>();
-        map.set(new MapKey(1), new NumberElement(2));
-        map.set(new MapKey(-1), new NumberElement(1));
-        map.set(new MapKey(-2), new ByteStringElement(x));
-        map.set(new MapKey(-3), new ByteStringElement(y));
-        const mapElement = new MapElement(map);
-        const deviceKeyInfo2 = new DeviceKeyInfo(mapElement)
+        const coseKey = await CoseKey.new(issuerKeyInfo.publicKey);
+
+        const deviceKeyInfo2 = new DeviceKeyInfo(coseKey)
 
         const validityInfo = new ValidityInfo(new Date(), new Date(), new Date());
 
@@ -303,11 +292,11 @@ describe('testing mdoc', () => {
 
         const coseCryptoProvider = new SimpleCOSECryptoProvider([issuerKeyInfo, deviceKeyInfo]);
 
-        const coseKey = await COSEKey.build(deviceKeyInfo.publicKey);
+        const coseKey = await CoseKey.new(deviceKeyInfo.publicKey);
 
-        const mapElement = <MapElement>DataElementDeserializer.fromCBOR(coseKey.toCBOR());
+        const mapElement = coseKey.toDataElement();
 
-        const deviceKeyInfo2 = new DeviceKeyInfo(mapElement);
+        const deviceKeyInfo2 = new DeviceKeyInfo(CoseKey.fromDataElement(mapElement));
 
         const validityInfo = new ValidityInfo(new Date(), new Date(), new Date());
 
