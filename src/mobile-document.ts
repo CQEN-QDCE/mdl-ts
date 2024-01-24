@@ -179,11 +179,11 @@ export class MobileDocument {
         const issuerNamespaces = new Map<string, IssuerSignedItem[]>();
         for (const [namespace, issuerSignedItems] of this.issuerSigned.namespaces) {
             const requestedItems = mDocRequest.getRequestedItemsFor(namespace);
-            const list: IssuerSignedItem[] = [];
+            const selectedIssuerSignedItem: IssuerSignedItem[] = [];
             for (const issuerSignedItem of issuerSignedItems) {
-                if (requestedItems.get(issuerSignedItem.elementIdentifier.value)) list.push(issuerSignedItem);
+                if (requestedItems.get(issuerSignedItem.elementIdentifier.value)) selectedIssuerSignedItem.push(issuerSignedItem);
             }
-            issuerNamespaces.set(namespace, list);
+            issuerNamespaces.set(namespace, selectedIssuerSignedItem);
         }
         return new IssuerSigned(issuerNamespaces, this.issuerSigned.issuerAuth);
     }
