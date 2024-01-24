@@ -6,6 +6,8 @@ import { StringElement } from "./data-element/string-element";
 export class ItemsRequest {
 
     public readonly docType: string;
+    
+    // Requested data elements for each namespace.
     public namespaces: MapElement;
 
     constructor(docType: string, 

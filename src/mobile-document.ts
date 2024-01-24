@@ -10,7 +10,7 @@ import { NumberElement } from "./data-element/number-element";
 import { StringElement } from "./data-element/string-element";
 import { IssuerSignedItem } from "./issuer-signed/issuer-signed-item";
 import { DeviceAuthentication } from "./mdoc-auth/device-authentication";
-import { MDocRequest } from "./mdoc-request";
+import { MobileDocumentRequest } from "./doc-request/mobile-document-request";
 import { DeviceAuth } from "./mdoc/device-auth";
 import { DeviceSigned } from "./mdoc/device-signed";
 import { IssuerSigned } from "./issuer-signed/issuer-signed";
@@ -138,7 +138,7 @@ export class MobileDocument {
         return true;
     }
 
-    public async presentWithDeviceSignature(mDocRequest: MDocRequest, deviceAuthentication: DeviceAuthentication, cryptoProvider: COSECryptoProvider, keyID: string = null): Promise<MobileDocument> {
+    public async presentWithDeviceSignature(mDocRequest: MobileDocumentRequest, deviceAuthentication: DeviceAuthentication, cryptoProvider: COSECryptoProvider, keyID: string = null): Promise<MobileDocument> {
         const coseSign1 = (await cryptoProvider.sign1(this.getDeviceSignedPayload(deviceAuthentication), keyID)).detachPayload();
         const namespaces = EncodedCBORElement.encode(new MapElement(new Map<MapKey, DataElement>));
         const deviceAuth = new DeviceAuth(null, coseSign1);
@@ -147,7 +147,7 @@ export class MobileDocument {
                                   new DeviceSigned(namespaces, deviceAuth));
     }
 
-    public async presentWithDeviceMAC(mobileDocumentRequest: MDocRequest, deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): Promise<MobileDocument> {
+    public async presentWithDeviceMAC(mobileDocumentRequest: MobileDocumentRequest, deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): Promise<MobileDocument> {
         const coseMac0 = new COSEMac0();
         coseMac0.attachPayload(this.getDeviceSignedPayload(deviceAuthentication));
         await coseMac0.mac(ephemeralMACKey);
@@ -158,7 +158,7 @@ export class MobileDocument {
                                   new DeviceAuth(coseMac0)));
     }
 
-    private selectDisclosures(mDocRequest: MDocRequest): IssuerSigned {
+    private selectDisclosures(mDocRequest: MobileDocumentRequest): IssuerSigned {
         const issuerNamespaces = new Map<string, IssuerSignedItem[]>();
         for (const [namespace, issuerSignedItems] of this.issuerSigned.namespaces) {
             const requestedItems = mDocRequest.getRequestedItemsFor(namespace);

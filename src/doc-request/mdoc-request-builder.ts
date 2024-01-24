@@ -8,7 +8,7 @@ import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { StringElement } from "../data-element/string-element";
 import { ItemsRequest } from "../items-request";
-import { MDocRequest } from "../mdoc-request";
+import { MobileDocumentRequest } from "./mobile-document-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { DataElementSerializer } from '../data-element/data-element-serializer';
 import { DataElementDeserializer } from "../data-element/data-element-deserializer";
@@ -17,33 +17,33 @@ export class MDocRequestBuilder {
     
     docType: string;
     
-    nameSpaces: Map<string, Map<string, boolean>>;
+    itemRequestsNameSpaces: Map<string, Map<string, boolean>>;
     
     constructor(docType: string) {
         this.docType = docType;
-        this.nameSpaces = new Map<string, Map<string, boolean>>();
+        this.itemRequestsNameSpaces = new Map<string, Map<string, boolean>>();
     }
 
-    addDataElementRequest(nameSpace: string, elementIdentifier: string, intentToRetain: boolean): MDocRequestBuilder {
-        let dataElementIdentifiers = this.nameSpaces.get(nameSpace);
-        if (!dataElementIdentifiers) {
-            dataElementIdentifiers = new Map<string, boolean>();
-            this.nameSpaces.set(nameSpace, dataElementIdentifiers);
+    addItemRequest(namespace: string, elementIdentifier: string, intentToRetain: boolean): MDocRequestBuilder {
+        let itemRequests = this.itemRequestsNameSpaces.get(namespace);
+        if (!itemRequests) {
+            itemRequests = new Map<string, boolean>();
+            this.itemRequestsNameSpaces.set(namespace, itemRequests);
         }
-        dataElementIdentifiers.set(elementIdentifier, intentToRetain);
+        itemRequests.set(elementIdentifier, intentToRetain);
         return this;
     }
 
-    build(readerAuth: COSESign1 | null = null): MDocRequest {
-        return new MDocRequest(this.buildEncodedItemsRequest(), readerAuth);
+    public build(readerAuth: COSESign1 | null = null): MobileDocumentRequest {
+        return new MobileDocumentRequest(this.buildEncodedItemsRequest(), readerAuth);
     }
 
-    async sign(sessionTranscript: ListElement, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MDocRequest> {
+    public async sign(sessionTranscript: ListElement, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocumentRequest> {
         const encodedItemsRequest = this.buildEncodedItemsRequest();
         const readerAuthentication = new ReaderAuthentication(sessionTranscript, this.buildItemsRequest(encodedItemsRequest));
         const payload = DataElementSerializer.toCBOR(EncodedCBORElement.encode(readerAuthentication.toListElement()));
         const readerAuth = await cryptoProvider.sign1(payload, keyID)
-        return new MDocRequest(encodedItemsRequest, readerAuth.detachPayload());
+        return new MobileDocumentRequest(encodedItemsRequest, readerAuth.detachPayload());
     }
 
     private buildItemsRequest(encodedItemsRequest: EncodedCBORElement): ItemsRequest {
@@ -56,8 +56,8 @@ export class MDocRequestBuilder {
     
     private buildEncodedItemsRequest(): EncodedCBORElement {
         const outerMap = new Map<MapKey, DataElement>();
-        for (const nameSpace of this.nameSpaces.keys()) {
-            const value = this.nameSpaces.get(nameSpace);
+        for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
+            const value = this.itemRequestsNameSpaces.get(nameSpace);
             const innerMap = new Map<MapKey, DataElement>();
             for (const elementIdentifier of value.keys()) {
                 innerMap.set(new MapKey(elementIdentifier), new BooleanElement(value.get(elementIdentifier)));

@@ -7,12 +7,12 @@ import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { StringElement } from "../data-element/string-element";
-import { MDocRequest } from "../mdoc-request";
+import { MobileDocumentRequest } from "../doc-request/mobile-document-request";
 import { Hex } from "../utils/hex";
 
 export class DeviceRequest {
 
-    constructor(public readonly mdocRequests: MDocRequest[], 
+    constructor(public readonly mdocRequests: MobileDocumentRequest[], 
                 public readonly version: string = "1.0") {
     }
 
@@ -27,12 +27,12 @@ export class DeviceRequest {
 
     static fromMapElement(mapElement: MapElement): DeviceRequest {
         const docRequests = mapElement.get(new MapKey('docRequests'));
-        const docRequests2: MDocRequest[] = [];
+        const docRequests2: MobileDocumentRequest[] = [];
         if (docRequests) {
             for (const mdocRequest of docRequests.value) {
                 const itemsRequest = <EncodedCBORElement>mdocRequest.get(new MapKey('itemsRequest'));
                 const readerAuth = <ListElement>mdocRequest.get(new MapKey('readerAuth'));
-                docRequests2.push(new MDocRequest(itemsRequest, readerAuth ? COSESign1.fromDataElement(new ListElement(readerAuth.value)) : null));
+                docRequests2.push(new MobileDocumentRequest(itemsRequest, readerAuth ? COSESign1.fromDataElement(new ListElement(readerAuth.value)) : null));
             }
         }
         let version = mapElement.get(new MapKey('version'));

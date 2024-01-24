@@ -1,18 +1,18 @@
-import { COSECryptoProvider } from "./cose/cose-crypto-provider";
-import { COSESign1 } from "./cose/cose-sign-1";
-import { DataElement } from "./data-element/data-element";
-import { DataElementDeserializer } from "./data-element/data-element-deserializer";
-import { DataElementSerializer } from "./data-element/data-element-serializer";
-import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
-import { MapElement } from "./data-element/map-element";
-import { MapKey } from "./data-element/map-key";
-import { StringElement } from "./data-element/string-element";
-import { MDocRequestVerificationParams } from "./doc-request/mdoc-request-verification-params";
-import { ItemsRequest } from "./items-request";
-import { ReaderAuthentication } from "./reader-authentication";
-import { Lazy } from "./utils/lazy";
+import { COSECryptoProvider } from "../cose/cose-crypto-provider";
+import { COSESign1 } from "../cose/cose-sign-1";
+import { DataElement } from "../data-element/data-element";
+import { DataElementDeserializer } from "../data-element/data-element-deserializer";
+import { DataElementSerializer } from "../data-element/data-element-serializer";
+import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
+import { MapElement } from "../data-element/map-element";
+import { MapKey } from "../data-element/map-key";
+import { StringElement } from "../data-element/string-element";
+import { MDocRequestVerificationParams } from "./mdoc-request-verification-params";
+import { ItemsRequest } from "../items-request";
+import { ReaderAuthentication } from "../reader-authentication";
+import { Lazy } from "../utils/lazy";
 
-export class MDocRequest {
+export class MobileDocumentRequest {
 
     private readonly itemsRequestBytes: EncodedCBORElement;
     public readonly readerAuthentication: COSESign1 | null;
@@ -51,12 +51,12 @@ export class MDocRequest {
         return response;
     }
 
-    async verify(verificationParams: MDocRequestVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
-        return (!verificationParams || await this.verifyReaderAuth(verificationParams, cryptoProvider)) && 
+    public async verify(verificationParams: MDocRequestVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
+        return (!verificationParams || await this.verifyReaderAuthentication(verificationParams, cryptoProvider)) && 
                (verificationParams.allowedToRetain == null || this.checkRestrictedFieldsAllowedToRetain(verificationParams));
     }
 
-    private async verifyReaderAuth(verificationParams: MDocRequestVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
+    private async verifyReaderAuthentication(verificationParams: MDocRequestVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
         const readerAuthentication = this.getReaderSignedPayload(verificationParams.readerAuthentication);
         this.readerAuthentication.attachPayload(readerAuthentication);
         return await cryptoProvider.verify1(this.readerAuthentication, verificationParams.readerKeyId)

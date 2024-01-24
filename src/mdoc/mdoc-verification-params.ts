@@ -1,5 +1,5 @@
 import { DeviceAuthentication } from "../mdoc-auth/device-authentication"
-import { MDocRequest } from "../mdoc-request"
+import { MobileDocumentRequest } from "../doc-request/mobile-document-request"
 import { VerificationType } from "./verification-type.enum";
 
 export class MDocVerificationParams {
@@ -8,5 +8,5 @@ export class MDocVerificationParams {
     deviceKeyID: string = null;
     ephemeralMacKey: ArrayBuffer = null;
     deviceAuthentication: DeviceAuthentication = null;
-    mDocRequest: MDocRequest = null;
+    mDocRequest: MobileDocumentRequest = null;
 }

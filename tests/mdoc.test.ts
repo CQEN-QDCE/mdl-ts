@@ -122,7 +122,7 @@ describe('testing mdoc', () => {
                                                               mdoc.docType, 
                                                               EncodedCBORElement.encode(new MapElement(new Map<MapKey, DataElement>())));
         
-        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.Namespace, "family_name", true).build();
+        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addItemRequest(MDL.Namespace, "family_name", true).build();
 
         const presentedDoc = await mdoc.presentWithDeviceSignature(mdocRequest, deviceAuthentication, coseCryptoProvider, DEVICE_KEY_ID);
 
@@ -173,7 +173,7 @@ describe('testing mdoc', () => {
         const verificationParams = new MDocVerificationParams();
         verificationParams.verificationTypes = [VerificationType.ISSUER_SIGNATURE];
         verificationParams.issuerKeyID = ISSUER_KEY_ID;
-        
+
         expect(await deviceResponse.documents[0].verify(verificationParams, coseCryptoProvider)).toBeTruthy();
     });
 
@@ -184,8 +184,8 @@ describe('testing mdoc', () => {
                                                                   testCertificates.readerKeyPair.privateKey);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([readerKeyInfo]);
         const sessionTranscript = new ListElement();
-        const mdocRequest = await new MDocRequestBuilder(MDL.DocType).addDataElementRequest(MDL.Namespace, 'family_name', true)
-                                                                                 .addDataElementRequest(MDL.Namespace, 'birth_date', false)
+        const mdocRequest = await new MDocRequestBuilder(MDL.DocType).addItemRequest(MDL.Namespace, 'family_name', true)
+                                                                                 .addItemRequest(MDL.Namespace, 'birth_date', false)
                                                                                  .sign(sessionTranscript, coseCryptoProvider, READER_KEY_ID);
         let deviceRequest = new DeviceRequest([mdocRequest])
         const deviceRequestCBOR = DataElementSerializer.toCBOR(deviceRequest.toMapElement());
@@ -239,8 +239,8 @@ describe('testing mdoc', () => {
         const listElement = <ListElement>DataElementDeserializer.fromCBOR(new EncodedCBORElement(deviceAuthenticationBytes).decode().value);
         const deviceAuthentication = DeviceAuthentication.fromListElement(listElement);
         const ephemeralMacKey = Hex.decode('dc2b9566fdaaae3c06baa40993cd0451aeba15e7677ef5305f6531f3533c35dd');
-        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.Namespace, 'family_name', true)
-                                                                      .addDataElementRequest(MDL.Namespace, 'document_number', true)
+        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addItemRequest(MDL.Namespace, 'family_name', true)
+                                                                      .addItemRequest(MDL.Namespace, 'document_number', true)
                                                                       .build();
         const presentedMdoc = await mdoc.presentWithDeviceMAC(mdocRequest, deviceAuthentication, ephemeralMacKey);
         const nameSpaces = presentedMdoc.issuerNamespaces;
@@ -345,8 +345,8 @@ describe('testing mdoc', () => {
 
     test('Device Request builder and serialization', () => {
 
-        const mdocRequest = new MDocRequestBuilder(MDL.DocType).addDataElementRequest(MDL.Namespace, "family_name", true)
-                                                               .addDataElementRequest(MDL.Namespace, "birth_date", false)
+        const mdocRequest = new MDocRequestBuilder(MDL.DocType).addItemRequest(MDL.Namespace, "family_name", true)
+                                                               .addItemRequest(MDL.Namespace, "birth_date", false)
                                                                .build();
         
         const deviceRequest = new DeviceRequest([mdocRequest]);
