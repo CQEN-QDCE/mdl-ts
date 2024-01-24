@@ -25,12 +25,12 @@ export class MobileSecurityObject {
     public readonly validity: ValidityInfo;
     private readonly deviceKeyInfo: DeviceKeyInfo;
 
-    constructor(version: string, 
-                digestAlgorithm: DigestAlgorithm,
-                valueDigests: Map<string, Map<number, ArrayBuffer>>,
-                deviceKeyInfo: DeviceKeyInfo,
-                docType: string,
-                validityInfo: ValidityInfo) {
+    private constructor(version: string, 
+                        digestAlgorithm: DigestAlgorithm,
+                        valueDigests: Map<string, Map<number, ArrayBuffer>>,
+                        deviceKeyInfo: DeviceKeyInfo,
+                        docType: string,
+                        validityInfo: ValidityInfo) {
         this.version = version;
         this.digestAlgorithm = digestAlgorithm;
         this.valueDigests = valueDigests;
@@ -39,19 +39,26 @@ export class MobileSecurityObject {
         this.validity = validityInfo;
     }
 
-    /*
-    getValueDigestsFor(nameSpace: string): Map<number, ArrayBuffer> {
-        const nameSpaceElement = this.valueDigests.get(new MapKey(nameSpace));
-        if (!nameSpaceElement) return new  Map<number, ArrayBuffer>();
-        const digestMap = new Map<number, ArrayBuffer>();
-        for (const [key, value] of nameSpaceElement.value) {
-            if (value instanceof ByteStringElement) {
-                digestMap.set(key.int, value.value);
-            }
+    public static async build(issuerNamespaces: Map<string, IssuerSignedItem[]>,
+                              deviceKeyInfo: DeviceKeyInfo,
+                              docType: string,
+                              validityInfo: ValidityInfo,
+                              digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256): Promise<MobileSecurityObject> {
+
+        const valueDigests = new Map<string, Map<number, ArrayBuffer>>();
+        
+        for (const [namespace, issuerSignedItems] of issuerNamespaces) {
+            valueDigests.set(namespace, await this.digestItems(issuerSignedItems, digestAlgorithm));
         }
-        return digestMap;
+
+        const mso = new MobileSecurityObject('1.0', 
+                                             digestAlgorithm, 
+                                             valueDigests, 
+                                             deviceKeyInfo, 
+                                             docType, 
+                                             validityInfo);
+        return mso;
     }
-    */
 
     static fromMapElement(mapElement: MapElement): MobileSecurityObject {
         const version = <StringElement>mapElement.get(new MapKey('version'));
@@ -104,7 +111,7 @@ export class MobileSecurityObject {
         const valueDigests = this.valueDigests.get(namespace);
         
         for (const issuerSignedItem of issuerSignedItems) {
-            const digestID = issuerSignedItem.digestID.value;
+            const digestID = issuerSignedItem.digestID;
             if (!valueDigests.has(digestID)) return false;
             const valueDigest = valueDigests.get(digestID);
             const itemDigest = await MobileSecurityObject.digestItem(issuerSignedItem, this.digestAlgorithm);
@@ -114,30 +121,11 @@ export class MobileSecurityObject {
         return true;
     }
 
-    public static async build(issuerNamespaces: Map<string, IssuerSignedItem[]>,
-                              deviceKeyInfo: DeviceKeyInfo,
-                              docType: string,
-                              validityInfo: ValidityInfo,
-                              digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256): Promise<MobileSecurityObject> {
-
-        const valueDigests = new Map<string, Map<number, ArrayBuffer>>();
-        for (const [namespace, issuerSignedItems] of issuerNamespaces) {
-            valueDigests.set(namespace, await this.digestItems(issuerSignedItems, digestAlgorithm));
-        }
-        const mso = new MobileSecurityObject('1.0', 
-                                             digestAlgorithm, 
-                                             valueDigests, 
-                                             deviceKeyInfo, 
-                                             docType, 
-                                             validityInfo);
-        return mso;
-    }
-
     private static async digestItems(issuerSignedItems: IssuerSignedItem[], digestAlgorithm: DigestAlgorithm): Promise<Map<number, ArrayBuffer>> {
         const digestIDs = new Map<number, ArrayBuffer>();
         for (const issuerSignedItem of issuerSignedItems) {
             const digest = await this.digestItem(issuerSignedItem, digestAlgorithm);
-            digestIDs.set(issuerSignedItem.digestID.value, digest);
+            digestIDs.set(issuerSignedItem.digestID, digest);
         }
         return digestIDs;
     }

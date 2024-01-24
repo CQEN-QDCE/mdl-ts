@@ -1,3 +1,4 @@
+import * as x509 from "@peculiar/x509";
 import { DataElementDeserializer } from "../src/data-element/data-element-deserializer";
 import { EncodedCBORElement } from "../src/data-element/encoded-cbor-element";
 import { ListElement } from "../src/data-element/list-element";
@@ -18,8 +19,6 @@ import { NumberElement } from "../src/data-element/number-element";
 import { MobileDocument } from "../src/mobile-document";
 import { IssuerSigned } from "../src/issuer-signed/issuer-signed";
 import { DeviceSigned } from "../src/mdoc/device-signed";
-import * as x509 from "@peculiar/x509";
-import { Crypto } from "@peculiar/webcrypto";
 import { DeviceRequest } from "../src/data-retrieval/device-request";
 import { Hex } from "../src/utils/hex";
 import { ReaderAuthentication } from "../src/reader-authentication";
@@ -30,7 +29,6 @@ import { DataElementSerializer } from "../src/data-element/data-element-serializ
 import { DeviceKeyInfo } from "../src/mso/device-key-info";
 import { DataElement } from "../src/data-element/data-element";
 import { ByteStringElement } from "../src/data-element/byte-string-element";
-import { KeyKeys } from "../key-keys.enum";
 import { NullElement } from "../src/data-element/null-element";
 import { MDL } from "../src/mdl";
 import { CoseKey } from "../src/cose/cose-key";
@@ -78,19 +76,21 @@ describe('testing mdoc', () => {
         const days = 15;
         const validityInfo = new ValidityInfo(new Date(), new Date(), new Date( Date.now() + days * 24 * 60 * 60 * 1000));
 
-        const mdoc = await new MobileDocumentBuilder(MDL.DocType).addItemToSign(MDL.NameSpace, "family_name", new StringElement("Doe"))
-                                                                   .addItemToSign(MDL.NameSpace, "given_name", new StringElement("John"))
-                                                                   .addItemToSign(MDL.NameSpace, "birth_date", new FullDateElement(new Date(1990, 0, 15, 0, 0, 0, 0)))
-                                                                   .sign(validityInfo, 
-                                                                         deviceKeyInfo, 
-                                                                         coseCryptoProvider, 
-                                                                         ISSUER_KEY_ID);
+        const mdoc = await new MobileDocumentBuilder(MDL.DocType).addItemToSign(MDL.Namespace, "family_name", new StringElement("Doe"))
+                                                                 .addItemToSign(MDL.Namespace, "given_name", new StringElement("John"))
+                                                                 .addItemToSign(MDL.Namespace, "birth_date", new FullDateElement(new Date(1990, 0, 15, 0, 0, 0, 0)))
+                                                                 .sign(validityInfo, 
+                                                                       deviceKeyInfo, 
+                                                                       coseCryptoProvider, 
+                                                                       ISSUER_KEY_ID);
+
+        const issuerSignedItems = mdoc.getIssuerSignedItems(MDL.Namespace);
+
         expect(mdoc.mso).not.toBeNull();
         expect(mdoc.mso.digestAlgorithm).toBe(DigestAlgorithm.SHA256);
-        const issuerSignedItems = mdoc.getIssuerSignedItems(MDL.NameSpace);
         expect(issuerSignedItems.length).toBe(3);
-        expect(issuerSignedItems[0].digestID.value).toBe(0);
-        expect(mdoc.mso.valueDigests.get(MDL.NameSpace)).not.toBeNull();
+        expect(issuerSignedItems[0].digestID).toBe(0);
+        expect(mdoc.mso.valueDigests.get(MDL.Namespace)).not.toBeNull();
 
         const params = new MDocVerificationParams();
         params.verificationTypes = [VerificationType.VALIDITY,
@@ -102,7 +102,7 @@ describe('testing mdoc', () => {
 
         expect(await mdoc.verify(params, coseCryptoProvider)).toBeTruthy();
 
-        const tamperedMdoc = new MobileDocumentBuilder(MDL.DocType).addItemToSign(MDL.NameSpace, "family_name", new StringElement("Foe"))
+        const tamperedMdoc = new MobileDocumentBuilder(MDL.DocType).addItemToSign(MDL.Namespace, "family_name", new StringElement("Foe"))
                                                                      .build(mdoc.issuerSigned.issuerAuth);
         // MSO is valid, signature check should succeed.
         const signature = await coseCryptoProvider.verify1(tamperedMdoc.issuerSigned.issuerAuth, ISSUER_KEY_ID);
@@ -122,7 +122,7 @@ describe('testing mdoc', () => {
                                                               mdoc.docType, 
                                                               EncodedCBORElement.encode(new MapElement(new Map<MapKey, DataElement>())));
         
-        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.NameSpace, "family_name", true).build();
+        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.Namespace, "family_name", true).build();
 
         const presentedDoc = await mdoc.presentWithDeviceSignature(mdocRequest, deviceAuthentication, coseCryptoProvider, DEVICE_KEY_ID);
 
@@ -160,8 +160,8 @@ describe('testing mdoc', () => {
             mdocs.push(mdoc2);
         }
 
-        const mdoc = new DeviceResponse(mdocs, versionElement.value, statusElement);
-        const certificateDER = Buffer.from(mdoc.documents[0].issuerSigned.issuerAuth.x5Chain);
+        const deviceResponse = new DeviceResponse(mdocs, versionElement.value, statusElement);
+        const certificateDER = Buffer.from(deviceResponse.documents[0].issuerSigned.issuerAuth.x5Chain);
         const cert = new x509.X509Certificate(certificateDER.toString('hex'));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
             'ECDSA_256',
@@ -169,8 +169,12 @@ describe('testing mdoc', () => {
             null, 
             [cert]);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([certKeyInfo]);
-        const verified = await mdoc.documents[0].verifySignature(coseCryptoProvider, ISSUER_KEY_ID);
-        expect(verified).toBeTruthy();
+
+        const verificationParams = new MDocVerificationParams();
+        verificationParams.verificationTypes = [VerificationType.ISSUER_SIGNATURE];
+        verificationParams.issuerKeyID = ISSUER_KEY_ID;
+        
+        expect(await deviceResponse.documents[0].verify(verificationParams, coseCryptoProvider)).toBeTruthy();
     });
 
     test('Create, parse, verify mDL request', async () => {
@@ -180,15 +184,15 @@ describe('testing mdoc', () => {
                                                                   testCertificates.readerKeyPair.privateKey);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([readerKeyInfo]);
         const sessionTranscript = new ListElement();
-        const mdocRequest = await new MDocRequestBuilder(MDL.DocType).addDataElementRequest(MDL.NameSpace, 'family_name', true)
-                                                                                 .addDataElementRequest(MDL.NameSpace, 'birth_date', false)
+        const mdocRequest = await new MDocRequestBuilder(MDL.DocType).addDataElementRequest(MDL.Namespace, 'family_name', true)
+                                                                                 .addDataElementRequest(MDL.Namespace, 'birth_date', false)
                                                                                  .sign(sessionTranscript, coseCryptoProvider, READER_KEY_ID);
         let deviceRequest = new DeviceRequest([mdocRequest])
         const deviceRequestCBOR = DataElementSerializer.toCBOR(deviceRequest.toMapElement());
         deviceRequest = DeviceRequest.fromMapElement(<MapElement>DataElementDeserializer.fromCBOR(deviceRequestCBOR));
         const firstMdocRequest = deviceRequest.mdocRequests[0];
         const allowedToRetain = new Map<string, Set<string>>();
-        allowedToRetain.set(MDL.NameSpace, new Set<string>(['family_name']));
+        allowedToRetain.set(MDL.Namespace, new Set<string>(['family_name']));
         const verified = await firstMdocRequest.verify(new MDocRequestVerificationParams(true, 
                                                                                          READER_KEY_ID, 
                                                                                          allowedToRetain, 
@@ -218,11 +222,11 @@ describe('testing mdoc', () => {
                                                                 [cert]);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([certKeyInfo]);
         const allowedToRetain = new Map<string, Set<string>>();
-        allowedToRetain.set(MDL.NameSpace, new Set<string>(['family_name', 'document_number', 'driving_privileges', 'issue_date', 'expiry_date']));
+        allowedToRetain.set(MDL.Namespace, new Set<string>(['family_name', 'document_number', 'driving_privileges', 'issue_date', 'expiry_date']));
         let params = new MDocRequestVerificationParams(true, READER_KEY_ID, allowedToRetain, readerAuthentication);
         expect(await devRequest.mdocRequests[0].verify(params, coseCryptoProvider)).toBeTruthy();
 
-        allowedToRetain.set(MDL.NameSpace, new Set<string>(['family_name']));
+        allowedToRetain.set(MDL.Namespace, new Set<string>(['family_name']));
         params = new MDocRequestVerificationParams(true, READER_KEY_ID, allowedToRetain, readerAuthentication);
         expect(await devRequest.mdocRequests[0].verify(params, coseCryptoProvider)).toBeFalsy();
     });
@@ -235,14 +239,14 @@ describe('testing mdoc', () => {
         const listElement = <ListElement>DataElementDeserializer.fromCBOR(new EncodedCBORElement(deviceAuthenticationBytes).decode().value);
         const deviceAuthentication = DeviceAuthentication.fromListElement(listElement);
         const ephemeralMacKey = Hex.decode('dc2b9566fdaaae3c06baa40993cd0451aeba15e7677ef5305f6531f3533c35dd');
-        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.NameSpace, 'family_name', true)
-                                                                      .addDataElementRequest(MDL.NameSpace, 'document_number', true)
+        const mdocRequest = new MDocRequestBuilder(mdoc.docType).addDataElementRequest(MDL.Namespace, 'family_name', true)
+                                                                      .addDataElementRequest(MDL.Namespace, 'document_number', true)
                                                                       .build();
         const presentedMdoc = await mdoc.presentWithDeviceMAC(mdocRequest, deviceAuthentication, ephemeralMacKey);
         const nameSpaces = presentedMdoc.issuerNamespaces;
-        expect(Array.from(nameSpaces)).toEqual([MDL.NameSpace]);
-        const issuerSignedItems = presentedMdoc.getIssuerSignedItems(MDL.NameSpace);
-        expect(issuerSignedItems.map((item) => item.elementIdentifier.value)).toEqual(['family_name', 'document_number']);
+        expect(Array.from(nameSpaces)).toEqual([MDL.Namespace]);
+        const issuerSignedItems = presentedMdoc.getIssuerSignedItems(MDL.Namespace);
+        expect(issuerSignedItems.map((item) => item.elementIdentifier)).toEqual(['family_name', 'document_number']);
         const certificateDER = Buffer.from(mdoc.issuerSigned.issuerAuth.x5Chain);
         const cert = new x509.X509Certificate(certificateDER.toString('hex'));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
@@ -302,7 +306,7 @@ describe('testing mdoc', () => {
         expect(mdoc.mso.digestAlgorithm).toBe(DigestAlgorithm.SHA256);
         const signedItems = mdoc.getIssuerSignedItems("org.iso.23220.1");
         expect(signedItems.length).toBe(3);
-        expect(signedItems[0].digestID.value).toBe(0);
+        expect(signedItems[0].digestID).toBe(0);
         expect(mdoc.mso.valueDigests.get("org.iso.23220.1")).not.toBeNull();
         //mdoc.verify
     });
@@ -341,8 +345,8 @@ describe('testing mdoc', () => {
 
     test('Device Request builder and serialization', () => {
 
-        const mdocRequest = new MDocRequestBuilder(MDL.DocType).addDataElementRequest(MDL.NameSpace, "family_name", true)
-                                                               .addDataElementRequest(MDL.NameSpace, "birth_date", false)
+        const mdocRequest = new MDocRequestBuilder(MDL.DocType).addDataElementRequest(MDL.Namespace, "family_name", true)
+                                                               .addDataElementRequest(MDL.Namespace, "birth_date", false)
                                                                .build();
         
         const deviceRequest = new DeviceRequest([mdocRequest]);

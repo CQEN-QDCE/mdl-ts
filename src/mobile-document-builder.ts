@@ -31,7 +31,7 @@ export class MobileDocumentBuilder {
 
     addItemToSign(namespace: string, elementIdentifier: string, elementValue: DataElement): MobileDocumentBuilder {
         const issuerSignedItems = this.getIssuerSignedItemsByNameSpace(namespace);
-        issuerSignedItems.push(IssuerSignedItem.createWithRandomSalt(this.getNextDigestID(issuerSignedItems), elementIdentifier, elementValue));
+        issuerSignedItems.push(IssuerSignedItem.build(this.getNextDigestID(issuerSignedItems), elementIdentifier, elementValue));
         return this;
     }
 
@@ -61,7 +61,7 @@ export class MobileDocumentBuilder {
         let maxDigestID: number = 0;
         if (issuerSignedItems.length == 0) return 0;
         for (const issuerSignedItem of issuerSignedItems) {
-            if (issuerSignedItem.digestID.value > maxDigestID) maxDigestID = issuerSignedItem.digestID.value;
+            if (issuerSignedItem.digestID > maxDigestID) maxDigestID = issuerSignedItem.digestID;
         }
         return maxDigestID + 1 > this.UNSIGNED_INTEGER_MAX_VALUE ? 0 : maxDigestID + 1;
     }

@@ -9,26 +9,24 @@ import { SecureRandom } from "../utils/secure-random";
 
 export class IssuerSignedItem {
 
-    digestID: NumberElement;
-    random: ByteStringElement;
-    elementIdentifier: StringElement;
-    elementValue: DataElement;
+    private constructor(public readonly digestID: number, 
+                        public readonly randomSalt: ArrayBuffer, 
+                        public readonly elementIdentifier: string, 
+                        public readonly elementValue: DataElement) {
+    }
 
-    constructor(digestID: NumberElement, 
-                random: ByteStringElement, 
-                elementIdentifier: StringElement, 
-                elementValue: DataElement) {
-        this.digestID = digestID;
-        this.random = random;
-        this.elementIdentifier = elementIdentifier;
-        this.elementValue = elementValue;
+    public static build(digestID: number, elementIdentifier: string, elementValue: DataElement): IssuerSignedItem {
+        return new IssuerSignedItem(digestID, 
+                                    new Uint8Array(new TextEncoder().encode(SecureRandom.generate(16))).buffer, 
+                                    elementIdentifier, 
+                                    elementValue);
     }
     
     toMapElement(): MapElement {
         const map = new Map<MapKey, DataElement>();
-        map.set(new MapKey('digestID'), this.digestID);
-        map.set(new MapKey('random'), this.random);
-        map.set(new MapKey('elementIdentifier'), this.elementIdentifier);
+        map.set(new MapKey('digestID'), new NumberElement(this.digestID));
+        map.set(new MapKey('random'), new ByteStringElement(this.randomSalt));
+        map.set(new MapKey('elementIdentifier'), new StringElement(this.elementIdentifier));
         map.set(new MapKey('elementValue'), this.elementValue);
         return new MapElement(map);
     }
@@ -38,13 +36,7 @@ export class IssuerSignedItem {
         const random = element.get(new MapKey('random'));
         const elementIdentifier = element.get(new MapKey('elementIdentifier'));
         const elementValue = element.get(new MapKey('elementValue'));
-        return new IssuerSignedItem(digestID, random, elementIdentifier, elementValue);
+        return new IssuerSignedItem(digestID.value, random.value, elementIdentifier.value, elementValue);
     }
 
-    static createWithRandomSalt(digestID: number, elementIdentifier: string, elementValue: DataElement): IssuerSignedItem {
-        return new IssuerSignedItem(new NumberElement(digestID), 
-                                    new ByteStringElement(new Uint8Array(new TextEncoder().encode(SecureRandom.generate(16))).buffer), 
-                                    new StringElement(elementIdentifier), 
-                                    elementValue);
-    }
 }

@@ -21,30 +21,25 @@ import { Lazy } from "./utils/lazy";
 
 export class MobileDocument {
 
-    public readonly docType: string;
-    public readonly issuerSigned: IssuerSigned;
-    public readonly deviceSigned: DeviceSigned;
-    public readonly errors: Map<string, Map<string, number>>;
     private readonly lazyMobileSecurityObject: Lazy<MobileSecurityObject>;
+
     private readonly lazyIssuerNamespaces: Lazy<Set<string>>;
 
     /**
-     * 
      * @param docType 
      * @param issuerSigned 
      * @param deviceSigned 
      * @param errors The errors parameter is a map from namespaces where each value is a map from data elements in said namespace to an error code from ISO/IEC 18013-5:2021 Table 9.
      */
-    constructor(docType: string, 
-                issuerSigned: IssuerSigned, 
-                deviceSigned: DeviceSigned, 
-                errors: Map<string, Map<string, number>> | null = null) {
-        this.docType = docType;
-        this.issuerSigned = issuerSigned;
-        this.deviceSigned = deviceSigned;
-        this.errors = errors;
+    constructor(public readonly docType: string, 
+                public readonly issuerSigned: IssuerSigned, 
+                public readonly deviceSigned: DeviceSigned, 
+                public readonly errors: Map<string, Map<string, number>> | null = null) {
+
         this.lazyMobileSecurityObject = new Lazy<MobileSecurityObject>(() => this.initMobileSecurityObject());
+
         this.lazyIssuerNamespaces = new Lazy<Set<string>>(() => this.initIssuerNamespaces());
+
     }
 
     get mso(): MobileSecurityObject {
@@ -56,19 +51,10 @@ export class MobileDocument {
     }
 
     public getIssuerSignedItems(namespace: string): IssuerSignedItem[] {
-//        const issuerSignedItems: IssuerSignedItem[] = [];
-//        const encodedCBORElements: EncodedCBORElement[] = this.issuerSigned.namespaces.get(namespace);
-//        for (const encodedCBORElement of encodedCBORElements) {
-//            const dataElement = encodedCBORElement.decode();
-//            IssuerSignedItem.fromMapElement(<MapElement>dataElement);
-//            issuerSignedItems.push(IssuerSignedItem.fromMapElement(<MapElement>dataElement));
-//        }
-//        return issuerSignedItems;
         return this.issuerSigned.namespaces.get(namespace);
     }
 
-    // TODO: Cette méthode ne devrait pas être publique.
-    public async verifySignature(cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<boolean> {
+    private async verifySignature(cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<boolean> {
         return await cryptoProvider.verify1(this.issuerSigned.issuerAuth, keyID);
     }
 
@@ -89,16 +75,12 @@ export class MobileDocument {
     }
 
     private verifyValidity(): boolean {
-        const mso = this.mso;
-        if (!mso) throw new Error("No MSO found on this mdoc.");
-        const validityInfo = mso.validity;
+        const validityInfo = this.mso.validity;
         return validityInfo.validFrom.value <= new Date() && validityInfo.validUntil.value >= new Date();
     }
 
     private verifyDocType(): boolean {
-        const mso = this.mso;
-        if (!mso) throw new Error("No MSO found on this mdoc.");
-        return mso.docType === this.docType;
+        return this.mso.docType === this.docType;
     }
 
     private async verifyDeviceSigOrMac(verificationParams: MDocVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
@@ -118,15 +100,16 @@ export class MobileDocument {
     }
 
     private async verifyIssuerSignedItems(): Promise<boolean> {
-        const mso = this.mso;
-        if (!mso) throw new Error("No MSO found on this mdoc.");
-        for (const [nameSpace, issuerSignedItems] of this.issuerSigned.namespaces) {
-            if (!await mso.verifySignedItems(nameSpace, issuerSignedItems)) return false;
+        for (const [namespace, issuerSignedItems] of this.issuerSigned.namespaces) {
+            if (!await this.mso.verifySignedItems(namespace, issuerSignedItems)) return false;
         }
         return true;
     }
 
-    async verify(verificationParams: MDocVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
+    public async verify(verificationParams: MDocVerificationParams, cryptoProvider: COSECryptoProvider): Promise<boolean> {
+        
+        if (!this.mso) throw new Error("No MSO found on this mdoc.");
+        
         for (const verificationType of verificationParams.verificationTypes) {
             switch (verificationType) {
                 case VerificationType.CERTIFICATE_CHAIN:
@@ -151,6 +134,7 @@ export class MobileDocument {
                     throw new Error("Unknown verification type.");
             }
         }
+
         return true;
     }
 
@@ -164,7 +148,6 @@ export class MobileDocument {
     }
 
     public async presentWithDeviceMAC(mobileDocumentRequest: MDocRequest, deviceAuthentication: DeviceAuthentication, ephemeralMACKey: ArrayBuffer): Promise<MobileDocument> {
-        //const coseMac0 = COSEMac0.createWithHMAC256(this.getDeviceSignedPayload(deviceAuthentication), ephemeralMACKey).detachPayload();
         const coseMac0 = new COSEMac0();
         coseMac0.attachPayload(this.getDeviceSignedPayload(deviceAuthentication));
         await coseMac0.mac(ephemeralMACKey);
@@ -181,7 +164,7 @@ export class MobileDocument {
             const requestedItems = mDocRequest.getRequestedItemsFor(namespace);
             const selectedIssuerSignedItem: IssuerSignedItem[] = [];
             for (const issuerSignedItem of issuerSignedItems) {
-                if (requestedItems.get(issuerSignedItem.elementIdentifier.value)) selectedIssuerSignedItem.push(issuerSignedItem);
+                if (requestedItems.get(issuerSignedItem.elementIdentifier)) selectedIssuerSignedItem.push(issuerSignedItem);
             }
             issuerNamespaces.set(namespace, selectedIssuerSignedItem);
         }
