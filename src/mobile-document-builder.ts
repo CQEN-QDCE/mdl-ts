@@ -34,16 +34,16 @@ export class MobileDocumentBuilder {
     }
 
     build(issuerAuthentication: COSESign1, deviceSigned: DeviceSigned | null = null): MobileDocument {
-        const namespaces = new Map<string, EncodedCBORElement[]>();
-        for (const [namespace, issuerSignedItems] of this.issuerSignedItemsByNamespace) {
-            const encodedCborElements:EncodedCBORElement[] = [];
-            for (const issuerSignedItem of issuerSignedItems) {
-                encodedCborElements.push(EncodedCBORElement.encode(issuerSignedItem.toMapElement()));
-            }
-            namespaces.set(namespace, encodedCborElements);
-        }
+//        const namespaces = new Map<string, EncodedCBORElement[]>();
+//        for (const [namespace, issuerSignedItems] of this.issuerSignedItemsByNamespace) {
+//            const encodedCborElements:EncodedCBORElement[] = [];
+//            for (const issuerSignedItem of issuerSignedItems) {
+//                encodedCborElements.push(EncodedCBORElement.encode(issuerSignedItem.toMapElement()));
+//            }
+//            namespaces.set(namespace, encodedCborElements);
+//        }
         return new MobileDocument(this.docType,
-                                  new IssuerSigned(namespaces, issuerAuthentication),
+                                  new IssuerSigned(this.issuerSignedItemsByNamespace, issuerAuthentication),
                                   deviceSigned);
     }
 

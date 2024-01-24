@@ -77,22 +77,22 @@ export class MobileSecurityObject {
         return new MapElement(map);
     }
 
-    async verifySignedItems(nameSpace: string, items: EncodedCBORElement[]): Promise<boolean> {
+    async verifySignedItems(nameSpace: string, issuerSignedItems: IssuerSignedItem[]): Promise<boolean> {
         const valueDigests = this.getValueDigestsFor(nameSpace);
         const digestAlgorithm: DigestAlgorithm = this.digestAlgorithm;
-        for (const item of items) {
-            const issuerSignedItem = IssuerSignedItem.fromMapElement(<MapElement>item.decode());
+        for (const issuerSignedItem of issuerSignedItems) {
             const digestID = issuerSignedItem.digestID.value;
             if (!valueDigests.has(digestID)) return false;
             let valueDigest = valueDigests.get(digestID);
             if (valueDigest instanceof Buffer) valueDigest = new Uint8Array(valueDigest).buffer;
-            const itemDigest = await MobileSecurityObject.digestItem(item, digestAlgorithm);
+            const itemDigest = await MobileSecurityObject.digestItem(issuerSignedItem, digestAlgorithm);
             if (!ArrayBufferComparer.equals(valueDigest, itemDigest)) return false;
         }
         return true;
     }
 
-    private static async digestItem(encodedItem: EncodedCBORElement, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
+    private static async digestItem(issuerSignedItem: IssuerSignedItem, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
+        const encodedItem = new EncodedCBORElement(DataElementSerializer.toCBOR(issuerSignedItem.toMapElement()));
         const crypto = new Crypto();
         const hash = await crypto.subtle.digest(digestAlgorithm, DataElementSerializer.toCBOR(encodedItem));
         return hash
@@ -108,7 +108,7 @@ export class MobileSecurityObject {
         for (const [namespace, issuerSignedItems] of nameSpaces) {
             const nameSpaceDigests = new Map<MapKey, DataElement>();
             for (const issuerSignedItem of issuerSignedItems) {
-                const digest = await this.digestItem(EncodedCBORElement.encode(issuerSignedItem.toMapElement()), digestAlgorithm);
+                const digest = await this.digestItem(issuerSignedItem, digestAlgorithm);
                 nameSpaceDigests.set(new MapKey(issuerSignedItem.digestID.value), new ByteStringElement(digest));
             }
             valueDigests.set(new MapKey(namespace), new MapElement(nameSpaceDigests));

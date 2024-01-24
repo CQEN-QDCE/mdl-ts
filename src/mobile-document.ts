@@ -56,14 +56,15 @@ export class MobileDocument {
     }
 
     public getIssuerSignedItems(namespace: string): IssuerSignedItem[] {
-        const issuerSignedItems: IssuerSignedItem[] = [];
-        const encodedCBORElements: EncodedCBORElement[] = this.issuerSigned.namespaces.get(namespace);
-        for (const encodedCBORElement of encodedCBORElements) {
-            const dataElement = encodedCBORElement.decode();
-            IssuerSignedItem.fromMapElement(<MapElement>dataElement);
-            issuerSignedItems.push(IssuerSignedItem.fromMapElement(<MapElement>dataElement));
-        }
-        return issuerSignedItems;
+//        const issuerSignedItems: IssuerSignedItem[] = [];
+//        const encodedCBORElements: EncodedCBORElement[] = this.issuerSigned.namespaces.get(namespace);
+//        for (const encodedCBORElement of encodedCBORElements) {
+//            const dataElement = encodedCBORElement.decode();
+//            IssuerSignedItem.fromMapElement(<MapElement>dataElement);
+//            issuerSignedItems.push(IssuerSignedItem.fromMapElement(<MapElement>dataElement));
+//        }
+//        return issuerSignedItems;
+        return this.issuerSigned.namespaces.get(namespace);
     }
 
     // TODO: Cette méthode ne devrait pas être publique.
@@ -175,19 +176,16 @@ export class MobileDocument {
     }
 
     private selectDisclosures(mDocRequest: MDocRequest): IssuerSigned {
-        const nameSpaces = new Map<string, EncodedCBORElement[]>();
-        for (const [key, value] of this.issuerSigned.namespaces) {
-            const requestedItems = mDocRequest.getRequestedItemsFor(key);
-            const list: EncodedCBORElement[] = [];
-            for (const encodedCBORElement of value) {
-                const dataElement = encodedCBORElement.decode();
-                const mapElement = <MapElement>dataElement;
-                const elementIdentifier = <StringElement>mapElement.get(new MapKey('elementIdentifier'));
-                if (requestedItems.get(elementIdentifier.value)) list.push(encodedCBORElement);
+        const issuerNamespaces = new Map<string, IssuerSignedItem[]>();
+        for (const [namespace, issuerSignedItems] of this.issuerSigned.namespaces) {
+            const requestedItems = mDocRequest.getRequestedItemsFor(namespace);
+            const list: IssuerSignedItem[] = [];
+            for (const issuerSignedItem of issuerSignedItems) {
+                if (requestedItems.get(issuerSignedItem.elementIdentifier.value)) list.push(issuerSignedItem);
             }
-            nameSpaces.set(key, list);
+            issuerNamespaces.set(namespace, list);
         }
-        return new IssuerSigned(nameSpaces, this.issuerSigned.issuerAuth);
+        return new IssuerSigned(issuerNamespaces, this.issuerSigned.issuerAuth);
     }
 
     private getDeviceSignedPayload(deviceAuthentication: DeviceAuthentication): ArrayBuffer {
