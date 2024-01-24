@@ -90,7 +90,7 @@ describe('testing mdoc', () => {
         const issuerSignedItems = mdoc.getIssuerSignedItems(MDL.NameSpace);
         expect(issuerSignedItems.length).toBe(3);
         expect(issuerSignedItems[0].digestID.value).toBe(0);
-        expect(mdoc.mso.valueDigests.get(new MapKey(MDL.NameSpace))).not.toBeNull();
+        expect(mdoc.mso.valueDigests.get(MDL.NameSpace)).not.toBeNull();
 
         const params = new MDocVerificationParams();
         params.verificationTypes = [VerificationType.VALIDITY,
@@ -303,7 +303,7 @@ describe('testing mdoc', () => {
         const signedItems = mdoc.getIssuerSignedItems("org.iso.23220.1");
         expect(signedItems.length).toBe(3);
         expect(signedItems[0].digestID.value).toBe(0);
-        expect(mdoc.mso.valueDigests.get(new MapKey("org.iso.23220.1"))).not.toBeNull();
+        expect(mdoc.mso.valueDigests.get("org.iso.23220.1")).not.toBeNull();
         //mdoc.verify
     });
 /*

@@ -17,14 +17,17 @@ export class MobileSecurityObject {
 
     public readonly version: string;
     public readonly digestAlgorithm: DigestAlgorithm;
-    public readonly valueDigests: MapElement;
-    public readonly deviceKeyInfo: DeviceKeyInfo;
+
+    // Digests of all data elements per namespace
+    public readonly valueDigests: Map<string, Map<number, ArrayBuffer>>;
+    
     public readonly docType: string;
     public readonly validity: ValidityInfo;
+    private readonly deviceKeyInfo: DeviceKeyInfo;
 
     constructor(version: string, 
                 digestAlgorithm: DigestAlgorithm,
-                valueDigests: MapElement,
+                valueDigests: Map<string, Map<number, ArrayBuffer>>,
                 deviceKeyInfo: DeviceKeyInfo,
                 docType: string,
                 validityInfo: ValidityInfo) {
@@ -36,6 +39,7 @@ export class MobileSecurityObject {
         this.validity = validityInfo;
     }
 
+    /*
     getValueDigestsFor(nameSpace: string): Map<number, ArrayBuffer> {
         const nameSpaceElement = this.valueDigests.get(new MapKey(nameSpace));
         if (!nameSpaceElement) return new  Map<number, ArrayBuffer>();
@@ -47,14 +51,7 @@ export class MobileSecurityObject {
         }
         return digestMap;
     }
-
-    get nameSpaces(): string[] {
-        const nameSpaces: string[] = [];
-        for (const [key, value] of this.valueDigests.value) {
-            nameSpaces.push(key.str);
-        }
-        return nameSpaces;
-    }
+    */
 
     static fromMapElement(mapElement: MapElement): MobileSecurityObject {
         const version = <StringElement>mapElement.get(new MapKey('version'));
@@ -63,32 +60,86 @@ export class MobileSecurityObject {
         const deviceKeyInfo = DeviceKeyInfo.fromMapElement(<MapElement>mapElement.get(new MapKey('deviceKeyInfo')));
         const docType = <StringElement>mapElement.get(new MapKey('docType'));
         const validityInfo = ValidityInfo.fromMapElement(<MapElement>mapElement.get(new MapKey('validityInfo')));
-        return new MobileSecurityObject(version.value, <DigestAlgorithm>digestAlgorithm.value, valueDigests, deviceKeyInfo, docType.value, validityInfo);
+
+        let valueDigests2 = new Map<string, Map<number, ArrayBuffer>>;
+        for(const [key, value] of valueDigests.value) {
+            const digestMap = new Map<number, ArrayBuffer>();
+            for (const [key2, value2] of (<MapElement>value).value) {
+                if (value2 instanceof ByteStringElement) {
+                    digestMap.set(key2.int, value2.value);
+                }
+            }
+            valueDigests2.set(key.str, digestMap);
+        }
+
+        return new MobileSecurityObject(version.value, 
+                                        <DigestAlgorithm>digestAlgorithm.value, 
+                                        valueDigests2, 
+                                        deviceKeyInfo, 
+                                        docType.value, 
+                                        validityInfo);
     }
 
     toMapElement(): MapElement {
+        const valueDigestNamespaces = new Map<MapKey, DataElement>();
+        for (const [namespace, valueDigests2] of this.valueDigests) {
+            const nameSpaceDigests = new Map<MapKey, DataElement>();
+            for (const [digestID, valueDigest] of valueDigests2) {
+                nameSpaceDigests.set(new MapKey(digestID), new ByteStringElement(valueDigest));
+            }
+            valueDigestNamespaces.set(new MapKey(namespace), new MapElement(nameSpaceDigests));
+        }
         const map = new Map<MapKey, DataElement>();
         map.set(new MapKey('version'), new StringElement(this.version));
         map.set(new MapKey('digestAlgorithm'), new StringElement(this.digestAlgorithm));
-        map.set(new MapKey('valueDigests'), this.valueDigests);
+        map.set(new MapKey('valueDigests'), new MapElement(valueDigestNamespaces));
         map.set(new MapKey('deviceKeyInfo'), this.deviceKeyInfo.toMapElement());
         map.set(new MapKey('docType'), new StringElement(this.docType));
         map.set(new MapKey('validityInfo'), this.validity.toMapElement());
         return new MapElement(map);
     }
 
-    async verifySignedItems(nameSpace: string, issuerSignedItems: IssuerSignedItem[]): Promise<boolean> {
-        const valueDigests = this.getValueDigestsFor(nameSpace);
-        const digestAlgorithm: DigestAlgorithm = this.digestAlgorithm;
+    public async verifySignedItems(namespace: string, issuerSignedItems: IssuerSignedItem[]): Promise<boolean> {
+        
+        const valueDigests = this.valueDigests.get(namespace);
+        
         for (const issuerSignedItem of issuerSignedItems) {
             const digestID = issuerSignedItem.digestID.value;
             if (!valueDigests.has(digestID)) return false;
-            let valueDigest = valueDigests.get(digestID);
-            if (valueDigest instanceof Buffer) valueDigest = new Uint8Array(valueDigest).buffer;
-            const itemDigest = await MobileSecurityObject.digestItem(issuerSignedItem, digestAlgorithm);
+            const valueDigest = valueDigests.get(digestID);
+            const itemDigest = await MobileSecurityObject.digestItem(issuerSignedItem, this.digestAlgorithm);
             if (!ArrayBufferComparer.equals(valueDigest, itemDigest)) return false;
         }
+        
         return true;
+    }
+
+    public static async build(issuerNamespaces: Map<string, IssuerSignedItem[]>,
+                              deviceKeyInfo: DeviceKeyInfo,
+                              docType: string,
+                              validityInfo: ValidityInfo,
+                              digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256): Promise<MobileSecurityObject> {
+
+        const valueDigests = new Map<string, Map<number, ArrayBuffer>>();
+        for (const [namespace, issuerSignedItems] of issuerNamespaces) {
+            valueDigests.set(namespace, await this.digestItems(issuerSignedItems, digestAlgorithm));
+        }
+        const mso = new MobileSecurityObject('1.0', 
+                                             digestAlgorithm, 
+                                             valueDigests, 
+                                             deviceKeyInfo, 
+                                             docType, 
+                                             validityInfo);
+        return mso;
+    }
+
+    private static async digestItems(issuerSignedItems: IssuerSignedItem[], digestAlgorithm: DigestAlgorithm): Promise<Map<number, ArrayBuffer>> {
+        const digestIDs = new Map<number, ArrayBuffer>();
+        for (const issuerSignedItem of issuerSignedItems) {
+            const digest = await this.digestItem(issuerSignedItem, digestAlgorithm);
+            digestIDs.set(issuerSignedItem.digestID.value, digest);
+        }
+        return digestIDs;
     }
 
     private static async digestItem(issuerSignedItem: IssuerSignedItem, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
@@ -96,29 +147,5 @@ export class MobileSecurityObject {
         const crypto = new Crypto();
         const hash = await crypto.subtle.digest(digestAlgorithm, DataElementSerializer.toCBOR(encodedItem));
         return hash
-    }
-
-    // TODO: Créer un builder pour cette méthode
-    static async createFor(nameSpaces: Map<string, IssuerSignedItem[]>,
-                     deviceKeyInfo: DeviceKeyInfo,
-                     docType: string,
-                     validityInfo: ValidityInfo,
-                     digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256): Promise<MobileSecurityObject> {
-        const valueDigests = new Map<MapKey, DataElement>();
-        for (const [namespace, issuerSignedItems] of nameSpaces) {
-            const nameSpaceDigests = new Map<MapKey, DataElement>();
-            for (const issuerSignedItem of issuerSignedItems) {
-                const digest = await this.digestItem(issuerSignedItem, digestAlgorithm);
-                nameSpaceDigests.set(new MapKey(issuerSignedItem.digestID.value), new ByteStringElement(digest));
-            }
-            valueDigests.set(new MapKey(namespace), new MapElement(nameSpaceDigests));
-        }
-        const mso = new MobileSecurityObject('1.0', 
-                                             digestAlgorithm, 
-                                             new MapElement(valueDigests), 
-                                             deviceKeyInfo, 
-                                             docType, 
-                                             validityInfo);
-        return mso;
     }
 }

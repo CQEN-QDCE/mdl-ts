@@ -14,15 +14,17 @@ import { ValidityInfo } from "./mso/validity-info";
 export class MobileDocumentBuilder {
 
     private UNSIGNED_INTEGER_MAX_VALUE = 4294967295;
+
     private docType: string;
-    private issuerSignedItemsByNamespace = new Map<string, IssuerSignedItem[]>();
+
+    private issuerNamespaces = new Map<string, IssuerSignedItem[]>();
 
     constructor(docType: string) {
         if (!docType) throw new Error('docType must not be null');
         this.docType = docType;
     }
 
-    addIssuerSignedItems(namespace: string, issuerSignedItems: IssuerSignedItem[]): MobileDocumentBuilder {
+    addIssuerNamespace(namespace: string, issuerSignedItems: IssuerSignedItem[]): MobileDocumentBuilder {
         this.getIssuerSignedItemsByNameSpace(namespace).concat(issuerSignedItems);
         return this;
     }
@@ -33,32 +35,24 @@ export class MobileDocumentBuilder {
         return this;
     }
 
-    build(issuerAuthentication: COSESign1, deviceSigned: DeviceSigned | null = null): MobileDocument {
-//        const namespaces = new Map<string, EncodedCBORElement[]>();
-//        for (const [namespace, issuerSignedItems] of this.issuerSignedItemsByNamespace) {
-//            const encodedCborElements:EncodedCBORElement[] = [];
-//            for (const issuerSignedItem of issuerSignedItems) {
-//                encodedCborElements.push(EncodedCBORElement.encode(issuerSignedItem.toMapElement()));
-//            }
-//            namespaces.set(namespace, encodedCborElements);
-//        }
+    public build(issuerAuthentication: COSESign1, deviceSigned: DeviceSigned | null = null): MobileDocument {
         return new MobileDocument(this.docType,
-                                  new IssuerSigned(this.issuerSignedItemsByNamespace, issuerAuthentication),
+                                  new IssuerSigned(this.issuerNamespaces, issuerAuthentication),
                                   deviceSigned);
     }
 
-    async sign(validityInfo: ValidityInfo, deviceKeyInfo: DeviceKeyInfo, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocument> {
-        const mso = await MobileSecurityObject.createFor(this.issuerSignedItemsByNamespace, deviceKeyInfo, this.docType, validityInfo);
+    public async sign(validityInfo: ValidityInfo, deviceKeyInfo: DeviceKeyInfo, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocument> {
+        const mso = await MobileSecurityObject.build(this.issuerNamespaces, deviceKeyInfo, this.docType, validityInfo);
         const payload = DataElementSerializer.toCBOR(EncodedCBORElement.encode(mso.toMapElement()));
         const issuerAuth = await cryptoProvider.sign1(payload, keyID);
         return this.build(issuerAuth);
     }
 
     private getIssuerSignedItemsByNameSpace(nameSpace: string): IssuerSignedItem[] {
-        let issuerSignedItems = this.issuerSignedItemsByNamespace.get(nameSpace);
+        let issuerSignedItems = this.issuerNamespaces.get(nameSpace);
         if (!issuerSignedItems) {
             issuerSignedItems = [];
-            this.issuerSignedItemsByNamespace.set(nameSpace, issuerSignedItems);
+            this.issuerNamespaces.set(nameSpace, issuerSignedItems);
         } 
         return issuerSignedItems;
     }
