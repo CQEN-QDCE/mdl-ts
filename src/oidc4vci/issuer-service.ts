@@ -11,6 +11,7 @@ import { CredentialResponseParameters } from "./credential-response-parameters";
 import { IssuerMetadata } from "./issuer-metadata";
 import { RequestedCredentialClaimSpecification } from "./mdl/requested-credential-claim-specification";
 import { NonceService } from "./nonce-service";
+import { ProofType } from "./proof-type.enum";
 import { SupportedCredentialFormat } from "./supported-credential-format";
 import { TokenRequestParameters } from "./token-request-parameters";
 import { TokenResponseParameters } from "./token-response-parameters";
@@ -134,10 +135,20 @@ export class IssuerService {
     }
 
     public credential(authorizationHeader: string, params: CredentialRequestParameters): CredentialResponseParameters {
+        
         if (!this.tokenService.verifyToken(authorizationHeader.replace(OpenIdConstants.TOKEN_PREFIX_BEARER, ''))) throw 'OAuth2Exception: invalid token';
+        
         const proof = params.proof;
+        
         if (!proof) throw 'OAuth2Exception: invalid request';
-//        if (proof.proofType !== ProofTypes.JWT) throw 'OAuth2Exception: invalid proof';
+
+        if (proof.proofType === ProofType.JWT) {
+
+        }
+
+        if (proof.proofType === ProofType.CWT) {
+            
+        }
 
 //        const issuedCredentialResult = this.issuer.issueCredential(subjectPublicKey,
 //            params.types,

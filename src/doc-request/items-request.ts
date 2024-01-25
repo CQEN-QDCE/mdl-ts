@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element/data-element";
-import { MapElement } from "./data-element/map-element";
-import { MapKey } from "./data-element/map-key";
-import { StringElement } from "./data-element/string-element";
+import { DataElement } from "../data-element/data-element";
+import { MapElement } from "../data-element/map-element";
+import { MapKey } from "../data-element/map-key";
+import { StringElement } from "../data-element/string-element";
 
 export class ItemsRequest {
 
     public readonly docType: string;
     
     // Requested data elements for each namespace.
-    public namespaces: MapElement;
+    public readonly namespaces: MapElement;
 
     constructor(docType: string, 
                 nameSpaces: MapElement) {

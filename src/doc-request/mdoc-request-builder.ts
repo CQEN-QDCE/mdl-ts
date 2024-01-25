@@ -7,7 +7,7 @@ import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { StringElement } from "../data-element/string-element";
-import { ItemsRequest } from "../items-request";
+import { ItemsRequest } from "./items-request";
 import { MobileDocumentRequest } from "./mobile-document-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { DataElementSerializer } from '../data-element/data-element-serializer';

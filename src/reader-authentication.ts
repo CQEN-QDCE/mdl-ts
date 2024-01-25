@@ -3,7 +3,7 @@ import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
 import { ListElement } from "./data-element/list-element";
 import { StringElement } from "./data-element/string-element";
 import { DataElementSerializer } from './data-element/data-element-serializer';
-import { ItemsRequest } from "./items-request";
+import { ItemsRequest } from "./doc-request/items-request";
 
 export class ReaderAuthentication {
 

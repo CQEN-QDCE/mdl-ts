@@ -12,14 +12,14 @@ import { Hex } from "../utils/hex";
 
 export class DeviceRequest {
 
-    constructor(public readonly mdocRequests: MobileDocumentRequest[], 
-                public readonly version: string = "1.0") {
+    constructor(public readonly mobileDocumentRequests: MobileDocumentRequest[], 
+                public readonly version: string = '1.0') {
     }
 
     toMapElement(): MapElement {
         const map = new Map<MapKey, DataElement>();
         const mdocRequests: MapElement[] = [];
-        for (const mdocRequest of this.mdocRequests) mdocRequests.push(mdocRequest.toMapElement());
+        for (const mdocRequest of this.mobileDocumentRequests) mdocRequests.push(mdocRequest.toMapElement());
         map.set(new MapKey('docRequests'), new ListElement(mdocRequests));
         map.set(new MapKey('version'), new StringElement(this.version));
         return new MapElement(map);

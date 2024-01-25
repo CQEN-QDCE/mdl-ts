@@ -1,5 +1,4 @@
 import { AuthenticationRequestParameters } from "../src/oidc/authentication-request-parameters";
-import { IssuerAgent } from "../src/oidc/issuer-agent";
 import { OpenIdConstants } from "../src/oidc/openid-constants";
 import { VcDataModelConstants } from "../src/oidc/vc-data-model-constants";
 import { AtomicAttribute2023, MobileDrivingLicence2023 } from "../src/oidc/vc/credential-scheme";
@@ -9,6 +8,7 @@ import { IssuerService } from "../src/oidc4vci/issuer-service";
 import { TokenRequestParameters } from "../src/oidc4vci/token-request-parameters";
 
 describe('testing OIDC4VCI process', () => {
+
     test('Process with ISO mobile driving licence', async () => {
 //        let issuer = IssuerAgent.newDefaultInstance(
 //            cryptoService = DefaultCryptoService(),
@@ -20,6 +20,7 @@ describe('testing OIDC4VCI process', () => {
                 credentialSchemes: [new AtomicAttribute2023(), new MobileDrivingLicence2023()]
             }
         );
+        
         let metadata = issuerService.metadata;
         let authnRequest = new AuthenticationRequestParameters(
             {

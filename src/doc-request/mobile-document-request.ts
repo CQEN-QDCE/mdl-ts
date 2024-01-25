@@ -8,7 +8,7 @@ import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { StringElement } from "../data-element/string-element";
 import { MDocRequestVerificationParams } from "./mdoc-request-verification-params";
-import { ItemsRequest } from "../items-request";
+import { ItemsRequest } from "./items-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { Lazy } from "../utils/lazy";
 
