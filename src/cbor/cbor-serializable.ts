@@ -100,3 +100,39 @@ export class Foo {
   }
 
   //const db = new Database(Person)
+
+interface CborSerializableInstance {
+    toCbor();
+}
+
+interface CborSerializable {
+    new():CborSerializableInstance;
+    fromCbor();
+}
+
+/* class decorator */
+function staticImplements<T extends CborSerializable>() {
+  return <U extends T>(constructor: U) => {constructor};
+}
+
+//@staticImplements<CborSerializable>()   /* this statement implements both normal interface & static interface */
+//class MyTypeClass extends CborSerializable {
+//  public static fromCbor() {}
+//  toCbor() {}
+//}
+
+class Db2<T extends CborSerializable> {
+  constructor(private type: T) {}
+  public create() {
+      return new this.type();
+  }
+
+}
+
+//let test = new Db2(MyTypeClass);
+
+type Test = number;
+type Test2 = Test & CborSerializableInstance;
+
+//let f: Test2 = 1;
+//f.
