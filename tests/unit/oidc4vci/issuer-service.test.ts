@@ -1,6 +1,7 @@
-import { Grant, OpenId4VciCredentialFormatProfile } from "../../../src/oidc4vci/generic.types";
-import { IssuerService } from "../../../src/oidc4vci/issuer-service";
+import { Grant } from "../../../src/oidc4vci/generic.types";
 import { NonceService } from "../../../src/oidc4vci/nonce-service";
+import { OID4Client } from "../../../src/oidc4vci/oid4-client";
+import { TokenService } from "../../../src/oidc4vci/token-service";
 import { OpenId4VciAuthorizationCodeFlowConfig, OpenId4VciPreAuthorizedCodeFlowConfig } from "../../../src/oidc4vci/vc-issuer-service-options";
 
 describe('IssuerService', () => {
@@ -34,6 +35,16 @@ describe('IssuerService', () => {
 
         nonceService = new NonceService();
 
+        let nonce = nonceService.provideNonce();
+        nonceService.verifyNonce(nonce);
+
+        let tokenService = new TokenService();
+        let token = tokenService.provideToken();
+        let verified1 = tokenService.verifyToken(token);
+
+        let tokenService2 = new TokenService();
+        let verified2 = tokenService2.verifyToken(token);
+
         preAuthorizedCodeFlowConfig = {preAuthorizedCode: '1234567890', userPinRequired: false};
 
         grants = {
@@ -50,6 +61,7 @@ describe('IssuerService', () => {
     });
 
     test('Create credential offer', async () => {
+      /*
         const issuerService = new IssuerService();
         const { uri, session } = await issuerService.createCredentialOfferURI({
             grants: grants,
@@ -58,9 +70,19 @@ describe('IssuerService', () => {
             scheme: baseCredentialRequestOptions.scheme ?? 'https',
             baseUri: baseCredentialRequestOptions.baseUri,
           });
-        
+          */
+          
+        let uri = await OID4Client.getCredentialOffer(); 
+        let oid4vcClient = await OID4Client.fromCredentialOffer(uri);
+        await oid4vcClient.requestCredential(null, null, null);
         let bla = 1;
     });
 
     
 });
+
+
+function activator(ClassA: any) {
+  throw new Error("Function not implemented.");
+}
+

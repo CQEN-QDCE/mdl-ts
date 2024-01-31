@@ -17,6 +17,41 @@ interface IObject {
     )
     return obj;
   }
+
+  interface IConstructor<T> {
+    new (...args: any[]): T;
+
+    // Or enforce default constructor
+    // new (): T;
+}
+
+interface IActivatable {
+    id: number;
+    name: string;
+}
+
+export class ClassA implements IActivatable {
+  constructor(value: number) {
+      this.id = value;
+  }
+    public id: number;
+    public name: string;
+    public address: string;
+}
+
+class ClassB implements IActivatable {
+    public id: number;
+    public name: string;
+    public age: number;
+}
+
+export function activator<T extends IActivatable>(type: IConstructor<T>): T {
+    return new type();
+}
+
+const classA = activator(ClassA);
+
+let instance = 1;
   
   //------------------------
   // Implementation

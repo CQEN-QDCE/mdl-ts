@@ -46,7 +46,8 @@ export class IssuerService {
     private readonly tokenService: TokenService = new TokenService();
     private readonly clientNonceService: NonceService = new NonceService();
     private readonly authorizationServer: string | null = null;
-    private readonly publicContext: string = "https://wallet.a-sit.at";
+    //private readonly publicContext: string = "https://wallet.a-sit.at";
+    private readonly publicContext: string = "http://localhost:5050";
     private readonly authorizationEndpointPath: string = '/authorize';
     private readonly tokenEndpointPath: string = '/token';
     private readonly credentialEndpointPath: string = '/credential';
@@ -151,14 +152,16 @@ export class IssuerService {
         }
         let userPinRequired: boolean | undefined
         if (grants?.['urn:ietf:params:oauth:grant-type:pre-authorized_code']) {
-            preAuthorizedCode = grants?.['urn:ietf:params:oauth:grant-type:pre-authorized_code']?.['pre-authorized_code']
+//            preAuthorizedCode = grants?.['urn:ietf:params:oauth:grant-type:pre-authorized_code']?.['pre-authorized_code']
+            preAuthorizedCode = this.codeService.provideCode();
             userPinRequired = grants?.['urn:ietf:params:oauth:grant-type:pre-authorized_code']?.user_pin_required
             if (userPinRequired === undefined) {
               userPinRequired = false
               grants['urn:ietf:params:oauth:grant-type:pre-authorized_code'].user_pin_required = userPinRequired
             }
             if (!preAuthorizedCode) {
-              preAuthorizedCode = uuidv4()
+              //preAuthorizedCode = uuidv4()
+              preAuthorizedCode = this.codeService.provideCode();
               grants['urn:ietf:params:oauth:grant-type:pre-authorized_code']['pre-authorized_code'] = preAuthorizedCode
             }
         }
@@ -561,7 +564,8 @@ export class IssuerService {
     }
 
     public token(params: TokenRequestParameters): TokenResponseParameters {
-        if (!this.codeService.verifyCode(params.code)) throw 'OAuth2Exception: invalid code';
+        if (params.grantType !== 'urn:ietf:params:oauth:grant-type:pre-authorized_code') throw 'OAuth2Exception: invalid grant_type';
+        if (!this.codeService.verifyCode(params.preAuthorizedCode)) throw 'OAuth2Exception: invalid code';
         return new TokenResponseParameters(
             {
                 accessToken: this.tokenService.provideToken(),
