@@ -1,4 +1,3 @@
-import { Foo, getInstance } from "../../../src/cbor/cbor-serializable";
 import { DeviceRequestBuilder } from "../../../src/data-retrieval/device-request-builder";
 
 describe('testing OIDC4VCI process', () => {

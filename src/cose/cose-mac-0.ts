@@ -81,16 +81,6 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         return ArrayBufferComparer.equals(this.tag, tag);
     }
 
-    public static fromDataElement(dataElement: ListElement): COSEMac0 {
-        const message = new COSEMac0();
-        COSEMac0.decodeProtectedHeaders(dataElement.value[0], message);
-        COSEMac0.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
-        message.dataElements = dataElement.value;
-        message.content = dataElement.value[2].value;
-        message.digest = dataElement.value[3].value;
-        return message;
-    }
-
     private encodeProtectedHeaders(): ArrayBuffer {
         let map = new Map<MapKey, DataElement>();
         map.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(this.headers.algorithm.value));
@@ -119,6 +109,16 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         };
     }
 
+    public static fromDataElement(dataElement: ListElement): COSEMac0 {
+        const message = new COSEMac0();
+        COSEMac0.decodeProtectedHeaders(dataElement.value[0], message);
+        COSEMac0.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
+        message.dataElements = dataElement.value;
+        message.content = dataElement.value[2].value;
+        message.digest = dataElement.value[3].value;
+        return message;
+    }
+    
     toDataElement(): ListElement {
         let list: DataElement[] = [];
         list.push(new ByteStringElement(this.encodeProtectedHeaders()));

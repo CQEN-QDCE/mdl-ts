@@ -18,8 +18,9 @@ import { MDocVerificationParams } from "./mdoc/mdoc-verification-params";
 import { MobileSecurityObject } from "./mdoc/mobile-security-object";
 import { VerificationType } from "./mdoc/verification-type.enum";
 import { Lazy } from "./utils/lazy";
+import { CborDataItemConvertible } from "./cbor/cbor-data-item-convertible";
 
-export class MobileDocument {
+export class MobileDocument implements CborDataItemConvertible {
 
     private readonly lazyMobileSecurityObject: Lazy<MobileSecurityObject>;
 
@@ -31,10 +32,10 @@ export class MobileDocument {
      * @param deviceSigned 
      * @param errors The errors parameter is a map from namespaces where each value is a map from data elements in said namespace to an error code from ISO/IEC 18013-5:2021 Table 9.
      */
-    constructor(public readonly docType: string, 
-                public readonly issuerSigned: IssuerSigned, 
-                public readonly deviceSigned: DeviceSigned, 
-                public readonly errors: Map<string, Map<string, number>> | null = null) {
+    constructor(public docType: string, 
+                public issuerSigned: IssuerSigned, 
+                public deviceSigned: DeviceSigned, 
+                public errors: Map<string, Map<string, number>> | null = null) {
 
         this.lazyMobileSecurityObject = new Lazy<MobileSecurityObject>(() => this.initMobileSecurityObject());
 
@@ -184,6 +185,36 @@ export class MobileDocument {
 
     private initIssuerNamespaces(): Set<string> {
         return new Set<string>([...this.issuerSigned.namespaces.keys()]);
+    }
+
+    fromCborDataItem(dataItem: DataElement<any>): MobileDocument {
+        const mapElement = <MapElement>dataItem;
+        const docType = mapElement.get(new MapKey('docType'));
+        const issuerSigned = mapElement.get(new MapKey('issuerSigned'));
+        const deviceSigned = mapElement.get(new MapKey('deviceSigned'));
+        this.docType = (<StringElement>docType).value;
+        this.issuerSigned = IssuerSigned.fromDataElement(<MapElement>issuerSigned);
+        this.deviceSigned = DeviceSigned.fromMapElement(<MapElement>deviceSigned);
+        return new MobileDocument(this.docType, this.issuerSigned, this.deviceSigned);
+    }
+
+    toCborDataItem(): DataElement<any> {
+        const map = new Map<MapKey, DataElement>();
+        map.set(new MapKey('docType'), new StringElement(this.docType));
+        map.set(new MapKey('issuerSigned'), this.issuerSigned.toDataElement());
+        if (this.deviceSigned) map.set(new MapKey('deviceSigned'), this.deviceSigned.toMapElement());
+        if (this.errors) {
+            const namespacesMap = new Map<MapKey, DataElement>();
+            for (const [namespace, dataElements] of this.errors) {
+                const dataElementsMap = new Map<MapKey, DataElement>();
+                for(const [identifier, errorCode] of dataElements) {
+                    dataElementsMap.set(new MapKey(identifier), new NumberElement(errorCode));
+                }
+                namespacesMap.set(new MapKey(namespace), new MapElement(dataElementsMap));
+            }
+            map.set(new MapKey('errors'), new MapElement(namespacesMap));
+        }
+        return new MapElement(map);
     }
 
     toMapElement(): MapElement {
