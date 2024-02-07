@@ -1,7 +1,7 @@
 import { COSECryptoProvider } from "../cose/cose-crypto-provider";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { BooleanElement } from "../data-element/boolean-element";
-import { DataElement } from "../data-element/data-element";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
@@ -10,8 +10,8 @@ import { StringElement } from "../data-element/string-element";
 import { ItemsRequest } from "./items-request";
 import { MobileDocumentRequest } from "./mobile-document-request";
 import { ReaderAuthentication } from "../reader-authentication";
-import { DataElementSerializer } from '../data-element/data-element-serializer';
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
+import { CborEncoder } from '../data-element/cbor-encoder';
+import { CborDecoder } from "../data-element/cbor-decoder";
 
 export class MDocRequestBuilder {
     
@@ -41,13 +41,13 @@ export class MDocRequestBuilder {
     public async sign(sessionTranscript: ListElement, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocumentRequest> {
         const encodedItemsRequest = this.buildEncodedItemsRequest();
         const readerAuthentication = new ReaderAuthentication(sessionTranscript, this.buildItemsRequest(encodedItemsRequest));
-        const payload = DataElementSerializer.toCBOR(EncodedCBORElement.encode(readerAuthentication.toListElement()));
+        const payload = CborEncoder.encode(EncodedCBORElement.encode(readerAuthentication.toListElement()));
         const readerAuth = await cryptoProvider.sign1(payload, keyID)
         return new MobileDocumentRequest(encodedItemsRequest, readerAuth.detachPayload());
     }
 
     private buildItemsRequest(encodedItemsRequest: EncodedCBORElement): ItemsRequest {
-        const dataElement = DataElementDeserializer.fromCBOR(encodedItemsRequest.value);
+        const dataElement = CborDecoder.decode(encodedItemsRequest.value);
         const mapElement = <MapElement>dataElement;
         const docType = mapElement.get(new MapKey('docType'));
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
@@ -55,10 +55,10 @@ export class MDocRequestBuilder {
     }
     
     private buildEncodedItemsRequest(): EncodedCBORElement {
-        const outerMap = new Map<MapKey, DataElement>();
+        const outerMap = new Map<MapKey, CborDataItem>();
         for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
             const value = this.itemRequestsNameSpaces.get(nameSpace);
-            const innerMap = new Map<MapKey, DataElement>();
+            const innerMap = new Map<MapKey, CborDataItem>();
             for (const elementIdentifier of value.keys()) {
                 innerMap.set(new MapKey(elementIdentifier), new BooleanElement(value.get(elementIdentifier)));
             }

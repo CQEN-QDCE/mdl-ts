@@ -1,9 +1,11 @@
+import { Cbor } from "../cbor/cbor";
 import { CoseAlgorithm } from "../cose/cose-algorithm.enum";
 import { COSEMac0 } from "../cose/cose-mac-0";
+import { COSESign1 } from "../cose/cose-sign-1";
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { DataElement } from "../data-element/data-element";
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
-import { DataElementSerializer } from "../data-element/data-element-serializer";
+import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDecoder } from "../data-element/cbor-decoder";
+import { CborEncoder } from "../data-element/cbor-encoder";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { NumberElement } from "../data-element/number-element";
@@ -36,7 +38,9 @@ export class CborWebToken {
     // @SerialName("nonce")
     public nonce: ArrayBuffer | null = null;
 
-    private coseMessage = new COSEMac0();
+    private coseMacMessage = new COSEMac0();
+
+    private coseSignMessage = new COSESign1();
 
     private static readonly ISS_KEY = 1;
     private static readonly SUB_KEY = 2;
@@ -60,40 +64,54 @@ export class CborWebToken {
     constructor() {
     }
 
+    public async sign(privateKey: CryptoKey): Promise<void> {
+        const payload = CborEncoder.encode(this.serializeClaims());
+        this.coseSignMessage.headers.algorithm.value = CoseAlgorithm.ES256; // TODO: Permettre de changer ceci.
+        this.coseSignMessage.attachPayload(payload);
+        await this.coseSignMessage.sign(privateKey);
+    }
+
+    public async verify2(publicKey: CryptoKey): Promise<boolean> {
+        const payload = CborEncoder.encode(this.serializeClaims());
+        this.coseSignMessage.headers.algorithm.value = CoseAlgorithm.ES256; // TODO: Permettre de changer ceci.
+        this.coseSignMessage.attachPayload(payload);
+        return await this.coseSignMessage.verify(publicKey);
+    }
+
     public async mac(secret: ArrayBuffer): Promise<void> {
-        const payload = DataElementSerializer.toCBOR(this.serializeClaims());
-        this.coseMessage.headers.algorithm.value = CoseAlgorithm.HMAC256_64; // TODO: Permettre de changer ceci.
-        this.coseMessage.attachPayload(payload);
-        await this.coseMessage.mac(secret);
+        const payload = CborEncoder.encode(this.serializeClaims());
+        this.coseMacMessage.headers.algorithm.value = CoseAlgorithm.HMAC256_64; // TODO: Permettre de changer ceci.
+        this.coseMacMessage.attachPayload(payload);
+        await this.coseMacMessage.mac(secret);
     }
 
     public async verify(secret: ArrayBuffer): Promise<boolean> {
-        const payload = DataElementSerializer.toCBOR(this.serializeClaims());
-        this.coseMessage.headers.algorithm.value = CoseAlgorithm.HMAC256_64; // TODO: Permettre de changer ceci.
-        this.coseMessage.attachPayload(payload);
-       return await this.coseMessage.verify(secret);
+        const payload = CborEncoder.encode(this.serializeClaims());
+        this.coseMacMessage.headers.algorithm.value = CoseAlgorithm.HMAC256_64; // TODO: Permettre de changer ceci.
+        this.coseMacMessage.attachPayload(payload);
+       return await this.coseMacMessage.verify(secret);
     }
 
-    public static fromListElement(listElement: DataElement): CborWebToken {
+    public static fromListElement(listElement: CborDataItem): CborWebToken {
         const cwt = new CborWebToken();
-        const coseMessage = COSEMac0.fromDataElement(listElement);
-        cwt.coseMessage = coseMessage;
+        const coseMessage = Cbor.fromDataItem(listElement, COSEMac0);
+        cwt.coseMacMessage = coseMessage;
         const payload = coseMessage.payload;
-        cwt.deserializeClaims(<MapElement>DataElementDeserializer.fromCBOR(payload));
+        cwt.deserializeClaims(<MapElement>CborDecoder.decode(payload));
         return cwt;
     }
 
     public serialize(): string {
-        return Buffer.concat([CborWebToken.CWT_TAG, Buffer.from(DataElementSerializer.toCBOR(this.coseMessage.toDataElement()))]).toString("base64");
+        return Buffer.concat([CborWebToken.CWT_TAG, Buffer.from(CborEncoder.encode(Cbor.asDataItem(this.coseMacMessage)))]).toString("base64");
     }
 
     public static parse(value: string): CborWebToken {
-        const test = DataElementDeserializer.fromCBOR(Base64.decode(value));
+        const test = CborDecoder.decode(Base64.decode(value));
         return CborWebToken.fromListElement(test);
     } 
 
     private serializeClaims(): MapElement {
-        const payload = new Map<MapKey, DataElement>();
+        const payload = new Map<MapKey, CborDataItem>();
 
         if (this.issuer) {
             payload.set(new MapKey(CborWebToken.ISS_KEY), new StringElement(this.issuer));

@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element";
-import { DataElementSerializer } from "./data-element-serializer";
+import { CborDataItem } from "./cbor-data-item";
+import { CborEncoder } from "./cbor-encoder";
 
-export class ListElement extends DataElement<DataElement[]> {
+export class ListElement extends CborDataItem<CborDataItem[]> {
     
-    constructor(value: DataElement[] = []) {
-        super(value, new DataElement.Attribute(DataElement.Type.list));
+    constructor(value: CborDataItem[] = []) {
+        super(value, new CborDataItem.Attribute(CborDataItem.Type.list));
     }
     
     toCBOR(): ArrayBuffer {
-        return DataElementSerializer.toCBOR(this);
+        return CborEncoder.encode(this);
     }
 
     

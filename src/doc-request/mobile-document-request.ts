@@ -1,8 +1,8 @@
 import { COSECryptoProvider } from "../cose/cose-crypto-provider";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { DataElement } from "../data-element/data-element";
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
-import { DataElementSerializer } from "../data-element/data-element-serializer";
+import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDecoder } from "../data-element/cbor-decoder";
+import { CborEncoder } from "../data-element/cbor-encoder";
 import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -11,6 +11,7 @@ import { MDocRequestVerificationParams } from "./mdoc-request-verification-param
 import { ItemsRequest } from "./items-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { Lazy } from "../utils/lazy";
+import { Cbor } from "../cbor/cbor";
 
 export class MobileDocumentRequest {
 
@@ -74,18 +75,18 @@ export class MobileDocumentRequest {
     }
 
     toMapElement(): MapElement {
-        const map = new Map<MapKey, DataElement>();
+        const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('itemsRequest'), this.itemsRequestBytes);
-        if (this.readerAuthentication) map.set(new MapKey('readerAuth'), this.readerAuthentication.toDataElement());
+        if (this.readerAuthentication) map.set(new MapKey('readerAuth'), Cbor.asDataItem(this.readerAuthentication));
         return new MapElement(map);
     }
 
     private getReaderSignedPayload(readerAuthentication: ReaderAuthentication): ArrayBuffer {
-        return DataElementSerializer.toCBOR(EncodedCBORElement.encode(readerAuthentication.toListElement()));
+        return CborEncoder.encode(EncodedCBORElement.encode(readerAuthentication.toListElement()));
     }
     
     private initItemsRequest(): ItemsRequest {
-        const dataElement = DataElementDeserializer.fromCBOR(this.itemsRequestBytes.value);
+        const dataElement = CborDecoder.decode(this.itemsRequestBytes.value);
         const mapElement = <MapElement>dataElement;
         const docType = mapElement.get(new MapKey('docType'));
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));

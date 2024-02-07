@@ -1,7 +1,7 @@
-import { DataElement } from "../data-element/data-element";
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
-import { DataElementSerializer } from "../data-element/data-element-serializer";
-import { CborDataItemConvertible } from "./cbor-data-item-convertible";
+import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDecoder } from "../data-element/cbor-decoder";
+import { CborEncoder } from "../data-element/cbor-encoder";
+import { CborDataItemConvertable } from "./cbor-data-item-convertable";
 
 /*
 export class Cbor {
@@ -36,18 +36,29 @@ interface Constructable<T> {
 
 export class Cbor {
 
-    public static encode(obj: CborDataItemConvertible | DataElement): ArrayBuffer {
-        if ((<CborDataItemConvertible>obj).toCborDataItem !== undefined) {
-            return DataElementSerializer.toCBOR((<CborDataItemConvertible>obj).toCborDataItem());
+    public static asDataItem(object: CborDataItemConvertable): CborDataItem {
+        return (<CborDataItemConvertable>object).toCborDataItem();
+    }
+    
+    public static fromDataItem<T extends CborDataItemConvertable>(dataItem: CborDataItem, type: Constructable<T>): T {
+        const unInitializedIntance = new type();
+        const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);
+        if (instance === unInitializedIntance) throw new Error("Invalid data item");
+        return instance;
+    }
+
+    public static encode(obj: CborDataItemConvertable | CborDataItem): ArrayBuffer {
+        if ((<CborDataItemConvertable>obj).toCborDataItem !== undefined) {
+            return CborEncoder.encode((<CborDataItemConvertable>obj).toCborDataItem());
         }
-        if (obj instanceof DataElement) {
-            return DataElementSerializer.toCBOR(obj);
+        if (obj instanceof CborDataItem) {
+            return CborEncoder.encode(obj);
         }
         throw new Error("Invalid object");
     }
 
-    public static decode<T extends CborDataItemConvertible>(type: Constructable<T>, data: ArrayBuffer): T {
-        const dataItem = DataElementDeserializer.fromCBOR(data);
+    public static decode<T extends CborDataItemConvertable>(type: Constructable<T>, data: ArrayBuffer): T {
+        const dataItem = CborDecoder.decode(data);
         const unInitializedIntance = new type();
         const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);
         if (instance === unInitializedIntance) throw new Error("Invalid data item");

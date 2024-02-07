@@ -1,18 +1,18 @@
-import { DataElement } from "./data-element";
-import { DataElementDeserializer } from './data-element-deserializer';
-import { DataElementSerializer } from "./data-element-serializer";
+import { CborDataItem } from "./cbor-data-item";
+import { CborDecoder } from './cbor-decoder';
+import { CborEncoder } from "./cbor-encoder";
 
-export class EncodedCBORElement extends DataElement<ArrayBuffer> {
+export class EncodedCBORElement extends CborDataItem<ArrayBuffer> {
     constructor(value: ArrayBuffer) {
-        super(value, new DataElement.Attribute(DataElement.Type.encodedCbor));
+        super(value, new CborDataItem.Attribute(CborDataItem.Type.encodedCbor));
     }
 
-    static encode(dataElement: DataElement): EncodedCBORElement {
-        return new EncodedCBORElement(DataElementSerializer.toCBOR(dataElement));
+    static encode(dataElement: CborDataItem): EncodedCBORElement {
+        return new EncodedCBORElement(CborEncoder.encode(dataElement));
     }
 
-    decode(): DataElement {
-        return DataElementDeserializer.fromCBOR(this._value);
+    decode(): CborDataItem {
+        return CborDecoder.decode(this._value);
     }
 
     toCBOR(): Buffer {

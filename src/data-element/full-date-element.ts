@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element";
-import { DataElementSerializer } from "./data-element-serializer";
+import { CborDataItem } from "./cbor-data-item";
+import { CborEncoder } from "./cbor-encoder";
 
-export class FullDateElement extends DataElement<Date> {
+export class FullDateElement extends CborDataItem<Date> {
 
-    constructor(value: Date, subType: DataElement.FullDateMode = DataElement.FullDateMode.full_date_str) {
-        super(value, new DataElement.FullDateAttribute(subType));
+    constructor(value: Date, subType: CborDataItem.FullDateMode = CborDataItem.FullDateMode.full_date_str) {
+        super(value, new CborDataItem.FullDateAttribute(subType));
     }
 
     toCBOR(): ArrayBuffer {
-        return DataElementSerializer.toCBOR(this);
+        return CborEncoder.encode(this);
     }
     
 }

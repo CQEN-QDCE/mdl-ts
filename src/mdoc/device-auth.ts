@@ -1,6 +1,7 @@
+import { Cbor } from "../cbor/cbor";
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { DataElement } from "../data-element/data-element";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -17,9 +18,9 @@ export class DeviceAuth {
     }
 
     toMapElement(): MapElement {
-        const map = new Map<MapKey, DataElement>();
-        if (this.deviceMac) map.set(new MapKey('deviceMac'), this.deviceMac.toDataElement());
-        if (this.deviceSignature) map.set(new MapKey('deviceSignature'), this.deviceSignature.toDataElement());
+        const map = new Map<MapKey, CborDataItem>();
+        if (this.deviceMac) map.set(new MapKey('deviceMac'), Cbor.asDataItem(this.deviceMac));
+        if (this.deviceSignature) map.set(new MapKey('deviceSignature'), Cbor.asDataItem(this.deviceSignature));
         return new MapElement(map);
     }
 
@@ -28,6 +29,7 @@ export class DeviceAuth {
         if (!deviceMac) deviceMac = null;
         let deviceSignature = mapElement.get(new MapKey('deviceSignature'));
         if (!deviceSignature) deviceSignature = null;
-        return new DeviceAuth(COSEMac0.fromDataElement(new ListElement(deviceMac.value)), deviceSignature ? COSESign1.fromDataElement(new ListElement(deviceSignature.value)) : null);
+        return new DeviceAuth(Cbor.fromDataItem(new ListElement(deviceMac.value), COSEMac0), 
+                              deviceSignature ? Cbor.fromDataItem(new ListElement(deviceSignature.value), COSESign1) : null);
     }
 }

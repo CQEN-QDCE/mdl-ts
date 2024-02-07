@@ -2,17 +2,35 @@ import { Crypto } from "@peculiar/webcrypto";
 import { KeyKeys } from "../../key-keys.enum";
 import { Base64 } from '../utils/base64';
 import { MapElement } from '../data-element/map-element';
-import { DataElement } from '../data-element/data-element';
+import { CborDataItem } from '../data-element/cbor-data-item';
 import { MapKey } from '../data-element/map-key';
 import { NumberElement } from '../data-element/number-element';
 import { ByteStringElement } from '../data-element/byte-string-element';
+import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
 
-export class CoseKey {
+export class CoseKey implements CborDataItemConvertable {
 
     private keyMap: Map<number, number | ArrayBuffer>;
 
-    private constructor(keyMap: Map<number, number | ArrayBuffer>) {
+    public constructor(keyMap: Map<number, number | ArrayBuffer>) {
         this.keyMap = keyMap;
+    }
+
+    fromCborDataItem(dataItem: CborDataItem): CoseKey {
+        const cborMap = <MapElement>dataItem;
+        const keyMap = new Map<number, number | ArrayBuffer>();
+        cborMap.value.forEach((value, key) => {
+            keyMap.set(key.int, value.value);
+        });
+        return new CoseKey(keyMap);
+    }
+
+    toCborDataItem(): CborDataItem {
+        const keyMap = new Map<MapKey, CborDataItem>();
+        for (const [key, value] of this.keyMap) {
+            keyMap.set(new MapKey(key), typeof value === 'number' ? new NumberElement(value) : new ByteStringElement(value));
+        }
+        return new MapElement(keyMap);
     }
 
     static async new(publicKey: CryptoKey | null = null, privateKey: CryptoKey | null = null): Promise<CoseKey> {
@@ -38,21 +56,5 @@ export class CoseKey {
         }
 
         return new CoseKey(keyMap);
-    }
-    
-    static fromDataElement(element: MapElement): CoseKey {
-        const keyMap = new Map<number, number | ArrayBuffer>();
-        element.value.forEach((value, key) => {
-            keyMap.set(key.int, value.value);
-        });
-        return new CoseKey(keyMap);
-    }
-
-    toDataElement(): MapElement {
-        const keyMap = new Map<MapKey, DataElement>();
-        for (const [key, value] of this.keyMap) {
-            keyMap.set(new MapKey(key), typeof value === 'number' ? new NumberElement(value) : new ByteStringElement(value));
-        }
-        return new MapElement(keyMap);
     }
 }

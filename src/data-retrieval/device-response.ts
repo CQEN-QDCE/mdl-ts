@@ -1,4 +1,4 @@
-import { DataElement } from "../data-element/data-element";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -6,10 +6,10 @@ import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
 import { MobileDocument } from "../mobile-document";
 import { DeviceResponseStatus } from "./device-response-status.enum";
-import { CborDataItemConvertible } from "../cbor/cbor-data-item-convertible";
-import { CborDataItem } from "../cbor/cbor-data-item";
+import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
+import { Cbor } from "../cbor/cbor";
 
-export class DeviceResponse implements CborDataItemConvertible {
+export class DeviceResponse implements CborDataItemConvertable {
 
     public readonly documents: MobileDocument[] = [];
     private readonly version: string;
@@ -26,13 +26,13 @@ export class DeviceResponse implements CborDataItemConvertible {
         this.documentErrors = documentErrors;
     }
 
-    fromCborDataItem(dataItem: DataElement): DeviceResponse {
+    fromCborDataItem(dataItem: CborDataItem): DeviceResponse {
         const mapElement = <MapElement>dataItem;
         const documents = mapElement.get(new MapKey('documents'));
         const mobileDocuments = [];
         
-        for (const document of (<ListElement>documents).value) {
-            mobileDocuments.push(CborDataItem.to(MobileDocument, document));
+        for (const documentDataItem of (<ListElement>documents).value) {
+            mobileDocuments.push(Cbor.fromDataItem(documentDataItem, MobileDocument));
         }
 
         return new DeviceResponse(mobileDocuments, 
@@ -41,11 +41,11 @@ export class DeviceResponse implements CborDataItemConvertible {
                                   <MapElement>mapElement.get(new MapKey('documentErrors')));
     }
 
-    toCborDataItem(): DataElement<any> {
-        const map = new Map<MapKey, DataElement>();
+    toCborDataItem(): CborDataItem<any> {
+        const map = new Map<MapKey, CborDataItem>();
         const documents = [];
         for (const document of this.documents) {
-            documents.push(document.toMapElement());
+            documents.push(Cbor.asDataItem(document));
         }
         map.set(new MapKey('version'), new StringElement(this.version));
         map.set(new MapKey('documents'), new ListElement(documents));

@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element";
-import { DataElementSerializer } from './data-element-serializer';
+import { CborDataItem } from "./cbor-data-item";
+import { CborEncoder } from './cbor-encoder';
 
-export class NullElement extends DataElement<null> {
+export class NullElement extends CborDataItem<null> {
 
     constructor() {
-        super(null, new DataElement.Attribute(DataElement.Type.nil));
+        super(null, new CborDataItem.Attribute(CborDataItem.Type.nil));
     }
     
     toCBOR(): ArrayBuffer {
-        return DataElementSerializer.toCBOR(this);
+        return CborEncoder.encode(this);
     }
     
 }

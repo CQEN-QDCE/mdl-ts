@@ -1,7 +1,7 @@
 import { Crypto } from "@peculiar/webcrypto";
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { DataElement } from "../data-element/data-element";
-import { DataElementSerializer } from "../data-element/data-element-serializer";
+import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborEncoder } from "../data-element/cbor-encoder";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -11,9 +11,10 @@ import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { COSEObject } from "./cose-object";
 import { CoseAlgorithm } from "./cose-algorithm.enum";
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
+import { CborDecoder } from "../data-element/cbor-decoder";
+import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
 
-export class COSEMac0 extends COSEObject<COSEMac0> {
+export class COSEMac0 extends COSEObject<COSEMac0> implements CborDataItemConvertable {
    
     private readonly context = 'MAC0';
 
@@ -48,7 +49,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         cborArray.push(new ByteStringElement(externalData));
         cborArray.push(new ByteStringElement(this.content));
         //cborArray.push(new StringElement(Buffer.from(this.content).toString("base64")));
-        const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
+        const data = CborEncoder.encode(new ListElement(cborArray));
 
         this.digest = await crypto.subtle.sign(algorithm, key, data);
     }
@@ -75,20 +76,20 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
         cborArray.push(new ByteStringElement(externalData));
         cborArray.push(new ByteStringElement(this.content));
-        const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
+        const data = CborEncoder.encode(new ListElement(cborArray));
 
         const tag = await crypto.subtle.sign(algorithm, key, data);
         return ArrayBufferComparer.equals(this.tag, tag);
     }
 
     private encodeProtectedHeaders(): ArrayBuffer {
-        let map = new Map<MapKey, DataElement>();
+        let map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(this.headers.algorithm.value));
-        return DataElementSerializer.toCBOR(new MapElement(map));
+        return CborEncoder.encode(new MapElement(map));
     }
 
-    private static decodeProtectedHeaders(protectedHeaders: ByteStringElement, message: COSEMac0): void {
-        for(const [key, value] of DataElementDeserializer.fromCBOR(protectedHeaders.value).value) {
+    private decodeProtectedHeaders(protectedHeaders: ByteStringElement, message: COSEMac0): void {
+        for(const [key, value] of CborDecoder.decode(protectedHeaders.value).value) {
             switch(key.int) {
                 case CoseHeaderLabel.ALG:
                     message.headers.algorithm.value = <CoseAlgorithm>value.value;
@@ -97,7 +98,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         };
     }
 
-    private static decodeUnprotectedHeaders(unprotectedHeaders: MapElement, message: COSEMac0): void {
+    private decodeUnprotectedHeaders(unprotectedHeaders: MapElement, message: COSEMac0): void {
         for(const [key, value] of unprotectedHeaders.value) {
             switch(key.int) {
                 case CoseHeaderLabel.ALG:
@@ -109,24 +110,25 @@ export class COSEMac0 extends COSEObject<COSEMac0> {
         };
     }
 
-    public static fromDataElement(dataElement: ListElement): COSEMac0 {
+    fromCborDataItem(dataItem: CborDataItem): COSEMac0 {
+        const cborArray = <ListElement>dataItem;
         const message = new COSEMac0();
-        COSEMac0.decodeProtectedHeaders(dataElement.value[0], message);
-        COSEMac0.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
-        message.dataElements = dataElement.value;
-        message.content = dataElement.value[2].value;
-        message.digest = dataElement.value[3].value;
+        this.decodeProtectedHeaders(cborArray.value[0], message);
+        this.decodeUnprotectedHeaders(<MapElement>cborArray.value[1], message);
+        message.dataElements = cborArray.value;
+        message.content = cborArray.value[2].value;
+        message.digest = cborArray.value[3].value;
         return message;
     }
-    
-    toDataElement(): ListElement {
-        let list: DataElement[] = [];
+
+    toCborDataItem(): CborDataItem {
+        let list: CborDataItem[] = [];
         list.push(new ByteStringElement(this.encodeProtectedHeaders()));
-        let map = new Map<MapKey, DataElement>();
+        let map = new Map<MapKey, CborDataItem>();
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new ByteStringElement(this.headers.x5Chain.value));
         }
-        list.push(new MapElement(new Map<MapKey, DataElement>()));
+        list.push(new MapElement(new Map<MapKey, CborDataItem>()));
         list.push(new ByteStringElement(this.content));
         list.push(new ByteStringElement(this.tag));
         return new ListElement(list);

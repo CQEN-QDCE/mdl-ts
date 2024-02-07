@@ -31,3 +31,5 @@ https://github.com/orgs/openid/repositories
 https://github.com/netnexus/node-cborwebtoken/blob/master/src/index.ts
 
 https://www.authlete.com/developers/oid4vci/
+
+https://pypi.org/project/cwt/0.9.0/#cwt-with-pop-key

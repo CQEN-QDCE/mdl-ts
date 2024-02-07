@@ -1,4 +1,7 @@
-import axios, { AxiosResponse, AxiosRequestConfig, RawAxiosRequestHeaders, AxiosInstance } from 'axios';
+import axios, { AxiosResponse, AxiosInstance } from 'axios';
+import { CborDecoder } from '../src/data-element/cbor-decoder';
+import { Cbor } from '../src/cbor/cbor';
+import { IssuerSigned } from '../src/issuer-signed/issuer-signed';
 describe("ACA-py OID4VC Tests", () => {
     
     let client: AxiosInstance;
@@ -11,14 +14,17 @@ describe("ACA-py OID4VC Tests", () => {
         let createDidRequest: any = {
             "method": "key"
         };
+
         const didCreateResponse: AxiosResponse = await client.post(`http://localhost:3001/wallet/did/create`, createDidRequest);
+        
         const did = didCreateResponse.data.result;
 
         let exchangeCreateRequest: any = {
             "did": did.did,
-            "supported_cred_id": "df8b4fd7-a218-4112-a5be-ffacb522404e",
+            "supported_cred_id": "58d1a40d-4acf-4b5e-adfd-8885e696e6e7",
             "credential_subject": { "name": "firstName", "lastname": "lastName", "email" : null }
         };
+        
         const exchangeCreateResponse: AxiosResponse = await client.post(`http://localhost:3001/oid4vci/exchange/create`, exchangeCreateRequest);
         const exchange = exchangeCreateResponse.data;
 
@@ -71,8 +77,10 @@ describe("ACA-py OID4VC Tests", () => {
 
         const credentialResponse: AxiosResponse = await client.post(`http://localhost:8081/credential`, credentialRequest, { headers: { 'Authorization': 'BEARER ' + accessToken.access_token } });  
 
-        const exchange2 = credentialResponse.data;
+        //const exchange2 = credentialResponse.data;
 
+        //const parsedList = DataElementDeserializer.fromCBORHex(exchange2.credential);
+        const issuerSigned = Cbor.decode(IssuerSigned, credentialResponse.data.credential);
         let bla = 1;
     });
 });

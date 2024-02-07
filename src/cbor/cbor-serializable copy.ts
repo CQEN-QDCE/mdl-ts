@@ -151,7 +151,7 @@ interface CborSerializable {
 //  return <U extends T>(constructor: U) => {constructor};
 //}
 
-import { DataElement } from "../data-element/data-element";
+//mport { CborDataItem } from "../data-element/cbor-data-item";
 
 //@staticImplements<CborSerializable>()   /* this statement implements both normal interface & static interface */
 //class MyTypeClass extends CborSerializable {
@@ -234,12 +234,12 @@ test.tzx(new MyTypeClass());
 
 
 interface CborDataItemConvertibleIntance {
-  toDataItem(): DataElement;
+  toDataItem(): CborDataItem;
 }
 
 interface CborDataItemConvertible {
   new():CborDataItemConvertibleIntance;
-  fromDataItem(dataItem: DataElement): InstanceType<this>;
+  fromDataItem(dataItem: CborDataItem): InstanceType<this>;
 }
 
 function CborDataItemConvertible() {
@@ -248,8 +248,8 @@ function CborDataItemConvertible() {
 
 @CborDataItemConvertible() 
 class MyTypeClass { 
-  public static fromDataItem(dataItem: DataElement): MyTypeClass { return null; }
-  toDataItem(): DataElement { return null;}
+  public static fromDataItem(dataItem: CborDataItem): MyTypeClass { return null; }
+  toDataItem(): CborDataItem { return null;}
 }
 
 export class Test23 {
@@ -286,3 +286,56 @@ class Boo {
   }
 }
 */
+
+type Tag<T> = { _tag: T }
+type WeakOpaqueType<BaseType, T> = BaseType & Tag<T>
+type StrongOpaqueType<BaseType, T> = (BaseType & Tag<T>) | Tag<T>
+type SuperOpaqueType<BaseType, T> = Tag<T>
+type Percentage = (number & Tag<'percentage'>) | Tag<'percentage'>
+
+declare const cborSymbol: unique symbol;
+declare const cborSymbol2: unique symbol;
+
+interface CborDataItem {cborType: number}
+
+//type CborNumber = number & { _CborNumber: void; cborType: 2} & CborDataItem;
+type CborNumber = number & { readonly [cborSymbol]: 'CborNumber'; cborType: 2} & CborDataItem;
+
+type CborString = string & { readonly [cborSymbol2]: 'CborString'; cborType: 3} & CborDataItem;
+declare const CborString: unique symbol;
+
+type CborArray = Array<CborNumber | CborString> & { CborArray: void; cborType: 4} & CborDataItem;
+
+let a: CborNumber = 1 as CborNumber;
+
+type CborArray3 = {
+  [key: number]: CborNumber | CborString,
+}; 
+
+let bdfdf: CborArray3 = [a, ''] as CborArray3;
+bdfdf[1] = a;
+
+let b: number = a;
+
+let c = [5, a, ''] as CborArray;
+//c.push(6);
+
+let d = a as CborDataItem;
+
+export class CborArray2 extends Array<CborNumber | CborString> implements CborDataItem {
+  cborType: 4;
+}
+let tes2 = new CborArray2(a, a, true);
+
+export class CborMap extends Map<number | string, CborDataItem> implements CborDataItem {
+  cborType: 5;
+}
+let cborMap = new CborMap([['', a]]);
+cborMap.set(undefined, a);
+let recup = cborMap.get('') as CborNumber;
+
+test.push(true);
+
+
+
+

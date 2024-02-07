@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element";
-import { DataElementSerializer } from './data-element-serializer';
+import { CborDataItem } from "./cbor-data-item";
+import { CborEncoder } from './cbor-encoder';
 
-export class DateTimeElement extends DataElement<Date> {
+export class DateTimeElement extends CborDataItem<Date> {
 
-    constructor(value: Date, subType: DataElement.DateTimeMode = DataElement.DateTimeMode.tdate) {
-        super(value, new DataElement.DatetimeAttribute(subType));
+    constructor(value: Date, subType: CborDataItem.DateTimeMode = CborDataItem.DateTimeMode.tdate) {
+        super(value, new CborDataItem.DatetimeAttribute(subType));
     }
 
     toCBOR(): ArrayBuffer {
-        return DataElementSerializer.toCBOR(this);
+        return CborEncoder.encode(this);
     }
 
 }

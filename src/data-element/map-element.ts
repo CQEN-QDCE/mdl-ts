@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element";
+import { CborDataItem } from "./cbor-data-item";
 import { MapKey } from "./map-key";
-import { DataElementSerializer } from "./data-element-serializer";
+import { CborEncoder } from "./cbor-encoder";
 
-export class MapElement extends DataElement<Map<MapKey, DataElement>> {
+export class MapElement extends CborDataItem<Map<MapKey, CborDataItem>> {
 
-    constructor(value: Map<MapKey, DataElement>) {
-        super(value, new DataElement.Attribute(DataElement.Type.map));
+    constructor(value: Map<MapKey, CborDataItem>) {
+        super(value, new CborDataItem.Attribute(CborDataItem.Type.map));
     }
 
-    get(mapKey: MapKey): DataElement {
+    get(mapKey: MapKey): CborDataItem {
         for (const [key, value] of this._value) {
             if (key.str === mapKey.str) return value;
         }
@@ -16,7 +16,7 @@ export class MapElement extends DataElement<Map<MapKey, DataElement>> {
     }
 
     toCBOR(): ArrayBuffer {
-        return DataElementSerializer.toCBOR(this);
+        return CborEncoder.encode(this);
     }
 
 }

@@ -1,4 +1,4 @@
-import { DataElement } from "../data-element/data-element";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { TDateElement } from "../data-element/tdate-element";
@@ -29,7 +29,7 @@ export class ValidityInfo {
     }
 
     toMapElement(): MapElement {
-        const map = new Map<MapKey, DataElement>();
+        const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('signed'), this.signed);
         map.set(new MapKey('validFrom'), this.validFrom);
         map.set(new MapKey('validUntil'), this.validUntil);

@@ -1,6 +1,6 @@
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { DataElement } from "../data-element/data-element";
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
+import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDecoder } from "../data-element/cbor-decoder";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -10,7 +10,7 @@ import { CoseHeaders } from "./cose-headers";
 
 export abstract class COSEObject<T> {
 
-    protected dataElements: DataElement[] = [];
+    protected dataElements: CborDataItem[] = [];
 
     protected readonly coseHeaders = new CoseHeaders();
 
@@ -28,18 +28,10 @@ export abstract class COSEObject<T> {
     }
 
     get payload(): ArrayBuffer | null {
-//        if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-//        if (this.dataElements[2].type === DataElement.Type.nil) return null;
-//        if (this.dataElements[2].type === DataElement.Type.byteString) return (<ByteStringElement>this.dataElements[2]).value
-//        throw 'Invalid COSE_Sign1 payload.';
         return this.content;
     }
 
     get x5Chain(): ArrayBuffer | null {
-//        if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-//        const unprotectedHeader = this.dataElements[1] as MapElement;
-//        const x5Chain = unprotectedHeader.get(new MapKey(CoseHeaderLabel.X5_CHAIN)) as ByteStringElement;
-//        return x5Chain.value;
         return this.headers.x5Chain.value;
     }
 
@@ -50,7 +42,7 @@ export abstract class COSEObject<T> {
 
     get algorithm(): number {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-        const protectedHeaderMapElement = <MapElement>DataElementDeserializer.fromCBOR(this.protectedHeader);
+        const protectedHeaderMapElement = <MapElement>CborDecoder.decode(this.protectedHeader);
         const numberElement = <NumberElement>protectedHeaderMapElement.get(new MapKey(CoseHeaderLabel.ALG));
         return numberElement.value;
     }
@@ -60,8 +52,8 @@ export abstract class COSEObject<T> {
         return (<ByteStringElement>this.dataElements[3]).value;
     }
 
-    protected replacePayload(payloadElement: DataElement): DataElement[] {
-        const newData: DataElement[] = [];
+    protected replacePayload(payloadElement: CborDataItem): CborDataItem[] {
+        const newData: CborDataItem[] = [];
         for (let i = 0; i < this.dataElements.length; i++) {
             if (i === 2) {
                 newData.push(payloadElement);
@@ -77,13 +69,4 @@ export abstract class COSEObject<T> {
 
     abstract attachPayload(payload: Buffer): T
 
-    abstract toDataElement(): ListElement;
-
-    toCBOR(): ArrayBuffer {
-        return this.toDataElement().toCBOR();
-    }
-
-    toCBORHex(): string {
-        return this.toDataElement().toCBORHex();
-    }
 }

@@ -1,14 +1,14 @@
-import { DataElement } from "./data-element";
-import { DataElementSerializer } from "./data-element-serializer";
+import { CborDataItem } from "./cbor-data-item";
+import { CborEncoder } from "./cbor-encoder";
 
-export class BooleanElement extends DataElement<boolean> {
+export class BooleanElement extends CborDataItem<boolean> {
 
     constructor(value: boolean) {
-        super(value, new DataElement.Attribute(DataElement.Type.boolean));
+        super(value, new CborDataItem.Attribute(CborDataItem.Type.boolean));
     }
 
     toCBOR(): ArrayBuffer {
-        return DataElementSerializer.toCBOR(this);
+        return CborEncoder.encode(this);
     }
     
 }

@@ -1,17 +1,17 @@
 import { Hex } from "../utils/hex";
 
-export abstract class DataElement<T = any> {
+export abstract class CborDataItem<T = any> {
 
     protected _value: T;
 
-    protected attribute: DataElement.Attribute;
+    protected attribute: CborDataItem.Attribute;
 
-    constructor(value: T, attribute: DataElement.Attribute) {
+    constructor(value: T, attribute: CborDataItem.Attribute) {
         this._value = value;
         this.attribute = attribute;
     }
 
-    get type(): DataElement.Type {
+    get type(): CborDataItem.Type {
         return this.attribute.type;
     }
 
@@ -21,7 +21,7 @@ export abstract class DataElement<T = any> {
 
     equals(other: any): boolean {
         if (!other) return false;
-        if (other instanceof DataElement)
+        if (other instanceof CborDataItem)
         return true;
     }
 
@@ -32,7 +32,7 @@ export abstract class DataElement<T = any> {
     }
 }
 
-export module DataElement {
+export module CborDataItem {
 
     export enum Type {
         number,     // #0, #1, #7.25, #7.26, #7.27

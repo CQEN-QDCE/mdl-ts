@@ -2,17 +2,18 @@ import { Crypto } from "@peculiar/webcrypto";
 import { ByteStringElement } from "../data-element/byte-string-element";
 import { COSEObject } from "./cose-object";
 import { ListElement } from "../data-element/list-element";
-import { DataElementDeserializer } from "../data-element/data-element-deserializer";
+import { CborDecoder } from "../data-element/cbor-decoder";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { CoseAlgorithm } from "./cose-algorithm.enum";
 import { MapElement } from "../data-element/map-element";
-import { DataElementSerializer } from "../data-element/data-element-serializer";
+import { CborEncoder } from "../data-element/cbor-encoder";
 import { MapKey } from "../data-element/map-key";
-import { DataElement } from "../data-element/data-element";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
+import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
 
-export class COSESign1 extends COSEObject<COSESign1> {
+export class COSESign1 extends COSEObject<COSESign1> implements CborDataItemConvertable {
    
     private readonly context = 'Signature1';
 
@@ -23,13 +24,11 @@ export class COSESign1 extends COSEObject<COSESign1> {
     }
 
     detachPayload(): COSESign1 {
-        //return COSESign1.fromDataElement(new ListElement(this.replacePayload(new NullElement())));
         this.content = null;
         return this;
     }
 
     attachPayload(payload: ArrayBuffer): COSESign1 {
-        //return COSESign1.fromDataElement(new ListElement(this.replacePayload(new ByteStringElement(payload))));
         this.content = payload;
         return this;
     }
@@ -46,7 +45,7 @@ export class COSESign1 extends COSEObject<COSESign1> {
         cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
         cborArray.push(new ByteStringElement(new ArrayBuffer(0)));
         cborArray.push(new ByteStringElement(this.content));
-        const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
+        const data = CborEncoder.encode(new ListElement(cborArray));
         this.signature = await crypto.subtle.sign(algo, privateKey, data);
     }
 
@@ -62,28 +61,18 @@ export class COSESign1 extends COSEObject<COSESign1> {
         cborArray.push(new ByteStringElement(this.encodeProtectedHeaders()));
         cborArray.push(new ByteStringElement(new ArrayBuffer(0)));
         cborArray.push(new ByteStringElement(this.content));
-        const data = DataElementSerializer.toCBOR(new ListElement(cborArray));
+        const data = CborEncoder.encode(new ListElement(cborArray));
         return await crypto.subtle.verify(algo, publicKey, this.signature, data);
     }
 
-    public static fromDataElement(dataElement: ListElement): COSESign1 {
-        const message = new COSESign1();
-        COSESign1.decodeProtectedHeaders(dataElement.value[0], message);
-        COSESign1.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
-        message.dataElements = dataElement.value;
-        message.content = dataElement.value[2].value;
-        message.signature = dataElement.value[3].value;
-        return message;
-    }
-
     private encodeProtectedHeaders(): ArrayBuffer {
-        let map = new Map<MapKey, DataElement>();
+        let map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(this.headers.algorithm.value));
-        return DataElementSerializer.toCBOR(new MapElement(map));
+        return CborEncoder.encode(new MapElement(map));
     }
 
-    private static decodeProtectedHeaders(protectedHeaders: ByteStringElement, message: COSESign1): void {
-        for(const [key, value] of DataElementDeserializer.fromCBOR(protectedHeaders.value).value) {
+    private decodeProtectedHeaders(protectedHeaders: ByteStringElement, message: COSESign1): void {
+        for(const [key, value] of CborDecoder.decode(protectedHeaders.value).value) {
             switch(key.int) {
                 case CoseHeaderLabel.ALG:
                     message.headers.algorithm.value = <CoseAlgorithm>value.value;
@@ -92,7 +81,7 @@ export class COSESign1 extends COSEObject<COSESign1> {
         };
     }
 
-    private static decodeUnprotectedHeaders(unprotectedHeaders: MapElement, message: COSESign1): void {
+    private decodeUnprotectedHeaders(unprotectedHeaders: MapElement, message: COSESign1): void {
         for(const [key, value] of unprotectedHeaders.value) {
             switch(key.int) {
                 case CoseHeaderLabel.ALG:
@@ -104,17 +93,27 @@ export class COSESign1 extends COSEObject<COSESign1> {
         };
     }
 
-    toDataElement(): ListElement {
-        let list: DataElement[] = [];
+    fromCborDataItem(dataItem: CborDataItem): COSESign1 {
+        const dataElement = <ListElement>dataItem;
+        const message = new COSESign1();
+        this.decodeProtectedHeaders(dataElement.value[0], message);
+        this.decodeUnprotectedHeaders(<MapElement>dataElement.value[1], message);
+        message.dataElements = dataElement.value;
+        message.content = dataElement.value[2].value;
+        message.signature = dataElement.value[3].value;
+        return message;
+    }
+
+    toCborDataItem(): CborDataItem {
+        let list: CborDataItem[] = [];
         list.push(new ByteStringElement(this.encodeProtectedHeaders()));
-        let map = new Map<MapKey, DataElement>();
+        let map = new Map<MapKey, CborDataItem>();
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new ByteStringElement(this.headers.x5Chain.value));
         }
-        list.push(new MapElement(new Map<MapKey, DataElement>()));
+        list.push(new MapElement(new Map<MapKey, CborDataItem>()));
         list.push(new ByteStringElement(this.content));
         list.push(new ByteStringElement(this.signature));
         return new ListElement(list);
     }
-
 }

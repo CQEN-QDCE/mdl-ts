@@ -1,5 +1,5 @@
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { DataElement } from "../data-element/data-element";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -9,7 +9,7 @@ import { IssuerSignedItem } from "../issuer-signed/issuer-signed-item";
 import { ValidityInfo } from "../mso/validity-info";
 import { DigestAlgorithm } from "./digest-algorithm.enum";
 import { Crypto } from "@peculiar/webcrypto";
-import { DataElementSerializer } from "../data-element/data-element-serializer";
+import { CborEncoder } from "../data-element/cbor-encoder";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 
 // Mobile security object (MSO), representing the payload of the issuer signature, for the issuer signed part of the mdoc.
@@ -88,15 +88,15 @@ export class MobileSecurityObject {
     }
 
     toMapElement(): MapElement {
-        const valueDigestNamespaces = new Map<MapKey, DataElement>();
+        const valueDigestNamespaces = new Map<MapKey, CborDataItem>();
         for (const [namespace, valueDigests2] of this.valueDigests) {
-            const nameSpaceDigests = new Map<MapKey, DataElement>();
+            const nameSpaceDigests = new Map<MapKey, CborDataItem>();
             for (const [digestID, valueDigest] of valueDigests2) {
                 nameSpaceDigests.set(new MapKey(digestID), new ByteStringElement(valueDigest));
             }
             valueDigestNamespaces.set(new MapKey(namespace), new MapElement(nameSpaceDigests));
         }
-        const map = new Map<MapKey, DataElement>();
+        const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('version'), new StringElement(this.version));
         map.set(new MapKey('digestAlgorithm'), new StringElement(this.digestAlgorithm));
         map.set(new MapKey('valueDigests'), new MapElement(valueDigestNamespaces));
@@ -131,9 +131,9 @@ export class MobileSecurityObject {
     }
 
     private static async digestItem(issuerSignedItem: IssuerSignedItem, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
-        const encodedItem = new EncodedCBORElement(DataElementSerializer.toCBOR(issuerSignedItem.toMapElement()));
+        const encodedItem = new EncodedCBORElement(CborEncoder.encode(issuerSignedItem.toMapElement()));
         const crypto = new Crypto();
-        const hash = await crypto.subtle.digest(digestAlgorithm, DataElementSerializer.toCBOR(encodedItem));
+        const hash = await crypto.subtle.digest(digestAlgorithm, CborEncoder.encode(encodedItem));
         return hash
     }
 }
