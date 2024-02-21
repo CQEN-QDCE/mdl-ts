@@ -27,7 +27,7 @@ import { VerificationType } from "../src/mdoc/verification-type.enum";
 import { MDocVerificationParams } from "../src/mdoc/mdoc-verification-params";
 import { CborEncoder } from "../src/data-element/cbor-encoder";
 import { DeviceKeyInfo } from "../src/mso/device-key-info";
-import { CborDataItem } from "../src/data-element/cbor-data-item";
+import { CborDataItem2 } from "../src/data-element/cbor-data-item2";
 import { ByteStringElement } from "../src/data-element/byte-string-element";
 import { NullElement } from "../src/data-element/null-element";
 import { MDL } from "../src/mdl";
@@ -121,7 +121,7 @@ describe('testing mdoc', () => {
                                                                                EncodedCBORElement.encode(Cbor.asDataItem(ephemeralReaderCoseKey)), 
                                                                                new NullElement()]), 
                                                               mdoc.docType, 
-                                                              EncodedCBORElement.encode(new MapElement(new Map<MapKey, CborDataItem>())));
+                                                              EncodedCBORElement.encode(new MapElement(new Map<MapKey, CborDataItem2>())));
         
         const mdocRequest = new MDocRequestBuilder(mdoc.docType).addItemRequest(MDL.Namespace, "family_name", true).build();
 
@@ -370,10 +370,10 @@ describe('testing mdoc', () => {
 
     test('List of any', () => {
         const list = new ListElement([new NumberElement(1), 
-                                      new MapElement(new Map<MapKey, CborDataItem>([[new MapKey('a'), new NumberElement(1)]])),
+                                      new MapElement(new Map<MapKey, CborDataItem2>([[new MapKey('a'), new NumberElement(1)]])),
                                       new NullElement(),
                                       new ByteStringElement(Int8Array.from([1,-2]).buffer)]);
-        const cborHex = list.toCBORHex();
+        const cborHex = Hex.encode(CborEncoder.encode(list));
         const parsedList = <ListElement>CborDecoder.fromCBORHex(cborHex);
         expect(parsedList.value.length).toBe(4);
         expect(parsedList.value[0] instanceof NumberElement).toBeTruthy();

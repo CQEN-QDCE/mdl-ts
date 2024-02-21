@@ -1,7 +1,8 @@
 import axios, { AxiosResponse, AxiosInstance } from 'axios';
-import { CborDecoder } from '../src/data-element/cbor-decoder';
-import { Cbor } from '../src/cbor/cbor';
-import { IssuerSigned } from '../src/issuer-signed/issuer-signed';
+import { Cbor } from '../../../src/cbor/cbor';
+import { IssuerSigned } from '../../../src/issuer-signed/issuer-signed';
+import { Hex } from '../../../src/utils/hex';
+import { MobileDocument } from '../../../src/mobile-document';
 describe("ACA-py OID4VC Tests", () => {
     
     let client: AxiosInstance;
@@ -11,6 +12,7 @@ describe("ACA-py OID4VC Tests", () => {
     });
 
     test("Credential Issuance", async () => {
+        
         let createDidRequest: any = {
             "method": "key"
         };
@@ -21,8 +23,16 @@ describe("ACA-py OID4VC Tests", () => {
 
         let exchangeCreateRequest: any = {
             "did": did.did,
-            "supported_cred_id": "58d1a40d-4acf-4b5e-adfd-8885e696e6e7",
-            "credential_subject": { "name": "firstName", "lastname": "lastName", "email" : null }
+            "supported_cred_id": "18ebd91e-9e76-4f88-94b7-6fd1fd34d190",
+            "claims": {
+                "org.iso.18013.5.1": { 
+                    "given_name": "Mascetti", 
+                    "family_name": "Raffaello", 
+                    "birth_date" : "1922-03-13" },
+                "org.iso.18013.5.1.aamva": {
+                    "organ_donor": true
+                }
+            }
         };
         
         const exchangeCreateResponse: AxiosResponse = await client.post(`http://localhost:3001/oid4vci/exchange/create`, exchangeCreateRequest);
@@ -80,7 +90,8 @@ describe("ACA-py OID4VC Tests", () => {
         //const exchange2 = credentialResponse.data;
 
         //const parsedList = DataElementDeserializer.fromCBORHex(exchange2.credential);
-        const issuerSigned = Cbor.decode(IssuerSigned, credentialResponse.data.credential);
+        //const issuerSigned = Cbor.decode(IssuerSigned, Hex.decode(credentialResponse.data.credential));
+        const issuerSigned = Cbor.decode(MobileDocument, Hex.decode(credentialResponse.data.credential));
         let bla = 1;
     });
 });

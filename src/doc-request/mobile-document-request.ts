@@ -1,6 +1,6 @@
 import { COSECryptoProvider } from "../cose/cose-crypto-provider";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { CborDecoder } from "../data-element/cbor-decoder";
 import { CborEncoder } from "../data-element/cbor-encoder";
 import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
@@ -75,7 +75,7 @@ export class MobileDocumentRequest {
     }
 
     toMapElement(): MapElement {
-        const map = new Map<MapKey, CborDataItem>();
+        const map = new Map<MapKey, CborDataItem2>();
         map.set(new MapKey('itemsRequest'), this.itemsRequestBytes);
         if (this.readerAuthentication) map.set(new MapKey('readerAuth'), Cbor.asDataItem(this.readerAuthentication));
         return new MapElement(map);

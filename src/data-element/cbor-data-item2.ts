@@ -1,17 +1,17 @@
 import { Hex } from "../utils/hex";
 
-export abstract class CborDataItem<T = any> {
+export abstract class CborDataItem2<T = any> {
 
     protected _value: T;
 
-    protected attribute: CborDataItem.Attribute;
+    protected attribute: CborDataItem2.Attribute;
 
-    constructor(value: T, attribute: CborDataItem.Attribute) {
+    constructor(value: T, attribute: CborDataItem2.Attribute) {
         this._value = value;
         this.attribute = attribute;
     }
 
-    get type(): CborDataItem.Type {
+    get type(): CborDataItem2.Type {
         return this.attribute.type;
     }
 
@@ -21,18 +21,13 @@ export abstract class CborDataItem<T = any> {
 
     equals(other: any): boolean {
         if (!other) return false;
-        if (other instanceof CborDataItem)
+        if (other instanceof CborDataItem2)
         return true;
     }
 
-    abstract toCBOR(): ArrayBuffer;
-
-    toCBORHex(): string {
-        return Hex.encode(this.toCBOR());
-    }
 }
 
-export module CborDataItem {
+export module CborDataItem2 {
 
     export enum Type {
         number,     // #0, #1, #7.25, #7.26, #7.27

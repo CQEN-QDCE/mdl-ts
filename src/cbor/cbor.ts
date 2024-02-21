@@ -1,4 +1,4 @@
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { CborDecoder } from "../data-element/cbor-decoder";
 import { CborEncoder } from "../data-element/cbor-encoder";
 import { CborDataItemConvertable } from "./cbor-data-item-convertable";
@@ -36,22 +36,22 @@ interface Constructable<T> {
 
 export class Cbor {
 
-    public static asDataItem(object: CborDataItemConvertable): CborDataItem {
+    public static asDataItem(object: CborDataItemConvertable): CborDataItem2 {
         return (<CborDataItemConvertable>object).toCborDataItem();
     }
     
-    public static fromDataItem<T extends CborDataItemConvertable>(dataItem: CborDataItem, type: Constructable<T>): T {
+    public static fromDataItem<T extends CborDataItemConvertable>(dataItem: CborDataItem2, type: Constructable<T>): T {
         const unInitializedIntance = new type();
         const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);
         if (instance === unInitializedIntance) throw new Error("Invalid data item");
         return instance;
     }
 
-    public static encode(obj: CborDataItemConvertable | CborDataItem): ArrayBuffer {
+    public static encode(obj: CborDataItemConvertable | CborDataItem2): ArrayBuffer {
         if ((<CborDataItemConvertable>obj).toCborDataItem !== undefined) {
             return CborEncoder.encode((<CborDataItemConvertable>obj).toCborDataItem());
         }
-        if (obj instanceof CborDataItem) {
+        if (obj instanceof CborDataItem2) {
             return CborEncoder.encode(obj);
         }
         throw new Error("Invalid object");

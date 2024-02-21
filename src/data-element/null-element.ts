@@ -1,14 +1,9 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborEncoder } from './cbor-encoder';
+import { CborDataItem2 } from "./cbor-data-item2";
 
-export class NullElement extends CborDataItem<null> {
+export class NullElement extends CborDataItem2<null> {
 
     constructor() {
-        super(null, new CborDataItem.Attribute(CborDataItem.Type.nil));
-    }
-    
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
+        super(null, new CborDataItem2.Attribute(CborDataItem2.Type.nil));
     }
     
 }

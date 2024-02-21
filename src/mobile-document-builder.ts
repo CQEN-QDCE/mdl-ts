@@ -1,6 +1,6 @@
 import { COSECryptoProvider } from "./cose/cose-crypto-provider";
 import { COSESign1 } from "./cose/cose-sign-1";
-import { CborDataItem } from "./data-element/cbor-data-item";
+import { CborDataItem2 } from "./data-element/cbor-data-item2";
 import { CborEncoder } from "./data-element/cbor-encoder";
 import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
 import { IssuerSignedItem } from "./issuer-signed/issuer-signed-item";
@@ -29,7 +29,7 @@ export class MobileDocumentBuilder {
         return this;
     }
 
-    addItemToSign(namespace: string, elementIdentifier: string, elementValue: CborDataItem): MobileDocumentBuilder {
+    addItemToSign(namespace: string, elementIdentifier: string, elementValue: CborDataItem2): MobileDocumentBuilder {
         const issuerSignedItems = this.getIssuerSignedItemsByNameSpace(namespace);
         issuerSignedItems.push(IssuerSignedItem.build(this.getNextDigestID(issuerSignedItems), elementIdentifier, elementValue));
         return this;

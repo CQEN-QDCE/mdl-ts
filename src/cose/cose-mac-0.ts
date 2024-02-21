@@ -1,6 +1,6 @@
 import { Crypto } from "@peculiar/webcrypto";
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { CborEncoder } from "../data-element/cbor-encoder";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
@@ -83,7 +83,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborDataItemConver
     }
 
     private encodeProtectedHeaders(): ArrayBuffer {
-        let map = new Map<MapKey, CborDataItem>();
+        let map = new Map<MapKey, CborDataItem2>();
         map.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(this.headers.algorithm.value));
         return CborEncoder.encode(new MapElement(map));
     }
@@ -110,7 +110,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborDataItemConver
         };
     }
 
-    fromCborDataItem(dataItem: CborDataItem): COSEMac0 {
+    fromCborDataItem(dataItem: CborDataItem2): COSEMac0 {
         const cborArray = <ListElement>dataItem;
         const message = new COSEMac0();
         this.decodeProtectedHeaders(cborArray.value[0], message);
@@ -121,14 +121,14 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborDataItemConver
         return message;
     }
 
-    toCborDataItem(): CborDataItem {
-        let list: CborDataItem[] = [];
+    toCborDataItem(): CborDataItem2 {
+        let list: CborDataItem2[] = [];
         list.push(new ByteStringElement(this.encodeProtectedHeaders()));
-        let map = new Map<MapKey, CborDataItem>();
+        let map = new Map<MapKey, CborDataItem2>();
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new ByteStringElement(this.headers.x5Chain.value));
         }
-        list.push(new MapElement(new Map<MapKey, CborDataItem>()));
+        list.push(new MapElement(new Map<MapKey, CborDataItem2>()));
         list.push(new ByteStringElement(this.content));
         list.push(new ByteStringElement(this.tag));
         return new ListElement(list);

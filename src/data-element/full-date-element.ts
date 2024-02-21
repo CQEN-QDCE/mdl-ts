@@ -1,14 +1,9 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborEncoder } from "./cbor-encoder";
+import { CborDataItem2 } from "./cbor-data-item2";
 
-export class FullDateElement extends CborDataItem<Date> {
+export class FullDateElement extends CborDataItem2<Date> {
 
-    constructor(value: Date, subType: CborDataItem.FullDateMode = CborDataItem.FullDateMode.full_date_str) {
-        super(value, new CborDataItem.FullDateAttribute(subType));
-    }
-
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
+    constructor(value: Date, subType: CborDataItem2.FullDateMode = CborDataItem2.FullDateMode.full_date_str) {
+        super(value, new CborDataItem2.FullDateAttribute(subType));
     }
     
 }

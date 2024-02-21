@@ -1,14 +1,9 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborEncoder } from "./cbor-encoder";
+import { CborDataItem2 } from "./cbor-data-item2";
 
-export class NumberElement extends CborDataItem<number> {
+export class NumberElement extends CborDataItem2<number> {
 
     constructor(value: number) {
-        super(value, new CborDataItem.Attribute(CborDataItem.Type.number));
-    }
-
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
+        super(value, new CborDataItem2.Attribute(CborDataItem2.Type.number));
     }
     
 }

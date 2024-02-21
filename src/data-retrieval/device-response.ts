@@ -1,4 +1,4 @@
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -26,7 +26,7 @@ export class DeviceResponse implements CborDataItemConvertable {
         this.documentErrors = documentErrors;
     }
 
-    fromCborDataItem(dataItem: CborDataItem): DeviceResponse {
+    fromCborDataItem(dataItem: CborDataItem2): DeviceResponse {
         const mapElement = <MapElement>dataItem;
         const documents = mapElement.get(new MapKey('documents'));
         const mobileDocuments = [];
@@ -41,8 +41,8 @@ export class DeviceResponse implements CborDataItemConvertable {
                                   <MapElement>mapElement.get(new MapKey('documentErrors')));
     }
 
-    toCborDataItem(): CborDataItem<any> {
-        const map = new Map<MapKey, CborDataItem>();
+    toCborDataItem(): CborDataItem2<any> {
+        const map = new Map<MapKey, CborDataItem2>();
         const documents = [];
         for (const document of this.documents) {
             documents.push(Cbor.asDataItem(document));

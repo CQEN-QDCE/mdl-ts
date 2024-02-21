@@ -176,6 +176,8 @@ type Test2 = Test & CborSerializableInstance;
 //f.
 */
 
+import Opaque from "ts-opaque";
+
 interface ConfigConstructor {
   CoreInterface: () => any;
   new (): Config;
@@ -296,17 +298,39 @@ type Percentage = (number & Tag<'percentage'>) | Tag<'percentage'>
 declare const cborSymbol: unique symbol;
 declare const cborSymbol2: unique symbol;
 
-interface CborDataItem {cborType: number}
+declare const cborNil: unique symbol;
+
+declare const cborBoolean: unique symbol;
+
+interface CborDataItem4 {cborType: number}
 
 //type CborNumber = number & { _CborNumber: void; cborType: 2} & CborDataItem;
-type CborNumber = number & { readonly [cborSymbol]: 'CborNumber'; cborType: 2} & CborDataItem;
+type CborNumber = number & { readonly [cborSymbol]: 'CborNumber'; cborType: 2} & CborDataItem4;
 
-type CborString = string & { readonly [cborSymbol2]: 'CborString'; cborType: 3} & CborDataItem;
+type CborBoolean = boolean & { readonly [cborBoolean]: 'CborBoolean'; cborType: 2} & CborDataItem4;
+
+
+type CborNil = { readonly [cborNil]: 'CborNil'; cborType: 2} & CborDataItem4;
+
+type CborString = string & { readonly [cborSymbol2]: 'CborString'; cborType: 3} & CborDataItem4;
 declare const CborString: unique symbol;
 
-type CborArray = Array<CborNumber | CborString> & { CborArray: void; cborType: 4} & CborDataItem;
+type CborArray = Array<CborNumber | CborString> & { CborArray: void; cborType: 4} & CborDataItem4;
 
-let a: CborNumber = 1 as CborNumber;
+let a: CborNumber = 1 as CborNumber; 
+
+let ab: CborBoolean = true as CborBoolean; 
+
+
+let xx = undefined as CborNil; xx.cborType = 2;
+
+type CborNumber2 = Opaque<number, 'CborNumber'> & CborDataItem4;
+
+let test:CborNumber2 = 2 as CborNumber2;
+
+let dffff: number = test ;
+
+
 
 type CborArray3 = {
   [key: number]: CborNumber | CborString,

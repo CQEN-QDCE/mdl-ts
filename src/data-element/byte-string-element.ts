@@ -1,14 +1,9 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborEncoder } from './cbor-encoder';
+import { CborDataItem2 } from "./cbor-data-item2";
 
-export class ByteStringElement extends CborDataItem<ArrayBuffer> {
+export class ByteStringElement extends CborDataItem2<ArrayBuffer> {
     
     constructor(value: ArrayBuffer) {
-        super(value, new CborDataItem.Attribute(CborDataItem.Type.byteString));
-    }
-    
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
+        super(value, new CborDataItem2.Attribute(CborDataItem2.Type.byteString));
     }
     
 }

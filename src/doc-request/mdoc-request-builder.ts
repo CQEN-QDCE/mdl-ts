@@ -1,7 +1,7 @@
 import { COSECryptoProvider } from "../cose/cose-crypto-provider";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { BooleanElement } from "../data-element/boolean-element";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
@@ -55,10 +55,10 @@ export class MDocRequestBuilder {
     }
     
     private buildEncodedItemsRequest(): EncodedCBORElement {
-        const outerMap = new Map<MapKey, CborDataItem>();
+        const outerMap = new Map<MapKey, CborDataItem2>();
         for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
             const value = this.itemRequestsNameSpaces.get(nameSpace);
-            const innerMap = new Map<MapKey, CborDataItem>();
+            const innerMap = new Map<MapKey, CborDataItem2>();
             for (const elementIdentifier of value.keys()) {
                 innerMap.set(new MapKey(elementIdentifier), new BooleanElement(value.get(elementIdentifier)));
             }

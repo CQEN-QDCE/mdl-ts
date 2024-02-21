@@ -1,5 +1,5 @@
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { NumberElement } from "../data-element/number-element";
@@ -12,10 +12,10 @@ export class IssuerSignedItem {
     private constructor(public readonly digestID: number, 
                         public readonly randomSalt: ArrayBuffer, 
                         public readonly elementIdentifier: string, 
-                        public readonly elementValue: CborDataItem) {
+                        public readonly elementValue: CborDataItem2) {
     }
 
-    public static build(digestID: number, elementIdentifier: string, elementValue: CborDataItem): IssuerSignedItem {
+    public static build(digestID: number, elementIdentifier: string, elementValue: CborDataItem2): IssuerSignedItem {
         return new IssuerSignedItem(digestID, 
                                     new Uint8Array(new TextEncoder().encode(SecureRandom.generate(16))).buffer, 
                                     elementIdentifier, 
@@ -23,7 +23,7 @@ export class IssuerSignedItem {
     }
     
     toMapElement(): MapElement {
-        const map = new Map<MapKey, CborDataItem>();
+        const map = new Map<MapKey, CborDataItem2>();
         map.set(new MapKey('digestID'), new NumberElement(this.digestID));
         map.set(new MapKey('random'), new ByteStringElement(this.randomSalt));
         map.set(new MapKey('elementIdentifier'), new StringElement(this.elementIdentifier));

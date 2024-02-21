@@ -1,7 +1,7 @@
 import { Cbor } from "../cbor/cbor";
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -18,7 +18,7 @@ export class DeviceAuth {
     }
 
     toMapElement(): MapElement {
-        const map = new Map<MapKey, CborDataItem>();
+        const map = new Map<MapKey, CborDataItem2>();
         if (this.deviceMac) map.set(new MapKey('deviceMac'), Cbor.asDataItem(this.deviceMac));
         if (this.deviceSignature) map.set(new MapKey('deviceSignature'), Cbor.asDataItem(this.deviceSignature));
         return new MapElement(map);

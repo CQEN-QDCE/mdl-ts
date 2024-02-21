@@ -1,14 +1,9 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborEncoder } from './cbor-encoder';
+import { CborDataItem2 } from "./cbor-data-item2";
 
-export class DateTimeElement extends CborDataItem<Date> {
+export class DateTimeElement extends CborDataItem2<Date> {
 
-    constructor(value: Date, subType: CborDataItem.DateTimeMode = CborDataItem.DateTimeMode.tdate) {
-        super(value, new CborDataItem.DatetimeAttribute(subType));
-    }
-
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
+    constructor(value: Date, subType: CborDataItem2.DateTimeMode = CborDataItem2.DateTimeMode.tdate) {
+        super(value, new CborDataItem2.DatetimeAttribute(subType));
     }
 
 }

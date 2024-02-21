@@ -1,22 +1,17 @@
-import { CborDataItem } from "./cbor-data-item";
+import { CborDataItem2 } from "./cbor-data-item2";
 import { MapKey } from "./map-key";
-import { CborEncoder } from "./cbor-encoder";
 
-export class MapElement extends CborDataItem<Map<MapKey, CborDataItem>> {
+export class MapElement extends CborDataItem2<Map<MapKey, CborDataItem2>> {
 
-    constructor(value: Map<MapKey, CborDataItem>) {
-        super(value, new CborDataItem.Attribute(CborDataItem.Type.map));
+    constructor(value: Map<MapKey, CborDataItem2>) {
+        super(value, new CborDataItem2.Attribute(CborDataItem2.Type.map));
     }
 
-    get(mapKey: MapKey): CborDataItem {
+    get(mapKey: MapKey): CborDataItem2 {
         for (const [key, value] of this._value) {
             if (key.str === mapKey.str) return value;
         }
         return null;
-    }
-
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
     }
 
 }

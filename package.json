@@ -40,6 +40,7 @@
     "js-sha256": "^0.10.1",
     "node-localstorage": "^3.0.5",
     "supertest": "^6.3.4",
+    "ts-opaque": "^3.0.1",
     "uuid": "^9.0.1"
   }
 }

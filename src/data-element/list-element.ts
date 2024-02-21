@@ -1,16 +1,9 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborEncoder } from "./cbor-encoder";
+import { CborDataItem2 } from "./cbor-data-item2";
 
-export class ListElement extends CborDataItem<CborDataItem[]> {
+export class ListElement extends CborDataItem2<CborDataItem2[]> {
     
-    constructor(value: CborDataItem[] = []) {
-        super(value, new CborDataItem.Attribute(CborDataItem.Type.list));
+    constructor(value: CborDataItem2[] = []) {
+        super(value, new CborDataItem2.Attribute(CborDataItem2.Type.list));
     }
-    
-    toCBOR(): ArrayBuffer {
-        return CborEncoder.encode(this);
-    }
-
-    
 
 }

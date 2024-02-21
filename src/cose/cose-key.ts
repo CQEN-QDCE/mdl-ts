@@ -2,7 +2,7 @@ import { Crypto } from "@peculiar/webcrypto";
 import { KeyKeys } from "../../key-keys.enum";
 import { Base64 } from '../utils/base64';
 import { MapElement } from '../data-element/map-element';
-import { CborDataItem } from '../data-element/cbor-data-item';
+import { CborDataItem2 } from '../data-element/cbor-data-item2';
 import { MapKey } from '../data-element/map-key';
 import { NumberElement } from '../data-element/number-element';
 import { ByteStringElement } from '../data-element/byte-string-element';
@@ -16,7 +16,7 @@ export class CoseKey implements CborDataItemConvertable {
         this.keyMap = keyMap;
     }
 
-    fromCborDataItem(dataItem: CborDataItem): CoseKey {
+    fromCborDataItem(dataItem: CborDataItem2): CoseKey {
         const cborMap = <MapElement>dataItem;
         const keyMap = new Map<number, number | ArrayBuffer>();
         cborMap.value.forEach((value, key) => {
@@ -25,8 +25,8 @@ export class CoseKey implements CborDataItemConvertable {
         return new CoseKey(keyMap);
     }
 
-    toCborDataItem(): CborDataItem {
-        const keyMap = new Map<MapKey, CborDataItem>();
+    toCborDataItem(): CborDataItem2 {
+        const keyMap = new Map<MapKey, CborDataItem2>();
         for (const [key, value] of this.keyMap) {
             keyMap.set(new MapKey(key), typeof value === 'number' ? new NumberElement(value) : new ByteStringElement(value));
         }

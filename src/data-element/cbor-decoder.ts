@@ -2,7 +2,7 @@ import * as CBOR from 'cbor';
 import { NullElement } from './null-element';
 import { MapKey } from './map-key';
 import { MapElement } from './map-element';
-import { CborDataItem } from './cbor-data-item';
+import { CborDataItem2 } from './cbor-data-item2';
 import { ListElement } from './list-element';
 import { ByteStringElement } from './byte-string-element';
 import { StringElement } from './string-element';
@@ -19,14 +19,14 @@ import { Cbor } from '../cbor/cbor';
 
 export class CborDecoder {
 
-    static decode(cborData: ArrayBuffer): CborDataItem {
+    static decode(cborData: ArrayBuffer): CborDataItem2 {
         const value = CBOR.decodeFirstSync(cborData);
         return CborDecoder.deserialize(value);
     }
 
-    private static deserialize(object: any): CborDataItem {
+    private static deserialize(object: any): CborDataItem2 {
         if (Array.isArray(object)) {
-            const list: CborDataItem[] = [];
+            const list: CborDataItem2[] = [];
             for (const value of object) list.push(CborDecoder.deserialize(value));
             return new ListElement(list);
         } else if (typeof object === 'boolean' || object instanceof Boolean) {
@@ -42,7 +42,7 @@ export class CborDecoder {
         } else if (object instanceof ArrayBuffer) {
             return new ByteStringElement(object);
         } else if (object instanceof Map) {
-            const map = new Map<MapKey, CborDataItem>();
+            const map = new Map<MapKey, CborDataItem2>();
             for (const [key, value] of object.entries()) {
                 map.set(new MapKey(key), CborDecoder.deserialize(value));
             }
@@ -59,9 +59,9 @@ export class CborDecoder {
             } else if (object.tag === 0 || object.tag === 1) { // Cbor TDATE = 0L or TIME = 1L
                 throw new Error("Not implemented");
             } else if (object.tag === 18) { // COSE_SIGN1 = 18L
-                const list: CborDataItem[] = []
+                const list: CborDataItem2[] = []
                 list.push(new ByteStringElement(object.value[0]));
-                const map = new Map<MapKey, CborDataItem>();
+                const map = new Map<MapKey, CborDataItem2>();
                 map.set(new MapKey(33), new ByteStringElement(object.value[1].get(33)));
                 list.push(new MapElement(map));
                 list.push(new ByteStringElement(object.value[2]));
@@ -76,7 +76,7 @@ export class CborDecoder {
             } else if (object !== null && new Date(object) instanceof Date && !isNaN(new Date(object).valueOf())) {
                 return new TDateElement(new Date(object));
             } else {
-                const map = new Map<MapKey, CborDataItem>();
+                const map = new Map<MapKey, CborDataItem2>();
                 if (object.attribute && object.attribute.type === 8 && object._value && object._value instanceof Map) { // TODO: What this type?
                     object = object._value;
                 }
@@ -89,7 +89,7 @@ export class CborDecoder {
         throw new Error("Not implemented");
     }
 
-    static fromCBORHex(encoded: string): CborDataItem {
+    static fromCBORHex(encoded: string): CborDataItem2 {
         const buffer = Hex.decode(encoded);
         return CborDecoder.decode(buffer);
     }
@@ -106,10 +106,10 @@ export class CborDecoder {
                 const hour = timeParts.length > 0 ? parseInt(timeParts[0]) : 0;
                 const minute = timeParts.length > 1 ? parseInt(timeParts[1]) : 0;
                 const second = timeParts.length > 2 ? parseInt(timeParts[2]) : 0;
-                return new FullDateElement(new Date(year, month, day, hour, minute, second, 0), CborDataItem.FullDateMode.full_date_str);
+                return new FullDateElement(new Date(year, month, day, hour, minute, second, 0), CborDataItem2.FullDateMode.full_date_str);
             }
             case 100: {
-                return new FullDateElement(new Date(object.value), CborDataItem.FullDateMode.full_date_int);
+                return new FullDateElement(new Date(object.value), CborDataItem2.FullDateMode.full_date_int);
             }
             default:
                 throw new Error("Not implemented");

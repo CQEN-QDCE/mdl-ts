@@ -1,6 +1,6 @@
 import { Cbor } from "../cbor/cbor";
 import { CoseKey } from "../cose/cose-key";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 
@@ -26,7 +26,7 @@ export class DeviceKeyInfo {
     }
     
     toMapElement(): MapElement {
-        const map = new Map<MapKey, CborDataItem>();
+        const map = new Map<MapKey, CborDataItem2>();
         map.set(new MapKey('deviceKey'), Cbor.asDataItem(this.deviceKey));
         if (this.keyAuthorizations) map.set(new MapKey('keyAuthorizations'), this.keyAuthorizations);
         if (this.keyInfo) map.set(new MapKey('keyInfo'), this.keyInfo);

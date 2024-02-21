@@ -8,7 +8,7 @@ import { CoseAlgorithm } from "./cose-algorithm.enum";
 import { MapElement } from "../data-element/map-element";
 import { CborEncoder } from "../data-element/cbor-encoder";
 import { MapKey } from "../data-element/map-key";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { NumberElement } from "../data-element/number-element";
 import { StringElement } from "../data-element/string-element";
 import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
@@ -66,7 +66,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborDataItemConv
     }
 
     private encodeProtectedHeaders(): ArrayBuffer {
-        let map = new Map<MapKey, CborDataItem>();
+        let map = new Map<MapKey, CborDataItem2>();
         map.set(new MapKey(CoseHeaderLabel.ALG), new NumberElement(this.headers.algorithm.value));
         return CborEncoder.encode(new MapElement(map));
     }
@@ -93,7 +93,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborDataItemConv
         };
     }
 
-    fromCborDataItem(dataItem: CborDataItem): COSESign1 {
+    fromCborDataItem(dataItem: CborDataItem2): COSESign1 {
         const dataElement = <ListElement>dataItem;
         const message = new COSESign1();
         this.decodeProtectedHeaders(dataElement.value[0], message);
@@ -104,14 +104,14 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborDataItemConv
         return message;
     }
 
-    toCborDataItem(): CborDataItem {
-        let list: CborDataItem[] = [];
+    toCborDataItem(): CborDataItem2 {
+        let list: CborDataItem2[] = [];
         list.push(new ByteStringElement(this.encodeProtectedHeaders()));
-        let map = new Map<MapKey, CborDataItem>();
+        let map = new Map<MapKey, CborDataItem2>();
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new ByteStringElement(this.headers.x5Chain.value));
         }
-        list.push(new MapElement(new Map<MapKey, CborDataItem>()));
+        list.push(new MapElement(new Map<MapKey, CborDataItem2>()));
         list.push(new ByteStringElement(this.content));
         list.push(new ByteStringElement(this.signature));
         return new ListElement(list);

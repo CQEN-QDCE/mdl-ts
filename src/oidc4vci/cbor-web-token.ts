@@ -3,7 +3,7 @@ import { CoseAlgorithm } from "../cose/cose-algorithm.enum";
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { ByteStringElement } from "../data-element/byte-string-element";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { CborDecoder } from "../data-element/cbor-decoder";
 import { CborEncoder } from "../data-element/cbor-encoder";
 import { MapElement } from "../data-element/map-element";
@@ -92,7 +92,7 @@ export class CborWebToken {
        return await this.coseMacMessage.verify(secret);
     }
 
-    public static fromListElement(listElement: CborDataItem): CborWebToken {
+    public static fromListElement(listElement: CborDataItem2): CborWebToken {
         const cwt = new CborWebToken();
         const coseMessage = Cbor.fromDataItem(listElement, COSEMac0);
         cwt.coseMacMessage = coseMessage;
@@ -111,7 +111,7 @@ export class CborWebToken {
     } 
 
     private serializeClaims(): MapElement {
-        const payload = new Map<MapKey, CborDataItem>();
+        const payload = new Map<MapKey, CborDataItem2>();
 
         if (this.issuer) {
             payload.set(new MapKey(CborWebToken.ISS_KEY), new StringElement(this.issuer));

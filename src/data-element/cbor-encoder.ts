@@ -1,6 +1,6 @@
 import cbor, { Tagged } from 'cbor';
 import { MapElement } from './map-element';
-import { CborDataItem } from './cbor-data-item';
+import { CborDataItem2 } from './cbor-data-item2';
 import { ListElement } from './list-element';
 import { MapKeyType } from './map-key-type.enum';
 import { EncodedCBORElement } from './encoded-cbor-element';
@@ -8,12 +8,12 @@ import { TDateElement } from './tdate-element';
 
 export class CborEncoder {
 
-    static encode(dataItem: CborDataItem): ArrayBuffer {
+    static encode(dataItem: CborDataItem2): ArrayBuffer {
         const object: unknown = CborEncoder.convertToPlainObject(dataItem);
         return cbor.encode(object);
     }
 
-    private static convertToPlainObject(dataItem: CborDataItem): any {
+    private static convertToPlainObject(dataItem: CborDataItem2): any {
         if (dataItem instanceof MapElement) {
             return CborEncoder.convertToMap(dataItem);
         } else if (dataItem instanceof ListElement) {
