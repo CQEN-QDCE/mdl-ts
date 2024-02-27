@@ -1,13 +1,13 @@
 import { COSECryptoProvider } from "./cose/cose-crypto-provider";
 import { COSEMac0 } from "./cose/cose-mac-0";
 import { CborDataItem2 } from "./data-element/cbor-data-item2";
-import { CborDecoder } from "./data-element/cbor-decoder";
-import { CborEncoder } from "./data-element/cbor-encoder";
-import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
+import { CborDecoder } from "./cbor/cbor-decoder";
+import { CborEncoder } from "./cbor/cbor-encoder";
+import { CborEncodedDataItem } from "./data-element/cbor-encoded-data-item";
 import { MapElement } from "./data-element/map-element";
 import { MapKey } from "./data-element/map-key";
-import { NumberElement } from "./data-element/number-element";
-import { StringElement } from "./data-element/string-element";
+import { CborNumber } from "./data-element/cbor-number";
+import { CborTextString } from "./data-element/cbor-text-string";
 import { IssuerSignedItem } from "./issuer-signed/issuer-signed-item";
 import { DeviceAuthentication } from "./mdoc-auth/device-authentication";
 import { MobileDocumentRequest } from "./doc-request/mobile-document-request";
@@ -18,10 +18,10 @@ import { MDocVerificationParams } from "./mdoc/mdoc-verification-params";
 import { MobileSecurityObject } from "./mdoc/mobile-security-object";
 import { VerificationType } from "./mdoc/verification-type.enum";
 import { Lazy } from "./utils/lazy";
-import { CborDataItemConvertable } from "./cbor/cbor-data-item-convertable";
+import { CborConvertable } from "./cbor/cbor-convertable";
 import { Cbor } from "./cbor/cbor";
 
-export class MobileDocument implements CborDataItemConvertable {
+export class MobileDocument implements CborConvertable {
 
     private readonly lazyMobileSecurityObject: Lazy<MobileSecurityObject>;
 
@@ -78,7 +78,7 @@ export class MobileDocument implements CborDataItemConvertable {
 
     private verifyValidity(): boolean {
         const validityInfo = this.mso.validity;
-        return validityInfo.validFrom.value <= new Date() && validityInfo.validUntil.value >= new Date();
+        return validityInfo.validFrom.getValue() <= new Date() && validityInfo.validUntil.getValue() >= new Date();
     }
 
     private verifyDocType(): boolean {
@@ -142,7 +142,7 @@ export class MobileDocument implements CborDataItemConvertable {
 
     public async presentWithDeviceSignature(mDocRequest: MobileDocumentRequest, deviceAuthentication: DeviceAuthentication, cryptoProvider: COSECryptoProvider, keyID: string = null): Promise<MobileDocument> {
         const coseSign1 = (await cryptoProvider.sign1(this.getDeviceSignedPayload(deviceAuthentication), keyID)).detachPayload();
-        const namespaces = EncodedCBORElement.encode(new MapElement(new Map<MapKey, CborDataItem2>));
+        const namespaces = CborEncodedDataItem.encode(new MapElement(new Map<MapKey, CborDataItem2>));
         const deviceAuth = new DeviceAuth(null, coseSign1);
         return new MobileDocument(this.docType, 
                                   this.selectDisclosures(mDocRequest),
@@ -156,7 +156,7 @@ export class MobileDocument implements CborDataItemConvertable {
         coseMac0.detachPayload();
         return new MobileDocument(this.docType, 
                                   this.selectDisclosures(mobileDocumentRequest), 
-                                  new DeviceSigned(new EncodedCBORElement(CborEncoder.encode(new MapElement(new Map<MapKey, CborDataItem2>))), 
+                                  new DeviceSigned(new CborEncodedDataItem(CborEncoder.encode(new MapElement(new Map<MapKey, CborDataItem2>))), 
                                   new DeviceAuth(coseMac0)));
     }
 
@@ -174,12 +174,12 @@ export class MobileDocument implements CborDataItemConvertable {
     }
 
     private getDeviceSignedPayload(deviceAuthentication: DeviceAuthentication): ArrayBuffer {
-        return CborEncoder.encode(EncodedCBORElement.encode(Cbor.asDataItem(deviceAuthentication)));
+        return CborEncoder.encode(CborEncodedDataItem.encode(CborDataItem2.from(deviceAuthentication)));
     }
 
     private initMobileSecurityObject(): MobileSecurityObject {
         const payload = this.issuerSigned.issuerAuth.payload;
-        const encodedCBORElement = <EncodedCBORElement>CborDecoder.decode(payload);
+        const encodedCBORElement = <CborEncodedDataItem>CborDecoder.decode(payload);
         const mapElement = <MapElement>encodedCBORElement.decode();
         return MobileSecurityObject.fromMapElement(mapElement);
     }
@@ -188,28 +188,28 @@ export class MobileDocument implements CborDataItemConvertable {
         return new Set<string>([...this.issuerSigned.namespaces.keys()]);
     }
 
-    fromCborDataItem(dataItem: CborDataItem2<any>): MobileDocument {
+    fromCborDataItem(dataItem: CborDataItem2): MobileDocument {
         const mapElement = <MapElement>dataItem;
         const docType = mapElement.get(new MapKey('docType'));
         const issuerSigned = mapElement.get(new MapKey('issuerSigned'));
         const deviceSigned = mapElement.get(new MapKey('deviceSigned'));
-        this.docType = (<StringElement>docType).value;
-        this.issuerSigned = Cbor.fromDataItem(<MapElement>issuerSigned, IssuerSigned);
-        this.deviceSigned = deviceSigned ? Cbor.fromDataItem(<MapElement>deviceSigned, DeviceSigned) : null;
+        this.docType = (<CborTextString>docType).getValue();
+        this.issuerSigned = CborDataItem2.to(IssuerSigned, <MapElement>issuerSigned);
+        this.deviceSigned = deviceSigned ? CborDataItem2.to(DeviceSigned, <MapElement>deviceSigned) : null;
         return new MobileDocument(this.docType, this.issuerSigned, this.deviceSigned);
     }
 
-    toCborDataItem(): CborDataItem2<any> {
+    toCborDataItem(): CborDataItem2 {
         const map = new Map<MapKey, CborDataItem2>();
-        map.set(new MapKey('docType'), new StringElement(this.docType));
-        map.set(new MapKey('issuerSigned'), Cbor.asDataItem(this.issuerSigned));
-        if (this.deviceSigned) map.set(new MapKey('deviceSigned'), Cbor.asDataItem(this.deviceSigned));
+        map.set(new MapKey('docType'), new CborTextString(this.docType));
+        map.set(new MapKey('issuerSigned'), CborDataItem2.from(this.issuerSigned));
+        if (this.deviceSigned) map.set(new MapKey('deviceSigned'), CborDataItem2.from(this.deviceSigned));
         if (this.errors) {
             const namespacesMap = new Map<MapKey, CborDataItem2>();
             for (const [namespace, dataElements] of this.errors) {
                 const dataElementsMap = new Map<MapKey, CborDataItem2>();
                 for(const [identifier, errorCode] of dataElements) {
-                    dataElementsMap.set(new MapKey(identifier), new NumberElement(errorCode));
+                    dataElementsMap.set(new MapKey(identifier), new CborNumber(errorCode));
                 }
                 namespacesMap.set(new MapKey(namespace), new MapElement(dataElementsMap));
             }

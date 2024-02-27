@@ -1,15 +1,15 @@
 import { Cbor } from "../cbor/cbor";
-import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
+import { CborConvertable } from "../cbor/cbor-convertable";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
+import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { StringElement } from "../data-element/string-element";
+import { CborTextString } from "../data-element/cbor-text-string";
 import { MobileDocumentRequest } from "../doc-request/mobile-document-request";
 
-export class DeviceRequest implements CborDataItemConvertable {
+export class DeviceRequest implements CborConvertable {
 
     constructor(public readonly mobileDocumentRequests: MobileDocumentRequest[], 
                 public readonly version: string = '1.0') {
@@ -20,15 +20,15 @@ export class DeviceRequest implements CborDataItemConvertable {
         const docRequests = mapElement.get(new MapKey('docRequests'));
         const docRequests2: MobileDocumentRequest[] = [];
         if (docRequests) {
-            for (const mdocRequest of docRequests.value) {
-                const itemsRequest = <EncodedCBORElement>mdocRequest.get(new MapKey('itemsRequest'));
+            for (const mdocRequest of docRequests.getValue()) {
+                const itemsRequest = <CborEncodedDataItem>mdocRequest.get(new MapKey('itemsRequest'));
                 const readerAuth = <ListElement>mdocRequest.get(new MapKey('readerAuth'));
-                docRequests2.push(new MobileDocumentRequest(itemsRequest, readerAuth ? Cbor.fromDataItem(new ListElement(readerAuth.value), COSESign1) : null));
+                docRequests2.push(new MobileDocumentRequest(itemsRequest, readerAuth ? CborDataItem2.to(COSESign1, new ListElement(readerAuth.getValue())) : null));
             }
         }
         let version = mapElement.get(new MapKey('version'));
         if (!version) version = null;
-        return new DeviceRequest(docRequests2, version.value);
+        return new DeviceRequest(docRequests2, version.getValue());
     }
 
     toCborDataItem(): CborDataItem2 {
@@ -36,7 +36,7 @@ export class DeviceRequest implements CborDataItemConvertable {
         const mdocRequests: MapElement[] = [];
         for (const mdocRequest of this.mobileDocumentRequests) mdocRequests.push(mdocRequest.toMapElement());
         map.set(new MapKey('docRequests'), new ListElement(mdocRequests));
-        map.set(new MapKey('version'), new StringElement(this.version));
+        map.set(new MapKey('version'), new CborTextString(this.version));
         return new MapElement(map);
     }
 

@@ -34,7 +34,9 @@ export class CborArray extends Array<CborDataItem> implements CborDataItem {
 export class CborMap extends Map<number | string, CborDataItem> implements CborDataItem {
     readonly majorType: 5;
 }
-*/
+
+
+/*
 export enum Type {
     number,     // #0, #1, #7.25, #7.26, #7.27
     boolean,    // #7.20, #7.21
@@ -48,7 +50,7 @@ export enum Type {
     encodedCbor // #6.24
 }
 
-export abstract class CborDataItem<T = void> { 
+export abstract class CborDataItem<T = unknown> { 
     public readonly majorType: number | undefined; 
     public readonly value: T;
     protected constructor(majorType: number, value: T) {
@@ -103,3 +105,39 @@ export class CborNumber extends CborDataItem<number> {
 //    constructor() { }
 //    get majorType(): number { return 5; }
 //}
+*/
+
+export type Brand<
+  Base,
+  Branding,
+  ReservedName extends string = '__type__',
+> = Base & {[K in ReservedName]: Branding} & {__witness__: Base};
+
+export type AnyBrand = Brand<unknown, any>;
+
+export type BaseOf<B extends AnyBrand> = B['__witness__'];
+
+export type Brander<B extends AnyBrand> = (underlying: BaseOf<B>) => B;
+
+export function identity<B extends AnyBrand>(underlying: BaseOf<B>): B {
+  return underlying as B;
+}
+
+export function make<B extends AnyBrand>(): Brander<B> {
+  return identity;
+}
+
+export type CborNumber = Brand<number, 'CborNumber'>;
+export const CborNumber = make<CborNumber>();
+
+type CborBoolean = Brand<boolean, 'CborBoolean'>;
+export const CborBoolean = make<CborBoolean>();
+
+
+type CborArray = Brand<Array<CborNumber | CborBoolean>, 'CborArray'>;
+export const CborArray = make<CborArray>();
+
+
+export class CborTest {
+    public fun(num: CborNumber) {}
+}

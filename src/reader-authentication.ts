@@ -1,8 +1,8 @@
 import { CborDataItem2 } from "./data-element/cbor-data-item2";
-import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
+import { CborEncodedDataItem } from "./data-element/cbor-encoded-data-item";
 import { ListElement } from "./data-element/list-element";
-import { StringElement } from "./data-element/string-element";
-import { CborEncoder } from './data-element/cbor-encoder';
+import { CborTextString } from "./data-element/cbor-text-string";
+import { CborEncoder } from './cbor/cbor-encoder';
 import { ItemsRequest } from "./doc-request/items-request";
 
 export class ReaderAuthentication {
@@ -10,9 +10,9 @@ export class ReaderAuthentication {
     dataElements: CborDataItem2[] = [];
    
     constructor(sessionTranscript: ListElement, itemsRequest: ItemsRequest) {
-        this.dataElements.push(new StringElement('ReaderAuthentication'));
+        this.dataElements.push(new CborTextString('ReaderAuthentication'));
         this.dataElements.push(sessionTranscript);
-        const encodedItemsRequest = new EncodedCBORElement(CborEncoder.encode(itemsRequest.toMapElement()));
+        const encodedItemsRequest = new CborEncodedDataItem(CborEncoder.encode(itemsRequest.toMapElement()));
         this.dataElements.push(encodedItemsRequest);
     }
 

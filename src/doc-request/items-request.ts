@@ -1,7 +1,7 @@
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { StringElement } from "../data-element/string-element";
+import { CborTextString } from "../data-element/cbor-text-string";
 
 export class ItemsRequest {
 
@@ -17,14 +17,14 @@ export class ItemsRequest {
     }
 
     static fromMapElement(mapElement: MapElement): ItemsRequest {
-        const docType = <StringElement>mapElement.get(new MapKey('docType'));
+        const docType = <CborTextString>mapElement.get(new MapKey('docType'));
         const nameSpaces = <MapElement>mapElement.get(new MapKey('nameSpaces'));
-        return new ItemsRequest(docType.value, nameSpaces);
+        return new ItemsRequest(docType.getValue(), nameSpaces);
     }
 
     toMapElement(): MapElement {
         const map = new Map<MapKey, CborDataItem2>();
-        map.set(new MapKey('docType'), new StringElement(this.docType));
+        map.set(new MapKey('docType'), new CborTextString(this.docType));
         map.set(new MapKey('nameSpaces'), this.namespaces);
         return new MapElement(map);
     }

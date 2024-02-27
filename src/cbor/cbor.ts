@@ -1,7 +1,7 @@
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { CborDecoder } from "../data-element/cbor-decoder";
-import { CborEncoder } from "../data-element/cbor-encoder";
-import { CborDataItemConvertable } from "./cbor-data-item-convertable";
+import { CborDecoder } from "./cbor-decoder";
+import { CborEncoder } from "./cbor-encoder";
+import { CborConvertable } from "./cbor-convertable";
 
 /*
 export class Cbor {
@@ -36,20 +36,9 @@ interface Constructable<T> {
 
 export class Cbor {
 
-    public static asDataItem(object: CborDataItemConvertable): CborDataItem2 {
-        return (<CborDataItemConvertable>object).toCborDataItem();
-    }
-    
-    public static fromDataItem<T extends CborDataItemConvertable>(dataItem: CborDataItem2, type: Constructable<T>): T {
-        const unInitializedIntance = new type();
-        const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);
-        if (instance === unInitializedIntance) throw new Error("Invalid data item");
-        return instance;
-    }
-
-    public static encode(obj: CborDataItemConvertable | CborDataItem2): ArrayBuffer {
-        if ((<CborDataItemConvertable>obj).toCborDataItem !== undefined) {
-            return CborEncoder.encode((<CborDataItemConvertable>obj).toCborDataItem());
+    public static encode(obj: CborConvertable | CborDataItem2): ArrayBuffer {
+        if ((<CborConvertable>obj).toCborDataItem !== undefined) {
+            return CborEncoder.encode((<CborConvertable>obj).toCborDataItem());
         }
         if (obj instanceof CborDataItem2) {
             return CborEncoder.encode(obj);
@@ -57,7 +46,7 @@ export class Cbor {
         throw new Error("Invalid object");
     }
 
-    public static decode<T extends CborDataItemConvertable>(type: Constructable<T>, data: ArrayBuffer): T {
+    public static decode<T extends CborConvertable>(type: Constructable<T>, data: ArrayBuffer): T {
         const dataItem = CborDecoder.decode(data);
         const unInitializedIntance = new type();
         const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);

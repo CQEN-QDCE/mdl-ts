@@ -1,10 +1,10 @@
-import { ByteStringElement } from "../data-element/byte-string-element";
+import { CborByteString } from "../data-element/cbor-byte-string";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { CborDecoder } from "../data-element/cbor-decoder";
+import { CborDecoder } from "../cbor/cbor-decoder";
 import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { NumberElement } from "../data-element/number-element";
+import { CborNumber } from "../data-element/cbor-number";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { CoseHeaders } from "./cose-headers";
 
@@ -37,19 +37,19 @@ export abstract class COSEObject<T> {
 
     get protectedHeader(): ArrayBuffer {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-        return (<ByteStringElement>this.dataElements[0]).value;
+        return (<CborByteString>this.dataElements[0]).getValue();
     }
 
     get algorithm(): number {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
         const protectedHeaderMapElement = <MapElement>CborDecoder.decode(this.protectedHeader);
-        const numberElement = <NumberElement>protectedHeaderMapElement.get(new MapKey(CoseHeaderLabel.ALG));
-        return numberElement.value;
+        const numberElement = <CborNumber>protectedHeaderMapElement.get(new MapKey(CoseHeaderLabel.ALG));
+        return numberElement.getValue();
     }
 
     get signatureOrTag(): ArrayBuffer {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
-        return (<ByteStringElement>this.dataElements[3]).value;
+        return (<CborByteString>this.dataElements[3]).getValue();
     }
 
     protected replacePayload(payloadElement: CborDataItem2): CborDataItem2[] {

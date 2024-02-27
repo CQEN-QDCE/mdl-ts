@@ -22,12 +22,12 @@ export class DeviceKeyInfo {
         const deviceKey = element.get(new MapKey('deviceKey'));
         const keyAuthorizations = element.get(new MapKey('keyAuthorizations'));
         const keyInfo = element.get(new MapKey('keyInfo'));
-        return new DeviceKeyInfo(deviceKey.value === null ? null : Cbor.fromDataItem(<MapElement>deviceKey, CoseKey), <MapElement>keyAuthorizations, <MapElement>keyInfo);
+        return new DeviceKeyInfo(deviceKey.getValue() === null ? null : CborDataItem2.to(CoseKey, <MapElement>deviceKey), <MapElement>keyAuthorizations, <MapElement>keyInfo);
     }
     
     toMapElement(): MapElement {
         const map = new Map<MapKey, CborDataItem2>();
-        map.set(new MapKey('deviceKey'), Cbor.asDataItem(this.deviceKey));
+        map.set(new MapKey('deviceKey'), CborDataItem2.from(this.deviceKey));
         if (this.keyAuthorizations) map.set(new MapKey('keyAuthorizations'), this.keyAuthorizations);
         if (this.keyInfo) map.set(new MapKey('keyInfo'), this.keyInfo);
         return new MapElement(map);

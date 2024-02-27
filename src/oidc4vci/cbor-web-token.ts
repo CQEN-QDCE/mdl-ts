@@ -1,15 +1,14 @@
-import { Cbor } from "../cbor/cbor";
 import { CoseAlgorithm } from "../cose/cose-algorithm.enum";
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { ByteStringElement } from "../data-element/byte-string-element";
+import { CborByteString } from "../data-element/cbor-byte-string";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { CborDecoder } from "../data-element/cbor-decoder";
-import { CborEncoder } from "../data-element/cbor-encoder";
+import { CborDecoder } from "../cbor/cbor-decoder";
+import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { NumberElement } from "../data-element/number-element";
-import { StringElement } from "../data-element/string-element";
+import { CborNumber } from "../data-element/cbor-number";
+import { CborTextString } from "../data-element/cbor-text-string";
 import { Base64 } from "../utils/base64";
 
 export class CborWebToken {
@@ -94,7 +93,7 @@ export class CborWebToken {
 
     public static fromListElement(listElement: CborDataItem2): CborWebToken {
         const cwt = new CborWebToken();
-        const coseMessage = Cbor.fromDataItem(listElement, COSEMac0);
+        const coseMessage = CborDataItem2.to(COSEMac0, listElement);
         cwt.coseMacMessage = coseMessage;
         const payload = coseMessage.payload;
         cwt.deserializeClaims(<MapElement>CborDecoder.decode(payload));
@@ -102,7 +101,7 @@ export class CborWebToken {
     }
 
     public serialize(): string {
-        return Buffer.concat([CborWebToken.CWT_TAG, Buffer.from(CborEncoder.encode(Cbor.asDataItem(this.coseMacMessage)))]).toString("base64");
+        return Buffer.concat([CborWebToken.CWT_TAG, Buffer.from(CborEncoder.encode(CborDataItem2.from(this.coseMacMessage)))]).toString("base64");
     }
 
     public static parse(value: string): CborWebToken {
@@ -114,68 +113,68 @@ export class CborWebToken {
         const payload = new Map<MapKey, CborDataItem2>();
 
         if (this.issuer) {
-            payload.set(new MapKey(CborWebToken.ISS_KEY), new StringElement(this.issuer));
+            payload.set(new MapKey(CborWebToken.ISS_KEY), new CborTextString(this.issuer));
         }
 
         if (!this.subject) {
             throw new Error('sub is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.SUB_KEY), new StringElement(this.subject));
+        payload.set(new MapKey(CborWebToken.SUB_KEY), new CborTextString(this.subject));
 
         if (!this.audience) {
             throw new Error('aud is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.AUD_KEY), new StringElement(this.audience));
+        payload.set(new MapKey(CborWebToken.AUD_KEY), new CborTextString(this.audience));
 
 
         if (!this.expiration) {
             throw new Error('exp is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.EXP_KEY), new NumberElement(this.expiration));
+        payload.set(new MapKey(CborWebToken.EXP_KEY), new CborNumber(this.expiration));
 
         if (!this.notBefore) {
             throw new Error('nbf is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.NBF_KEY), new NumberElement(this.notBefore));
+        payload.set(new MapKey(CborWebToken.NBF_KEY), new CborNumber(this.notBefore));
 
         if (!this.issuedAt) {
             throw new Error('iat is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.IAT_KEY), new NumberElement(this.issuedAt));
+        payload.set(new MapKey(CborWebToken.IAT_KEY), new CborNumber(this.issuedAt));
         
         if (this.cwtId) {
-            payload.set(new MapKey(CborWebToken.CTI_KEY), new ByteStringElement(this.cwtId));
+            payload.set(new MapKey(CborWebToken.CTI_KEY), new CborByteString(this.cwtId));
         }
 
         if (this.nonce) {
-            payload.set(new MapKey(CborWebToken.NONCE_KEY), new ByteStringElement(this.nonce));
+            payload.set(new MapKey(CborWebToken.NONCE_KEY), new CborByteString(this.nonce));
         }
         return new MapElement(payload);
     }
 
     private deserializeClaims(payload: MapElement): void {
         const issStringElement = payload.get(new MapKey(CborWebToken.ISS_KEY));
-        if (issStringElement) this.issuer = issStringElement.value;
+        if (issStringElement) this.issuer = issStringElement.getValue();
 
         const subStringElement = payload.get(new MapKey(CborWebToken.SUB_KEY));
-        if (subStringElement) this.subject = subStringElement.value;
+        if (subStringElement) this.subject = subStringElement.getValue();
 
         const audStringElement = payload.get(new MapKey(CborWebToken.AUD_KEY));
-        if (audStringElement) this.audience = audStringElement.value;
+        if (audStringElement) this.audience = audStringElement.getValue();
 
         const expNumberElement = payload.get(new MapKey(CborWebToken.EXP_KEY));
-        if (expNumberElement) this.expiration = expNumberElement.value;
+        if (expNumberElement) this.expiration = expNumberElement.getValue();
 
         const nbfNumberElement = payload.get(new MapKey(CborWebToken.NBF_KEY));
-        if (nbfNumberElement) this.notBefore = nbfNumberElement.value;
+        if (nbfNumberElement) this.notBefore = nbfNumberElement.getValue();
 
         const iatNumberElement = payload.get(new MapKey(CborWebToken.IAT_KEY));
-        if (iatNumberElement) this.issuedAt = iatNumberElement.value;
+        if (iatNumberElement) this.issuedAt = iatNumberElement.getValue();
        
         const ctiByteStringElement = payload.get(new MapKey(CborWebToken.CTI_KEY));
-        if (ctiByteStringElement) this.cwtId = ctiByteStringElement.value;
+        if (ctiByteStringElement) this.cwtId = ctiByteStringElement.getValue();
 
         const nonceByteStringElement = payload.get(new MapKey(CborWebToken.NONCE_KEY));
-        if (nonceByteStringElement) this.nonce = nonceByteStringElement.value;
+        if (nonceByteStringElement) this.nonce = nonceByteStringElement.getValue();
     }
 }

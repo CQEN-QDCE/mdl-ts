@@ -25,7 +25,7 @@ export class ValidityInfo {
         const validFrom = element.get(new MapKey('validFrom'));
         const validUntil = element.get(new MapKey('validUntil'));
         const expectedUpdate = element.get(new MapKey('expectedUpdate'));
-        return new ValidityInfo((<TDateElement>signed).value, (<TDateElement>validFrom).value, (<TDateElement>validUntil).value, expectedUpdate ? (<TDateElement>expectedUpdate).value : null);
+        return new ValidityInfo((<TDateElement>signed).getValue(), (<TDateElement>validFrom).getValue(), (<TDateElement>validUntil).getValue(), expectedUpdate ? (<TDateElement>expectedUpdate).getValue() : null);
     }
 
     toMapElement(): MapElement {

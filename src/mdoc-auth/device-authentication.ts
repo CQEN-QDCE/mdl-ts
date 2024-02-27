@@ -1,24 +1,24 @@
-import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
+import { CborConvertable } from "../cbor/cbor-convertable";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
+import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { ListElement } from "../data-element/list-element";
-import { StringElement } from "../data-element/string-element";
+import { CborTextString } from "../data-element/cbor-text-string";
 
-export class DeviceAuthentication implements CborDataItemConvertable {
+export class DeviceAuthentication implements CborConvertable {
 
     public dataItems: CborDataItem2[] = [];
 
-    constructor(sessionTranscript: ListElement, docType: string, deviceNameSpaces: EncodedCBORElement) {
-        this.dataItems.push(new StringElement("DeviceAuthentication"));
+    constructor(sessionTranscript: ListElement, docType: string, deviceNameSpaces: CborEncodedDataItem) {
+        this.dataItems.push(new CborTextString("DeviceAuthentication"));
         this.dataItems.push(sessionTranscript);
-        this.dataItems.push(new StringElement(docType));
+        this.dataItems.push(new CborTextString(docType));
         this.dataItems.push(deviceNameSpaces);
     }
 
     fromCborDataItem(dataItem: CborDataItem2): DeviceAuthentication {
         const cborArray = <ListElement>dataItem;
-        const elements = <CborDataItem2[]>cborArray.value;
-        return new DeviceAuthentication(<ListElement>elements[1],(<StringElement>elements[2]).value,<EncodedCBORElement>elements[3]);
+        const elements = <CborDataItem2[]>cborArray.getValue();
+        return new DeviceAuthentication(<ListElement>elements[1],(<CborTextString>elements[2]).getValue(),<CborEncodedDataItem>elements[3]);
     }
 
     toCborDataItem(): CborDataItem2 {

@@ -1,8 +1,8 @@
 import { COSECryptoProvider } from "./cose/cose-crypto-provider";
 import { COSESign1 } from "./cose/cose-sign-1";
 import { CborDataItem2 } from "./data-element/cbor-data-item2";
-import { CborEncoder } from "./data-element/cbor-encoder";
-import { EncodedCBORElement } from "./data-element/encoded-cbor-element";
+import { CborEncoder } from "./cbor/cbor-encoder";
+import { CborEncodedDataItem } from "./data-element/cbor-encoded-data-item";
 import { IssuerSignedItem } from "./issuer-signed/issuer-signed-item";
 import { MobileDocument } from "./mobile-document";
 import { DeviceSigned } from "./mdoc/device-signed";
@@ -43,7 +43,7 @@ export class MobileDocumentBuilder {
 
     public async sign(validityInfo: ValidityInfo, deviceKeyInfo: DeviceKeyInfo, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocument> {
         const mso = await MobileSecurityObject.build(this.issuerNamespaces, deviceKeyInfo, this.docType, validityInfo);
-        const payload = CborEncoder.encode(EncodedCBORElement.encode(mso.toMapElement()));
+        const payload = CborEncoder.encode(CborEncodedDataItem.encode(mso.toMapElement()));
         const issuerAuth = await cryptoProvider.sign1(payload, keyID);
         return this.build(issuerAuth);
     }

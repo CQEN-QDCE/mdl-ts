@@ -1,12 +1,12 @@
 import { COSECryptoProvider } from "../cose/cose-crypto-provider";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { CborDecoder } from "../data-element/cbor-decoder";
-import { CborEncoder } from "../data-element/cbor-encoder";
-import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
+import { CborDecoder } from "../cbor/cbor-decoder";
+import { CborEncoder } from "../cbor/cbor-encoder";
+import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { StringElement } from "../data-element/string-element";
+import { CborTextString } from "../data-element/cbor-text-string";
 import { MDocRequestVerificationParams } from "./mdoc-request-verification-params";
 import { ItemsRequest } from "./items-request";
 import { ReaderAuthentication } from "../reader-authentication";
@@ -15,12 +15,12 @@ import { Cbor } from "../cbor/cbor";
 
 export class MobileDocumentRequest {
 
-    private readonly itemsRequestBytes: EncodedCBORElement;
+    private readonly itemsRequestBytes: CborEncodedDataItem;
     public readonly readerAuthentication: COSESign1 | null;
     private readonly lazyDecodedItemsRequest: Lazy<ItemsRequest>;
     private readonly lazyNamespaces: Lazy<string[]>;
 
-    constructor(itemsRequestBytes: EncodedCBORElement, 
+    constructor(itemsRequestBytes: CborEncodedDataItem, 
                 readerAuthentication: COSESign1 | null = null) {
         this.itemsRequestBytes = itemsRequestBytes;
         this.readerAuthentication = readerAuthentication;
@@ -46,8 +46,8 @@ export class MobileDocumentRequest {
         const nameSpace2 = nameSpaces.get(new MapKey(nameSpace));
         const response: Map<string, boolean> = new Map<string, boolean>();
         if (!nameSpace2) return response;
-        for (const [key, value] of nameSpace2.value) {
-            response.set(key.str, value.value);
+        for (const [key, value] of nameSpace2.getValue()) {
+            response.set(key.str, value.getValue());
         }
         return response;
     }
@@ -77,25 +77,25 @@ export class MobileDocumentRequest {
     toMapElement(): MapElement {
         const map = new Map<MapKey, CborDataItem2>();
         map.set(new MapKey('itemsRequest'), this.itemsRequestBytes);
-        if (this.readerAuthentication) map.set(new MapKey('readerAuth'), Cbor.asDataItem(this.readerAuthentication));
+        if (this.readerAuthentication) map.set(new MapKey('readerAuth'), CborDataItem2.from(this.readerAuthentication));
         return new MapElement(map);
     }
 
     private getReaderSignedPayload(readerAuthentication: ReaderAuthentication): ArrayBuffer {
-        return CborEncoder.encode(EncodedCBORElement.encode(readerAuthentication.toListElement()));
+        return CborEncoder.encode(CborEncodedDataItem.encode(readerAuthentication.toListElement()));
     }
     
     private initItemsRequest(): ItemsRequest {
-        const dataElement = CborDecoder.decode(this.itemsRequestBytes.value);
+        const dataElement = CborDecoder.decode(this.itemsRequestBytes.getValue());
         const mapElement = <MapElement>dataElement;
         const docType = mapElement.get(new MapKey('docType'));
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
-        return new ItemsRequest((<StringElement>docType).value, <MapElement>nameSpaces);
+        return new ItemsRequest((<CborTextString>docType).getValue(), <MapElement>nameSpaces);
     }
 
     private initNamespaces(): string[] {
         const nameSpaces: string[] = [];
-        for (const [key, value] of this.itemsRequest.namespaces.value) {
+        for (const [key, value] of this.itemsRequest.namespaces.getValue()) {
             nameSpaces.push(key.str);
         }
         return nameSpaces;

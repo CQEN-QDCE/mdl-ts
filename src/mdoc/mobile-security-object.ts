@@ -1,15 +1,15 @@
-import { ByteStringElement } from "../data-element/byte-string-element";
+import { CborByteString } from "../data-element/cbor-byte-string";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
-import { EncodedCBORElement } from "../data-element/encoded-cbor-element";
+import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { StringElement } from "../data-element/string-element";
+import { CborTextString } from "../data-element/cbor-text-string";
 import { DeviceKeyInfo } from "../mso/device-key-info";
 import { IssuerSignedItem } from "../issuer-signed/issuer-signed-item";
 import { ValidityInfo } from "../mso/validity-info";
 import { DigestAlgorithm } from "./digest-algorithm.enum";
 import { Crypto } from "@peculiar/webcrypto";
-import { CborEncoder } from "../data-element/cbor-encoder";
+import { CborEncoder } from "../cbor/cbor-encoder";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 
 // Mobile security object (MSO), representing the payload of the issuer signature, for the issuer signed part of the mdoc.
@@ -61,29 +61,29 @@ export class MobileSecurityObject {
     }
 
     static fromMapElement(mapElement: MapElement): MobileSecurityObject {
-        const version = <StringElement>mapElement.get(new MapKey('version'));
-        const digestAlgorithm = <StringElement>mapElement.get(new MapKey('digestAlgorithm'));
+        const version = <CborTextString>mapElement.get(new MapKey('version'));
+        const digestAlgorithm = <CborTextString>mapElement.get(new MapKey('digestAlgorithm'));
         const valueDigests = <MapElement>mapElement.get(new MapKey('valueDigests'));
         const deviceKeyInfo = DeviceKeyInfo.fromMapElement(<MapElement>mapElement.get(new MapKey('deviceKeyInfo')));
-        const docType = <StringElement>mapElement.get(new MapKey('docType'));
+        const docType = <CborTextString>mapElement.get(new MapKey('docType'));
         const validityInfo = ValidityInfo.fromMapElement(<MapElement>mapElement.get(new MapKey('validityInfo')));
 
         let valueDigests2 = new Map<string, Map<number, ArrayBuffer>>;
-        for(const [key, value] of valueDigests.value) {
+        for(const [key, value] of valueDigests.getValue()) {
             const digestMap = new Map<number, ArrayBuffer>();
-            for (const [key2, value2] of (<MapElement>value).value) {
-                if (value2 instanceof ByteStringElement) {
-                    digestMap.set(key2.int, value2.value);
+            for (const [key2, value2] of (<MapElement>value).getValue()) {
+                if (value2 instanceof CborByteString) {
+                    digestMap.set(key2.int, value2.getValue());
                 }
             }
             valueDigests2.set(key.str, digestMap);
         }
 
-        return new MobileSecurityObject(version.value, 
-                                        <DigestAlgorithm>digestAlgorithm.value, 
+        return new MobileSecurityObject(version.getValue(), 
+                                        <DigestAlgorithm>digestAlgorithm.getValue(), 
                                         valueDigests2, 
                                         deviceKeyInfo, 
-                                        docType.value, 
+                                        docType.getValue(), 
                                         validityInfo);
     }
 
@@ -92,16 +92,16 @@ export class MobileSecurityObject {
         for (const [namespace, valueDigests2] of this.valueDigests) {
             const nameSpaceDigests = new Map<MapKey, CborDataItem2>();
             for (const [digestID, valueDigest] of valueDigests2) {
-                nameSpaceDigests.set(new MapKey(digestID), new ByteStringElement(valueDigest));
+                nameSpaceDigests.set(new MapKey(digestID), new CborByteString(valueDigest));
             }
             valueDigestNamespaces.set(new MapKey(namespace), new MapElement(nameSpaceDigests));
         }
         const map = new Map<MapKey, CborDataItem2>();
-        map.set(new MapKey('version'), new StringElement(this.version));
-        map.set(new MapKey('digestAlgorithm'), new StringElement(this.digestAlgorithm));
+        map.set(new MapKey('version'), new CborTextString(this.version));
+        map.set(new MapKey('digestAlgorithm'), new CborTextString(this.digestAlgorithm));
         map.set(new MapKey('valueDigests'), new MapElement(valueDigestNamespaces));
         map.set(new MapKey('deviceKeyInfo'), this.deviceKeyInfo.toMapElement());
-        map.set(new MapKey('docType'), new StringElement(this.docType));
+        map.set(new MapKey('docType'), new CborTextString(this.docType));
         map.set(new MapKey('validityInfo'), this.validity.toMapElement());
         return new MapElement(map);
     }
@@ -131,7 +131,7 @@ export class MobileSecurityObject {
     }
 
     private static async digestItem(issuerSignedItem: IssuerSignedItem, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
-        const encodedItem = new EncodedCBORElement(CborEncoder.encode(issuerSignedItem.toMapElement()));
+        const encodedItem = new CborEncodedDataItem(CborEncoder.encode(issuerSignedItem.toMapElement()));
         const crypto = new Crypto();
         const hash = await crypto.subtle.digest(digestAlgorithm, CborEncoder.encode(encodedItem));
         return hash

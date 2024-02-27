@@ -1,21 +1,21 @@
 import * as CBOR from 'cbor';
-import { NullElement } from './null-element';
-import { MapKey } from './map-key';
-import { MapElement } from './map-element';
-import { CborDataItem2 } from './cbor-data-item2';
-import { ListElement } from './list-element';
-import { ByteStringElement } from './byte-string-element';
-import { StringElement } from './string-element';
-import { EncodedCBORElement } from './encoded-cbor-element';
-import { NumberElement } from './number-element';
-import { BooleanElement } from './boolean-element';
-import { FullDateElement } from './full-date-element';
-import { TDateElement } from './tdate-element';
+import { CborNil } from '../data-element/cbor-nil';
+import { MapKey } from '../data-element/map-key';
+import { MapElement } from '../data-element/map-element';
+import { CborDataItem2 } from '../data-element/cbor-data-item2';
+import { ListElement } from '../data-element/list-element';
+import { CborByteString } from '../data-element/cbor-byte-string';
+import { CborTextString } from '../data-element/cbor-text-string';
+import { CborEncodedDataItem } from '../data-element/cbor-encoded-data-item';
+import { CborNumber } from '../data-element/cbor-number';
+import { CborBoolean } from '../data-element/cbor-boolean';
+import { CborFullDate } from '../data-element/cbor-full-date';
+import { TDateElement } from '../data-element/tdate-element';
 import { Hex } from '../utils/hex';
 import { COSESign1 } from '../cose/cose-sign-1';
 import { MobileSecurityObject } from '../mdoc/mobile-security-object';
 import { CborEncoder } from './cbor-encoder';
-import { Cbor } from '../cbor/cbor';
+import { Cbor } from './cbor';
 
 export class CborDecoder {
 
@@ -30,17 +30,17 @@ export class CborDecoder {
             for (const value of object) list.push(CborDecoder.deserialize(value));
             return new ListElement(list);
         } else if (typeof object === 'boolean' || object instanceof Boolean) {
-            return new BooleanElement(<boolean>object);
+            return new CborBoolean(<boolean>object);
         } else if (typeof object === 'number' || object instanceof Number) {
-            return new NumberElement(<number>object);
+            return new CborNumber(<number>object);
         } else if (typeof object === 'string' || object instanceof String) {
-            return new StringElement(object.toString());
+            return new CborTextString(object.toString());
         } else if (object === null) {
-            return new NullElement();
+            return new CborNil();
         } else if (object instanceof Buffer) {
-            return new ByteStringElement(new Int8Array(object).buffer);
+            return new CborByteString(new Int8Array(object).buffer);
         } else if (object instanceof ArrayBuffer) {
-            return new ByteStringElement(object);
+            return new CborByteString(object);
         } else if (object instanceof Map) {
             const map = new Map<MapKey, CborDataItem2>();
             for (const [key, value] of object.entries()) {
@@ -49,24 +49,24 @@ export class CborDecoder {
             return new MapElement(map);
         } else {
             if (object.tag === 24) { // ENCODED_CBOR = 24L
-                if (object.value instanceof ArrayBuffer || object.value instanceof Buffer) return new EncodedCBORElement(object.value);
+                if (object.value instanceof ArrayBuffer || object.value instanceof Buffer) return new CborEncodedDataItem(object.value);
 
                 // TODO: Patch pour pyMDOC-CBOR
                 let test = CborDecoder.deserialize(object.value);
-                return new EncodedCBORElement(CborEncoder.encode(test));
+                return new CborEncodedDataItem(CborEncoder.encode(test));
             } else if (object.tag === 61) { // CBOR Web Token (CWT) = 61L
                 return <ListElement>CborDecoder.deserialize(object.value)
             } else if (object.tag === 0 || object.tag === 1) { // Cbor TDATE = 0L or TIME = 1L
                 throw new Error("Not implemented");
             } else if (object.tag === 18) { // COSE_SIGN1 = 18L
                 const list: CborDataItem2[] = []
-                list.push(new ByteStringElement(object.value[0]));
+                list.push(new CborByteString(object.value[0]));
                 const map = new Map<MapKey, CborDataItem2>();
-                map.set(new MapKey(33), new ByteStringElement(object.value[1].get(33)));
+                map.set(new MapKey(33), new CborByteString(object.value[1].get(33)));
                 list.push(new MapElement(map));
-                list.push(new ByteStringElement(object.value[2]));
-                list.push(new ByteStringElement(object.value[3]));
-                let message = Cbor.fromDataItem(new ListElement(list), COSESign1);
+                list.push(new CborByteString(object.value[2]));
+                list.push(new CborByteString(object.value[3]));
+                let message = CborDataItem2.to(COSESign1, new ListElement(list));
                 let payload = message.payload;
                 let test = CborDecoder.decode(payload);
                 let mso = MobileSecurityObject.fromMapElement(<MapElement>test);
@@ -94,7 +94,7 @@ export class CborDecoder {
         return CborDecoder.decode(buffer);
     }
 
-    private static deserializeFullDate(object: any, tag: number): FullDateElement {
+    private static deserializeFullDate(object: any, tag: number): CborFullDate {
         switch (tag) {
             case 1004: {
                 const dateParts = object.value.split('T')[0].split('-');
@@ -106,10 +106,10 @@ export class CborDecoder {
                 const hour = timeParts.length > 0 ? parseInt(timeParts[0]) : 0;
                 const minute = timeParts.length > 1 ? parseInt(timeParts[1]) : 0;
                 const second = timeParts.length > 2 ? parseInt(timeParts[2]) : 0;
-                return new FullDateElement(new Date(year, month, day, hour, minute, second, 0), CborDataItem2.FullDateMode.full_date_str);
+                return new CborFullDate(new Date(year, month, day, hour, minute, second, 0), CborDataItem2.FullDateMode.string);
             }
             case 100: {
-                return new FullDateElement(new Date(object.value), CborDataItem2.FullDateMode.full_date_int);
+                return new CborFullDate(new Date(object.value), CborDataItem2.FullDateMode.integer);
             }
             default:
                 throw new Error("Not implemented");

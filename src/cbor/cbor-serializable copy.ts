@@ -234,7 +234,7 @@ test.tzx(new MyTypeClass());
 */
 
 
-
+/*
 interface CborDataItemConvertibleIntance {
   toDataItem(): CborDataItem;
 }
@@ -289,6 +289,7 @@ class Boo {
 }
 */
 
+/*
 type Tag<T> = { _tag: T }
 type WeakOpaqueType<BaseType, T> = BaseType & Tag<T>
 type StrongOpaqueType<BaseType, T> = (BaseType & Tag<T>) | Tag<T>
@@ -361,5 +362,5 @@ let recup = cborMap.get('') as CborNumber;
 test.push(true);
 
 
-
+*/
 

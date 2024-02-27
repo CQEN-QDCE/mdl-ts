@@ -1,9 +1,13 @@
 import { CborDataItem2 } from "./cbor-data-item2";
 
-export class ListElement extends CborDataItem2<CborDataItem2[]> {
+export class ListElement extends CborDataItem2 {
     
-    constructor(value: CborDataItem2[] = []) {
-        super(value, new CborDataItem2.Attribute(CborDataItem2.Type.list));
+    constructor(private value: CborDataItem2[] = []) {
+        super(new CborDataItem2.Attribute(CborDataItem2.Type.list));
+    }
+
+    public getValue(): CborDataItem2[] {
+        return this.value;
     }
 
 }

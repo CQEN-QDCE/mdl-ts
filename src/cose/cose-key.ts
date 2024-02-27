@@ -4,11 +4,11 @@ import { Base64 } from '../utils/base64';
 import { MapElement } from '../data-element/map-element';
 import { CborDataItem2 } from '../data-element/cbor-data-item2';
 import { MapKey } from '../data-element/map-key';
-import { NumberElement } from '../data-element/number-element';
-import { ByteStringElement } from '../data-element/byte-string-element';
-import { CborDataItemConvertable } from "../cbor/cbor-data-item-convertable";
+import { CborNumber } from '../data-element/cbor-number';
+import { CborByteString } from '../data-element/cbor-byte-string';
+import { CborConvertable } from "../cbor/cbor-convertable";
 
-export class CoseKey implements CborDataItemConvertable {
+export class CoseKey implements CborConvertable {
 
     private keyMap: Map<number, number | ArrayBuffer>;
 
@@ -19,8 +19,8 @@ export class CoseKey implements CborDataItemConvertable {
     fromCborDataItem(dataItem: CborDataItem2): CoseKey {
         const cborMap = <MapElement>dataItem;
         const keyMap = new Map<number, number | ArrayBuffer>();
-        cborMap.value.forEach((value, key) => {
-            keyMap.set(key.int, value.value);
+        cborMap.getValue().forEach((value, key) => {
+            keyMap.set(key.int, value.getValue());
         });
         return new CoseKey(keyMap);
     }
@@ -28,7 +28,7 @@ export class CoseKey implements CborDataItemConvertable {
     toCborDataItem(): CborDataItem2 {
         const keyMap = new Map<MapKey, CborDataItem2>();
         for (const [key, value] of this.keyMap) {
-            keyMap.set(new MapKey(key), typeof value === 'number' ? new NumberElement(value) : new ByteStringElement(value));
+            keyMap.set(new MapKey(key), typeof value === 'number' ? new CborNumber(value) : new CborByteString(value));
         }
         return new MapElement(keyMap);
     }

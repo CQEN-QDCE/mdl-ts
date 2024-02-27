@@ -1,23 +1,29 @@
-import { Hex } from "../utils/hex";
+import { CborConvertable } from "../cbor/cbor-convertable";
 
-export abstract class CborDataItem2<T = any> {
-
-    protected _value: T;
+export abstract class CborDataItem2 {
 
     protected attribute: CborDataItem2.Attribute;
 
-    constructor(value: T, attribute: CborDataItem2.Attribute) {
-        this._value = value;
+    constructor(attribute: CborDataItem2.Attribute) {
         this.attribute = attribute;
+    }
+
+    public static from(object: CborConvertable): CborDataItem2 {
+        return (<CborConvertable>object).toCborDataItem();
+    }
+
+    public static to<T extends CborConvertable>(type: Constructable<T>, dataItem: CborDataItem2): T {
+        const unInitializedIntance = new type();
+        const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);
+        if (instance === unInitializedIntance) throw new Error("Invalid data item");
+        return instance;
     }
 
     get type(): CborDataItem2.Type {
         return this.attribute.type;
     }
 
-    get value(): T {
-        return this._value;
-    }
+    public abstract getValue(): any;
 
     equals(other: any): boolean {
         if (!other) return false;
@@ -43,8 +49,8 @@ export module CborDataItem2 {
     }
 
     export enum FullDateMode {
-        full_date_str,  // #6.1004
-        full_date_int   // #6.100
+        string,  // #6.1004
+        integer   // #6.100
     }
 
     export enum DateTimeMode {
@@ -71,9 +77,13 @@ export module CborDataItem2 {
 
     export class FullDateAttribute extends Attribute {
         protected mode: FullDateMode;
-        constructor(mode: FullDateMode = FullDateMode.full_date_str) {
+        constructor(mode: FullDateMode = FullDateMode.string) {
             super(Type.fullDate);
             this.mode = mode;
         }
     }
+}
+
+interface Constructable<T> {
+    new (...args: any[]): T;
 }

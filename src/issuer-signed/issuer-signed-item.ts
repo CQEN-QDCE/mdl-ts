@@ -1,9 +1,9 @@
-import { ByteStringElement } from "../data-element/byte-string-element";
+import { CborByteString } from "../data-element/cbor-byte-string";
 import { CborDataItem2 } from "../data-element/cbor-data-item2";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { NumberElement } from "../data-element/number-element";
-import { StringElement } from "../data-element/string-element";
+import { CborNumber } from "../data-element/cbor-number";
+import { CborTextString } from "../data-element/cbor-text-string";
 import { SecureRandom } from "../utils/secure-random";
 
 
@@ -24,9 +24,9 @@ export class IssuerSignedItem {
     
     toMapElement(): MapElement {
         const map = new Map<MapKey, CborDataItem2>();
-        map.set(new MapKey('digestID'), new NumberElement(this.digestID));
-        map.set(new MapKey('random'), new ByteStringElement(this.randomSalt));
-        map.set(new MapKey('elementIdentifier'), new StringElement(this.elementIdentifier));
+        map.set(new MapKey('digestID'), new CborNumber(this.digestID));
+        map.set(new MapKey('random'), new CborByteString(this.randomSalt));
+        map.set(new MapKey('elementIdentifier'), new CborTextString(this.elementIdentifier));
         map.set(new MapKey('elementValue'), this.elementValue);
         return new MapElement(map);
     }
@@ -36,7 +36,7 @@ export class IssuerSignedItem {
         const random = element.get(new MapKey('random'));
         const elementIdentifier = element.get(new MapKey('elementIdentifier'));
         const elementValue = element.get(new MapKey('elementValue'));
-        return new IssuerSignedItem(digestID.value, random.value, elementIdentifier.value, elementValue);
+        return new IssuerSignedItem(digestID.getValue(), random.getValue(), elementIdentifier.getValue(), elementValue);
     }
 
 }

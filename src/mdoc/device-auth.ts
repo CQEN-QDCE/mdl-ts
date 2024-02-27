@@ -19,8 +19,8 @@ export class DeviceAuth {
 
     toMapElement(): MapElement {
         const map = new Map<MapKey, CborDataItem2>();
-        if (this.deviceMac) map.set(new MapKey('deviceMac'), Cbor.asDataItem(this.deviceMac));
-        if (this.deviceSignature) map.set(new MapKey('deviceSignature'), Cbor.asDataItem(this.deviceSignature));
+        if (this.deviceMac) map.set(new MapKey('deviceMac'), CborDataItem2.from(this.deviceMac));
+        if (this.deviceSignature) map.set(new MapKey('deviceSignature'), CborDataItem2.from(this.deviceSignature));
         return new MapElement(map);
     }
 
@@ -29,7 +29,7 @@ export class DeviceAuth {
         if (!deviceMac) deviceMac = null;
         let deviceSignature = mapElement.get(new MapKey('deviceSignature'));
         if (!deviceSignature) deviceSignature = null;
-        return new DeviceAuth(Cbor.fromDataItem(new ListElement(deviceMac.value), COSEMac0), 
-                              deviceSignature ? Cbor.fromDataItem(new ListElement(deviceSignature.value), COSESign1) : null);
+        return new DeviceAuth(CborDataItem2.to(COSEMac0, new ListElement(deviceMac.getValue())), 
+                              deviceSignature ? CborDataItem2.to(COSESign1, new ListElement(deviceSignature.getValue())) : null);
     }
 }

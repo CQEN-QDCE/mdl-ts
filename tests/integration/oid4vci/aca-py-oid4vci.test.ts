@@ -5,6 +5,12 @@ import { Hex } from '../../../src/utils/hex';
 import { MobileDocument } from '../../../src/mobile-document';
 describe("ACA-py OID4VC Tests", () => {
     
+//    let localhost1: string = 'http://localhost:3001';
+//    let localhost2: string = 'http://localhost:8081';
+
+    let localhost1: string = 'https://mdl-issuer-admin.apps.exp.openshift.cqen.ca';
+    let localhost2: string = 'https://mdl-issuer-oid4vci.apps.exp.openshift.cqen.ca';
+
     let client: AxiosInstance;
     
     beforeAll(async () => {
@@ -17,13 +23,14 @@ describe("ACA-py OID4VC Tests", () => {
             "method": "key"
         };
 
-        const didCreateResponse: AxiosResponse = await client.post(`http://localhost:3001/wallet/did/create`, createDidRequest);
+        const didCreateResponse: AxiosResponse = await client.post(`${localhost1}/wallet/did/create`, createDidRequest);
         
         const did = didCreateResponse.data.result;
 
         let exchangeCreateRequest: any = {
             "did": did.did,
-            "supported_cred_id": "18ebd91e-9e76-4f88-94b7-6fd1fd34d190",
+//            "supported_cred_id": "18ebd91e-9e76-4f88-94b7-6fd1fd34d190",  
+            "supported_cred_id": "e048673c-2888-4fc3-86d8-7c167628c5ae",
             "claims": {
                 "org.iso.18013.5.1": { 
                     "given_name": "Mascetti", 
@@ -35,10 +42,10 @@ describe("ACA-py OID4VC Tests", () => {
             }
         };
         
-        const exchangeCreateResponse: AxiosResponse = await client.post(`http://localhost:3001/oid4vci/exchange/create`, exchangeCreateRequest);
+        const exchangeCreateResponse: AxiosResponse = await client.post(`${localhost1}/oid4vci/exchange/create`, exchangeCreateRequest);
         const exchange = exchangeCreateResponse.data;
 
-        const credentialOfferResponse: AxiosResponse = await client.get(`http://localhost:3001/oid4vci/credential-offer?exchange_id=${exchange.exchange_id}`);
+        const credentialOfferResponse: AxiosResponse = await client.get(`${localhost1}/oid4vci/credential-offer?exchange_id=${exchange.exchange_id}`);
         const credentialOffer = credentialOfferResponse.data;
         const credentialIssuerUrl = credentialOffer.credential_issuer;
         const credentials = credentialOffer.credentials;
@@ -69,7 +76,7 @@ describe("ACA-py OID4VC Tests", () => {
             method: 'POST',
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data,
-            url: 'http://localhost:8081/token',
+            url: `${localhost2}/token`,
         };
           
         const accessTokenResponse: AxiosResponse = await client(options);
@@ -85,7 +92,7 @@ describe("ACA-py OID4VC Tests", () => {
             }
         };
 
-        const credentialResponse: AxiosResponse = await client.post(`http://localhost:8081/credential`, credentialRequest, { headers: { 'Authorization': 'BEARER ' + accessToken.access_token } });  
+        const credentialResponse: AxiosResponse = await client.post(`${localhost2}/credential`, credentialRequest, { headers: { 'Authorization': 'BEARER ' + accessToken.access_token } });  
 
         //const exchange2 = credentialResponse.data;
 
