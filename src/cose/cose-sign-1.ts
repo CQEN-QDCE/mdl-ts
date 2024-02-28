@@ -1,5 +1,5 @@
 import { Crypto } from "@peculiar/webcrypto";
-import { CborByteString } from "../data-element/cbor-byte-string";
+import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { COSEObject } from "./cose-object";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
@@ -7,7 +7,7 @@ import { CoseAlgorithm } from "./cose-algorithm.enum";
 import { MapElement } from "../data-element/map-element";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapKey } from "../data-element/map-key";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborNumber } from "../data-element/cbor-number";
 import { CborTextString } from "../data-element/cbor-text-string";
 import { CborConvertible } from "../cbor/cbor-convertible";

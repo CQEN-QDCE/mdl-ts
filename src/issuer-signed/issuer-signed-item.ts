@@ -1,5 +1,5 @@
-import { CborByteString } from "../data-element/cbor-byte-string";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborByteString } from "../cbor/types/cbor-byte-string";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { CborNumber } from "../data-element/cbor-number";

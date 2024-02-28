@@ -1,5 +1,4 @@
-import { CborDataItem } from "./cbor-data-item";
-import { CborDecoder } from '../cbor/cbor-decoder';
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncoder } from "../cbor/cbor-encoder";
 
 export class CborEncodedDataItem extends CborDataItem {
@@ -10,10 +9,6 @@ export class CborEncodedDataItem extends CborDataItem {
 
     static encode(dataElement: CborDataItem): CborEncodedDataItem {
         return new CborEncodedDataItem(CborEncoder.encode(dataElement));
-    }
-
-    decode(): CborDataItem {
-        return CborDecoder.decode(this.value);
     }
 
     public getValue(): ArrayBuffer {

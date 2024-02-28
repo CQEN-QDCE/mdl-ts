@@ -1,7 +1,7 @@
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborArray } from "../data-element/cbor-array";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 

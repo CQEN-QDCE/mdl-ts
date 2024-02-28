@@ -3,8 +3,8 @@ import { MobileDocumentRequest } from "../doc-request/mobile-document-request";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { MapKey } from "../data-element/map-key";
-import { CborDataItem } from "../data-element/cbor-data-item";
-import { CborBoolean } from "../data-element/cbor-boolean";
+import { CborDataItem } from "../cbor/cbor-data-item";
+import { CborBoolean } from "../cbor/types/cbor-boolean";
 import { MapElement } from "../data-element/map-element";
 import { ItemsRequest } from "../doc-request/items-request";
 

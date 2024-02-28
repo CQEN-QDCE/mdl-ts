@@ -1,4 +1,4 @@
-import { CborDataItem } from "./cbor-data-item";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { DateTimeElement } from "./date-time-element";
 
 export class TDateElement extends DateTimeElement {

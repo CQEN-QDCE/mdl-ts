@@ -1,6 +1,6 @@
 import cbor, { Tagged } from 'cbor';
 import { MapElement } from '../data-element/map-element';
-import { CborDataItem } from '../data-element/cbor-data-item';
+import { CborDataItem } from './cbor-data-item';
 import { MapKeyType } from '../data-element/map-key-type.enum';
 import { CborEncodedDataItem } from '../data-element/cbor-encoded-data-item';
 import { TDateElement } from '../data-element/tdate-element';

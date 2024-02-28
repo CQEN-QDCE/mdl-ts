@@ -1,8 +1,8 @@
 import { CoseAlgorithm } from "../cose/cose-algorithm.enum";
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { CborByteString } from "../data-element/cbor-byte-string";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborByteString } from "../cbor/types/cbor-byte-string";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapElement } from "../data-element/map-element";

@@ -2,10 +2,10 @@ import { Crypto } from "@peculiar/webcrypto";
 import { KeyKeys } from "../../key-keys.enum";
 import { Base64 } from '../utils/base64';
 import { MapElement } from '../data-element/map-element';
-import { CborDataItem } from '../data-element/cbor-data-item';
+import { CborDataItem } from '../cbor/cbor-data-item';
 import { MapKey } from '../data-element/map-key';
 import { CborNumber } from '../data-element/cbor-number';
-import { CborByteString } from '../data-element/cbor-byte-string';
+import { CborByteString } from '../cbor/types/cbor-byte-string';
 import { CborConvertible } from "../cbor/cbor-convertible";
 
 export class CoseKey implements CborConvertible {

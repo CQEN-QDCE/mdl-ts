@@ -1,4 +1,4 @@
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { TDateElement } from "../data-element/tdate-element";

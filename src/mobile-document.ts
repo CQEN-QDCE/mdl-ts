@@ -1,6 +1,6 @@
 import { COSECryptoProvider } from "./cose/cose-crypto-provider";
 import { COSEMac0 } from "./cose/cose-mac-0";
-import { CborDataItem } from "./data-element/cbor-data-item";
+import { CborDataItem } from "./cbor/cbor-data-item";
 import { CborDecoder } from "./cbor/cbor-decoder";
 import { CborEncoder } from "./cbor/cbor-encoder";
 import { CborEncodedDataItem } from "./data-element/cbor-encoded-data-item";
@@ -180,7 +180,7 @@ export class MobileDocument implements CborConvertible {
     private initMobileSecurityObject(): MobileSecurityObject {
         const payload = this.issuerSigned.issuerAuth.payload;
         const encodedCBORElement = <CborEncodedDataItem>CborDecoder.decode(payload);
-        const mapElement = <MapElement>encodedCBORElement.decode();
+        const mapElement = <MapElement>CborDecoder.decode(encodedCBORElement.getValue());
         return MobileSecurityObject.fromMapElement(mapElement);
     }
 

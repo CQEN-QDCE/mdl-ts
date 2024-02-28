@@ -1,4 +1,4 @@
-import { CborConvertible } from "../cbor/cbor-convertible";
+import { CborConvertible } from "./cbor-convertible";
 
 export abstract class CborDataItem {
 

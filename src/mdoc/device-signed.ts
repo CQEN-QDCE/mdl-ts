@@ -1,5 +1,5 @@
 import { CborConvertible } from "../cbor/cbor-convertible";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";

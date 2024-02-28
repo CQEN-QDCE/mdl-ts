@@ -1,4 +1,4 @@
-import { CborDataItem } from "./cbor-data-item";
+import { CborDataItem } from "../cbor-data-item";
 
 export class CborBoolean extends CborDataItem implements Boolean {
 

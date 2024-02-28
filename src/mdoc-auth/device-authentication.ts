@@ -1,5 +1,5 @@
 import { CborConvertible } from "../cbor/cbor-convertible";
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { CborTextString } from "../data-element/cbor-text-string";
 import { CborArray } from "../data-element/cbor-array";

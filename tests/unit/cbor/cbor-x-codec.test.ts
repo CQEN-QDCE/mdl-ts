@@ -1,7 +1,7 @@
 import { CborArray } from "../../../src/data-element/cbor-array";
-import { CborBoolean } from "../../../src/data-element/cbor-boolean";
-import { CborByteString } from "../../../src/data-element/cbor-byte-string";
-import { CborDataItem } from "../../../src/data-element/cbor-data-item";
+import { CborBoolean } from "../../../src/cbor/types/cbor-boolean";
+import { CborByteString } from "../../../src/cbor/types/cbor-byte-string";
+import { CborDataItem } from "../../../src/cbor/cbor-data-item";
 
 describe('testing CborXCodec', () => {
     test('Serialization', async () => {

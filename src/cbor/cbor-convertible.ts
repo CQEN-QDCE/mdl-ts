@@ -1,4 +1,4 @@
-import { CborDataItem } from "../data-element/cbor-data-item";
+import { CborDataItem } from "./cbor-data-item";
 
 export interface CborConvertible {
 
