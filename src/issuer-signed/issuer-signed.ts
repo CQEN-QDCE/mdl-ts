@@ -1,14 +1,13 @@
-import { Cbor } from "../cbor/cbor";
-import { CborConvertable } from "../cbor/cbor-convertable";
+import { CborConvertible } from "../cbor/cbor-convertible";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborArray } from "../data-element/cbor-array";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
-import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { IssuerSignedItem } from "./issuer-signed-item";
 
-export class IssuerSigned implements CborConvertable {
+export class IssuerSigned implements CborConvertible {
 
     public readonly namespaces: Map<string, IssuerSignedItem[]>;
     
@@ -19,7 +18,7 @@ export class IssuerSigned implements CborConvertable {
         this.issuerAuth = issuerAuth;
     }
 
-    fromCborDataItem(dataItem: CborDataItem2): IssuerSigned {
+    fromCborDataItem(dataItem: CborDataItem): IssuerSigned {
         const mapElement = <MapElement>dataItem;
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
         const issuerAuth = mapElement.get(new MapKey('issuerAuth'));
@@ -31,10 +30,10 @@ export class IssuerSigned implements CborConvertable {
             }
             nameSpaces2.set(key.str, issuerSignedItems);
         }
-        return new IssuerSigned(nameSpaces2, CborDataItem2.to(COSESign1, new ListElement(issuerAuth.getValue())));
+        return new IssuerSigned(nameSpaces2, CborDataItem.to(COSESign1, new CborArray(issuerAuth.getValue())));
     }
 
-    toCborDataItem(): CborDataItem2 {
+    toCborDataItem(): CborDataItem {
 //        const map = new Map<MapKey, CborDataItem>();
 //        const namespaces = new Map<string, EncodedCBORElement[]>();
 //        for (const [namespace, issuerSignedItems] of this.issuerSignedItemsByNamespace) {

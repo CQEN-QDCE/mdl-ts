@@ -1,9 +1,9 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
-export class CborFullDate extends CborDataItem2 {
+export class CborFullDate extends CborDataItem {
 
-    constructor(private value: Date, mode: CborDataItem2.FullDateMode = CborDataItem2.FullDateMode.string) {
-        super(new CborDataItem2.FullDateAttribute(mode));
+    constructor(private value: Date, mode: CborDataItem.FullDateMode = CborDataItem.FullDateMode.string) {
+        super(new CborDataItem.FullDateAttribute(mode));
     }
     
     public getValue(): Date {

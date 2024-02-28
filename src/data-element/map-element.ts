@@ -1,20 +1,20 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 import { MapKey } from "./map-key";
 
-export class MapElement extends CborDataItem2 {
+export class MapElement extends CborDataItem {
 
-    constructor(private value: Map<MapKey, CborDataItem2>) {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.map));
+    constructor(private value: Map<MapKey, CborDataItem>) {
+        super(new CborDataItem.Attribute(CborDataItem.Type.map));
     }
 
-    get(mapKey: MapKey): CborDataItem2 {
+    get(mapKey: MapKey): CborDataItem {
         for (const [key, value] of this.value) {
             if (key.str === mapKey.str) return value;
         }
         return null;
     }
 
-    public getValue(): Map<MapKey, CborDataItem2> {
+    public getValue(): Map<MapKey, CborDataItem> {
         return this.value;
     }
 

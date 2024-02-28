@@ -1,9 +1,9 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
-export class CborBoolean extends CborDataItem2 implements Boolean {
+export class CborBoolean extends CborDataItem implements Boolean {
 
     constructor(private value: boolean) {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.boolean));
+        super(new CborDataItem.Attribute(CborDataItem.Type.boolean));
     }
 
     valueOf(): boolean {

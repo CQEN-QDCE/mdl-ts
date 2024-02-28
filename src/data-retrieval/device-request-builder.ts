@@ -3,7 +3,7 @@ import { MobileDocumentRequest } from "../doc-request/mobile-document-request";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { MapKey } from "../data-element/map-key";
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborBoolean } from "../data-element/cbor-boolean";
 import { MapElement } from "../data-element/map-element";
 import { ItemsRequest } from "../doc-request/items-request";
@@ -68,10 +68,10 @@ export namespace DeviceRequestBuilder {
         }
 
         private buildEncodedItemsRequest(): CborEncodedDataItem {
-            const outerMap = new Map<MapKey, CborDataItem2>();
+            const outerMap = new Map<MapKey, CborDataItem>();
             for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
                 const value = this.itemRequestsNameSpaces.get(nameSpace);
-                const innerMap = new Map<MapKey, CborDataItem2>();
+                const innerMap = new Map<MapKey, CborDataItem>();
                 for (const elementIdentifier of value.keys()) {
                     innerMap.set(new MapKey(elementIdentifier), new CborBoolean(value.get(elementIdentifier)));
                 }

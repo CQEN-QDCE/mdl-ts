@@ -1,11 +1,11 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
-export class CborNil extends CborDataItem2 {
+export class CborNil extends CborDataItem {
     
     private readonly value: null = null;
 
     constructor() {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.nil));
+        super(new CborDataItem.Attribute(CborDataItem.Type.nil));
     }
     
     public getValue(): null {

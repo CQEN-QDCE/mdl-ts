@@ -1,18 +1,18 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 import { CborDecoder } from '../cbor/cbor-decoder';
 import { CborEncoder } from "../cbor/cbor-encoder";
 
-export class CborEncodedDataItem extends CborDataItem2 {
+export class CborEncodedDataItem extends CborDataItem {
     
     constructor(private value: ArrayBuffer) {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.encodedCbor));
+        super(new CborDataItem.Attribute(CborDataItem.Type.encodedCbor));
     }
 
-    static encode(dataElement: CborDataItem2): CborEncodedDataItem {
+    static encode(dataElement: CborDataItem): CborEncodedDataItem {
         return new CborEncodedDataItem(CborEncoder.encode(dataElement));
     }
 
-    decode(): CborDataItem2 {
+    decode(): CborDataItem {
         return CborDecoder.decode(this.value);
     }
 

@@ -1,25 +1,25 @@
-import { CborConvertable } from "../cbor/cbor-convertable";
+import { CborConvertible } from "../cbor/cbor-convertible";
 
-export abstract class CborDataItem2 {
+export abstract class CborDataItem {
 
-    protected attribute: CborDataItem2.Attribute;
+    protected attribute: CborDataItem.Attribute;
 
-    constructor(attribute: CborDataItem2.Attribute) {
+    constructor(attribute: CborDataItem.Attribute) {
         this.attribute = attribute;
     }
 
-    public static from(object: CborConvertable): CborDataItem2 {
-        return (<CborConvertable>object).toCborDataItem();
+    public static from(object: CborConvertible): CborDataItem {
+        return (<CborConvertible>object).toCborDataItem();
     }
 
-    public static to<T extends CborConvertable>(type: Constructable<T>, dataItem: CborDataItem2): T {
+    public static to<T extends CborConvertible>(type: Constructable<T>, dataItem: CborDataItem): T {
         const unInitializedIntance = new type();
         const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);
         if (instance === unInitializedIntance) throw new Error("Invalid data item");
         return instance;
     }
 
-    get type(): CborDataItem2.Type {
+    get type(): CborDataItem.Type {
         return this.attribute.type;
     }
 
@@ -27,13 +27,13 @@ export abstract class CborDataItem2 {
 
     equals(other: any): boolean {
         if (!other) return false;
-        if (other instanceof CborDataItem2)
+        if (other instanceof CborDataItem)
         return true;
     }
 
 }
 
-export module CborDataItem2 {
+export module CborDataItem {
 
     export enum Type {
         number,     // #0, #1, #7.25, #7.26, #7.27

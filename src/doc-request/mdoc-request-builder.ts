@@ -1,9 +1,8 @@
 import { COSECryptoProvider } from "../cose/cose-crypto-provider";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborBoolean } from "../data-element/cbor-boolean";
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
-import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { CborTextString } from "../data-element/cbor-text-string";
@@ -12,6 +11,7 @@ import { MobileDocumentRequest } from "./mobile-document-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { CborEncoder } from '../cbor/cbor-encoder';
 import { CborDecoder } from "../cbor/cbor-decoder";
+import { CborArray } from "../data-element/cbor-array";
 
 export class MDocRequestBuilder {
     
@@ -38,7 +38,7 @@ export class MDocRequestBuilder {
         return new MobileDocumentRequest(this.buildEncodedItemsRequest(), readerAuth);
     }
 
-    public async sign(sessionTranscript: ListElement, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocumentRequest> {
+    public async sign(sessionTranscript: CborArray, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocumentRequest> {
         const encodedItemsRequest = this.buildEncodedItemsRequest();
         const readerAuthentication = new ReaderAuthentication(sessionTranscript, this.buildItemsRequest(encodedItemsRequest));
         const payload = CborEncoder.encode(CborEncodedDataItem.encode(readerAuthentication.toListElement()));
@@ -55,10 +55,10 @@ export class MDocRequestBuilder {
     }
     
     private buildEncodedItemsRequest(): CborEncodedDataItem {
-        const outerMap = new Map<MapKey, CborDataItem2>();
+        const outerMap = new Map<MapKey, CborDataItem>();
         for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
             const value = this.itemRequestsNameSpaces.get(nameSpace);
-            const innerMap = new Map<MapKey, CborDataItem2>();
+            const innerMap = new Map<MapKey, CborDataItem>();
             for (const elementIdentifier of value.keys()) {
                 innerMap.set(new MapKey(elementIdentifier), new CborBoolean(value.get(elementIdentifier)));
             }

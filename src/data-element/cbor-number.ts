@@ -1,9 +1,9 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
-export class CborNumber extends CborDataItem2 {
+export class CborNumber extends CborDataItem {
 
     constructor(private value: number) {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.number));
+        super(new CborDataItem.Attribute(CborDataItem.Type.number));
     }
     
     public getValue(): number {

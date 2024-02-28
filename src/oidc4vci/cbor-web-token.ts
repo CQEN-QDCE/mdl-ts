@@ -2,7 +2,7 @@ import { CoseAlgorithm } from "../cose/cose-algorithm.enum";
 import { COSEMac0 } from "../cose/cose-mac-0";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborByteString } from "../data-element/cbor-byte-string";
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapElement } from "../data-element/map-element";
@@ -91,9 +91,9 @@ export class CborWebToken {
        return await this.coseMacMessage.verify(secret);
     }
 
-    public static fromListElement(listElement: CborDataItem2): CborWebToken {
+    public static fromListElement(listElement: CborDataItem): CborWebToken {
         const cwt = new CborWebToken();
-        const coseMessage = CborDataItem2.to(COSEMac0, listElement);
+        const coseMessage = CborDataItem.to(COSEMac0, listElement);
         cwt.coseMacMessage = coseMessage;
         const payload = coseMessage.payload;
         cwt.deserializeClaims(<MapElement>CborDecoder.decode(payload));
@@ -101,7 +101,7 @@ export class CborWebToken {
     }
 
     public serialize(): string {
-        return Buffer.concat([CborWebToken.CWT_TAG, Buffer.from(CborEncoder.encode(CborDataItem2.from(this.coseMacMessage)))]).toString("base64");
+        return Buffer.concat([CborWebToken.CWT_TAG, Buffer.from(CborEncoder.encode(CborDataItem.from(this.coseMacMessage)))]).toString("base64");
     }
 
     public static parse(value: string): CborWebToken {
@@ -110,7 +110,7 @@ export class CborWebToken {
     } 
 
     private serializeClaims(): MapElement {
-        const payload = new Map<MapKey, CborDataItem2>();
+        const payload = new Map<MapKey, CborDataItem>();
 
         if (this.issuer) {
             payload.set(new MapKey(CborWebToken.ISS_KEY), new CborTextString(this.issuer));

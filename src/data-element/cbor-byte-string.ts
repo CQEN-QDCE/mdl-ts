@@ -1,9 +1,9 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
-export class CborByteString extends CborDataItem2 {
+export class CborByteString extends CborDataItem {
     
     constructor(private readonly value: ArrayBuffer) {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.byteString));
+        super(new CborDataItem.Attribute(CborDataItem.Type.byteString));
     }
 
     public getValue(): ArrayBuffer {

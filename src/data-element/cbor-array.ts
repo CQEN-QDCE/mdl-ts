@@ -1,47 +1,64 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
-export class CborArray extends CborDataItem2 implements Iterable<CborDataItem2> {
+export class CborArray extends CborDataItem implements Iterable<CborDataItem> {
 
-    readonly length: number = 0;
-
-    constructor(private value: CborDataItem2[] = []) {
-        super(new CborDataItem2.Attribute(CborDataItem2.Type.list));
+    constructor(private value: CborDataItem[] = []) {
+        super(new CborDataItem.Attribute(CborDataItem.Type.list));
+        return new Proxy(this, {
+            get: (target, propKey, receiver) => {
+              if (typeof propKey === "string" && this.isSafeArrayIndex(propKey)) {
+                return Reflect.get(this.value, propKey);
+              }
+              return Reflect.get(target, propKey, receiver);
+            },
+            set: (target, propKey, value, receiver) => {
+              if (typeof propKey === "string" && this.isSafeArrayIndex(propKey)) {
+                return Reflect.set(this.value, propKey, value);
+              }
+              //return Reflect.set(target, propKey, value, receiver);
+              throw new Error("Invalid index");
+            },
+        });
     }
 
-    [index: number]: CborDataItem2 
+    
+    get [Symbol.toStringTag]() {
+        return "ObjectHandler";
+    }
 
-    *[Symbol.iterator](): Iterator<CborDataItem2, any, undefined> {
-        for(let i of this.values()) {
+ //   [index: number]: CborDataItem2 
+
+    *[Symbol.iterator](): Iterator<CborDataItem, any, undefined> {
+        for(let i of this.value) {
             yield i;
         }
     }
 
-    get<T extends CborDataItem2>(index: number): T {
-        return this[index] as T;
+    get<T extends CborDataItem>(index: number): T {
+        return this.value[index] as T;
     }
 
-    add(value: CborDataItem2): void {
-        this[this.length] = value;
-        this.changeLength(this.length + 1);
+    add(value: CborDataItem): void {
+        this.value.push(value);
     }
 
-    public getValue(): CborDataItem2[] {
-        return this.values();
+    public getValue(): CborDataItem[] {
+        return this.value;
     }
 
-    private changeLength(length: number) {
-        const mutableThis = this as Mutable<CborArray>;
-        mutableThis.length = length;
+    get length(): number {
+        return this.value.length;
     }
 
-    private values(): CborDataItem2[] {
-        const values:CborDataItem2[] = [];
+    private values(): CborDataItem[] {
+        const values:CborDataItem[] = [];
         for (const i of Object.keys(this).map(Number)) if (!isNaN(i)) values.push(this[i]);
         return values;
     }
-    
+ 
+    private isSafeArrayIndex(propKey: string): boolean {
+        const uint = Number.parseInt(propKey, 10);
+        const s = uint + "";
+        return propKey === s && uint !== 0xffffffff && uint < this.value.length;
+    }
 }
-
-type Mutable<T> = {
-    -readonly [k in keyof T]: T[k];
- };

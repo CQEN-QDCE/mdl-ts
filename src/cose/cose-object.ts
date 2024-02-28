@@ -1,7 +1,6 @@
 import { CborByteString } from "../data-element/cbor-byte-string";
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
-import { ListElement } from "../data-element/list-element";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { CborNumber } from "../data-element/cbor-number";
@@ -10,7 +9,7 @@ import { CoseHeaders } from "./cose-headers";
 
 export abstract class COSEObject<T> {
 
-    protected dataElements: CborDataItem2[] = [];
+    protected dataElements: CborDataItem[] = [];
 
     protected readonly coseHeaders = new CoseHeaders();
 
@@ -52,8 +51,8 @@ export abstract class COSEObject<T> {
         return (<CborByteString>this.dataElements[3]).getValue();
     }
 
-    protected replacePayload(payloadElement: CborDataItem2): CborDataItem2[] {
-        const newData: CborDataItem2[] = [];
+    protected replacePayload(payloadElement: CborDataItem): CborDataItem[] {
+        const newData: CborDataItem[] = [];
         for (let i = 0; i < this.dataElements.length; i++) {
             if (i === 2) {
                 newData.push(payloadElement);

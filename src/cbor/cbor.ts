@@ -1,7 +1,7 @@
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborDecoder } from "./cbor-decoder";
 import { CborEncoder } from "./cbor-encoder";
-import { CborConvertable } from "./cbor-convertable";
+import { CborConvertible } from "./cbor-convertible";
 
 /*
 export class Cbor {
@@ -36,17 +36,17 @@ interface Constructable<T> {
 
 export class Cbor {
 
-    public static encode(obj: CborConvertable | CborDataItem2): ArrayBuffer {
-        if ((<CborConvertable>obj).toCborDataItem !== undefined) {
-            return CborEncoder.encode((<CborConvertable>obj).toCborDataItem());
+    public static encode(obj: CborConvertible | CborDataItem): ArrayBuffer {
+        if ((<CborConvertible>obj).toCborDataItem !== undefined) {
+            return CborEncoder.encode((<CborConvertible>obj).toCborDataItem());
         }
-        if (obj instanceof CborDataItem2) {
+        if (obj instanceof CborDataItem) {
             return CborEncoder.encode(obj);
         }
         throw new Error("Invalid object");
     }
 
-    public static decode<T extends CborConvertable>(type: Constructable<T>, data: ArrayBuffer): T {
+    public static decode<T extends CborConvertible>(type: Constructable<T>, data: ArrayBuffer): T {
         const dataItem = CborDecoder.decode(data);
         const unInitializedIntance = new type();
         const instance = <T>unInitializedIntance.fromCborDataItem(dataItem);

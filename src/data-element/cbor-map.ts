@@ -1,4 +1,4 @@
-import { CborDataItem2 } from "./cbor-data-item2";
+import { CborDataItem } from "./cbor-data-item";
 
 //export class CborMap extends Map<number | string, CborDataItem> implements CborDataItem {
 //    cborType: 5;

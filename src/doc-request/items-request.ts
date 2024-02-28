@@ -1,4 +1,4 @@
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { CborTextString } from "../data-element/cbor-text-string";
@@ -23,7 +23,7 @@ export class ItemsRequest {
     }
 
     toMapElement(): MapElement {
-        const map = new Map<MapKey, CborDataItem2>();
+        const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('docType'), new CborTextString(this.docType));
         map.set(new MapKey('nameSpaces'), this.namespaces);
         return new MapElement(map);

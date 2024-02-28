@@ -1,5 +1,5 @@
 import { CborByteString } from "../data-element/cbor-byte-string";
-import { CborDataItem2 } from "../data-element/cbor-data-item2";
+import { CborDataItem } from "../data-element/cbor-data-item";
 import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
@@ -88,15 +88,15 @@ export class MobileSecurityObject {
     }
 
     toMapElement(): MapElement {
-        const valueDigestNamespaces = new Map<MapKey, CborDataItem2>();
+        const valueDigestNamespaces = new Map<MapKey, CborDataItem>();
         for (const [namespace, valueDigests2] of this.valueDigests) {
-            const nameSpaceDigests = new Map<MapKey, CborDataItem2>();
+            const nameSpaceDigests = new Map<MapKey, CborDataItem>();
             for (const [digestID, valueDigest] of valueDigests2) {
                 nameSpaceDigests.set(new MapKey(digestID), new CborByteString(valueDigest));
             }
             valueDigestNamespaces.set(new MapKey(namespace), new MapElement(nameSpaceDigests));
         }
-        const map = new Map<MapKey, CborDataItem2>();
+        const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('version'), new CborTextString(this.version));
         map.set(new MapKey('digestAlgorithm'), new CborTextString(this.digestAlgorithm));
         map.set(new MapKey('valueDigests'), new MapElement(valueDigestNamespaces));

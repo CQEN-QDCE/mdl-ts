@@ -1,7 +1,6 @@
 import * as x509 from "@peculiar/x509";
 import { CborDecoder } from "../src/cbor/cbor-decoder";
 import { CborEncodedDataItem } from "../src/data-element/cbor-encoded-data-item";
-import { ListElement } from "../src/data-element/list-element";
 import { MapElement } from "../src/data-element/map-element";
 import { DeviceResponse } from "../src/data-retrieval/device-response";
 import { MDocRequestBuilder } from "../src/doc-request/mdoc-request-builder";
@@ -27,7 +26,7 @@ import { VerificationType } from "../src/mdoc/verification-type.enum";
 import { MDocVerificationParams } from "../src/mdoc/mdoc-verification-params";
 import { CborEncoder } from "../src/cbor/cbor-encoder";
 import { DeviceKeyInfo } from "../src/mso/device-key-info";
-import { CborDataItem2 } from "../src/data-element/cbor-data-item2";
+import { CborDataItem } from "../src/data-element/cbor-data-item";
 import { CborByteString } from "../src/data-element/cbor-byte-string";
 import { CborNil } from "../src/data-element/cbor-nil";
 import { MDL } from "../src/mdl";
@@ -37,6 +36,7 @@ import { CoseAlgorithm } from "../src/cose/cose-algorithm.enum";
 import { COSECryptoProvider } from "../src/cose/cose-crypto-provider";
 import { DigestAlgorithm } from "../src/mdoc/digest-algorithm.enum";
 import { Cbor } from "../src/cbor/cbor";
+import { CborArray } from "../src/data-element/cbor-array";
 
 describe('testing mdoc', () => {
     
@@ -117,11 +117,11 @@ describe('testing mdoc', () => {
 
         const ephemeralReaderCoseKey = await CoseKey.new(ephemeralReaderKeyPair.publicKey, ephemeralReaderKeyPair.privateKey);
 
-        const deviceAuthentication = new DeviceAuthentication(new ListElement([new CborNil(), 
-                                                                               CborEncodedDataItem.encode(CborDataItem2.from(ephemeralReaderCoseKey)), 
+        const deviceAuthentication = new DeviceAuthentication(new CborArray([new CborNil(), 
+                                                                               CborEncodedDataItem.encode(CborDataItem.from(ephemeralReaderCoseKey)), 
                                                                                new CborNil()]), 
                                                               mdoc.docType, 
-                                                              CborEncodedDataItem.encode(new MapElement(new Map<MapKey, CborDataItem2>())));
+                                                              CborEncodedDataItem.encode(new MapElement(new Map<MapKey, CborDataItem>())));
         
         const mdocRequest = new MDocRequestBuilder(mdoc.docType).addItemRequest(MDL.Namespace, "family_name", true).build();
 
@@ -148,15 +148,15 @@ describe('testing mdoc', () => {
         const mdocExampleDataElement = CborDecoder.decode(mdocExampleBytes);
         const mdocExampleMapElement = <MapElement>mdocExampleDataElement;
         const versionElement = <CborTextString>mdocExampleMapElement.get(new MapKey('version'));
-        const documentsElement = <ListElement>mdocExampleMapElement.get(new MapKey('documents'));
+        const documentsElement = <CborArray>mdocExampleMapElement.get(new MapKey('documents'));
         const statusElement = <CborNumber>mdocExampleMapElement.get(new MapKey('status'));
 
         const mdocs: MobileDocument[] = [];
 
         for (const documentElement of documentsElement.getValue()) {
             const mdocMapElement = <MapElement>documentElement;
-            const issuerSigned = CborDataItem2.to(IssuerSigned, <MapElement>mdocMapElement.get(new MapKey('issuerSigned')));
-            const deviceSigned = CborDataItem2.to(DeviceSigned, <MapElement>mdocMapElement.get(new MapKey('deviceSigned')));
+            const issuerSigned = CborDataItem.to(IssuerSigned, <MapElement>mdocMapElement.get(new MapKey('issuerSigned')));
+            const deviceSigned = CborDataItem.to(DeviceSigned, <MapElement>mdocMapElement.get(new MapKey('deviceSigned')));
             const mdoc2 = new MobileDocument(mdocMapElement.get(new MapKey('docType')).getValue() as string, issuerSigned, deviceSigned);
             mdocs.push(mdoc2);
         }
@@ -184,7 +184,7 @@ describe('testing mdoc', () => {
                                                                   testCertificates.readerKeyPair.publicKey, 
                                                                   testCertificates.readerKeyPair.privateKey);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([readerKeyInfo]);
-        const sessionTranscript = new ListElement();
+        const sessionTranscript = new CborArray();
         const mdocRequest = await new MDocRequestBuilder(MDL.DocType).addItemRequest(MDL.Namespace, 'family_name', true)
                                                                                  .addItemRequest(MDL.Namespace, 'birth_date', false)
                                                                                  .sign(sessionTranscript, coseCryptoProvider, READER_KEY_ID);
@@ -239,8 +239,8 @@ describe('testing mdoc', () => {
        
         const mdoc = deviceResponse.documents[0];
         const deviceAuthenticationBytes = Hex.decode('d818590271847444657669636541757468656e7469636174696f6e83d8185858a20063312e30018201d818584ba4010220012158205a88d182bce5f42efa59943f33359d2e8a968ff289d93e5fa444b624343167fe225820b16e8cf858ddc7690407ba61d4c338237a8cfcf3de6aa672fc60a557aa32fc67d818584ba40102200121582060e3392385041f51403051f2415531cb56dd3f999c71687013aac6768bc8187e225820e58deb8fdbe907f7dd5368245551a34796f7d2215c440c339bb0f7b67beccdfa8258c391020f487315d10209616301013001046d646f631a200c016170706c69636174696f6e2f766e642e626c7565746f6f74682e6c652e6f6f6230081b28128b37282801021c015c1e580469736f2e6f72673a31383031333a646576696365656e676167656d656e746d646f63a20063312e30018201d818584ba4010220012158205a88d182bce5f42efa59943f33359d2e8a968ff289d93e5fa444b624343167fe225820b16e8cf858ddc7690407ba61d4c338237a8cfcf3de6aa672fc60a557aa32fc6758cd91022548721591020263720102110204616301013000110206616301036e6663005102046163010157001a201e016170706c69636174696f6e2f766e642e626c7565746f6f74682e6c652e6f6f6230081b28078080bf2801021c021107c832fff6d26fa0beb34dfcd555d4823a1c11010369736f2e6f72673a31383031333a6e66636e6663015a172b016170706c69636174696f6e2f766e642e7766612e6e616e57030101032302001324fec9a70b97ac9684a4e326176ef5b981c5e8533e5f00298cfccbc35e700a6b020414756f72672e69736f2e31383031332e352e312e6d444cd81841a0');
-        const listElement = <ListElement>CborDecoder.decode(new CborEncodedDataItem(deviceAuthenticationBytes).decode().getValue() as ArrayBuffer);
-        const deviceAuthentication = CborDataItem2.to(DeviceAuthentication, listElement);
+        const listElement = <CborArray>CborDecoder.decode(new CborEncodedDataItem(deviceAuthenticationBytes).decode().getValue() as ArrayBuffer);
+        const deviceAuthentication = CborDataItem.to(DeviceAuthentication, listElement);
         const ephemeralMacKey = Hex.decode('dc2b9566fdaaae3c06baa40993cd0451aeba15e7677ef5305f6531f3533c35dd');
         const mdocRequest = new MDocRequestBuilder(mdoc.docType).addItemRequest(MDL.Namespace, 'family_name', true)
                                                                       .addItemRequest(MDL.Namespace, 'document_number', true)
@@ -369,12 +369,12 @@ describe('testing mdoc', () => {
     });
 
     test('List of any', () => {
-        const list = new ListElement([new CborNumber(1), 
-                                      new MapElement(new Map<MapKey, CborDataItem2>([[new MapKey('a'), new CborNumber(1)]])),
+        const list = new CborArray([new CborNumber(1), 
+                                      new MapElement(new Map<MapKey, CborDataItem>([[new MapKey('a'), new CborNumber(1)]])),
                                       new CborNil(),
                                       new CborByteString(Int8Array.from([1,-2]).buffer)]);
         const cborHex = Hex.encode(CborEncoder.encode(list));
-        const parsedList = <ListElement>CborDecoder.fromCBORHex(cborHex);
+        const parsedList = <CborArray>CborDecoder.fromCBORHex(cborHex);
         expect(parsedList.getValue().length).toBe(4);
         expect(parsedList.getValue()[0] instanceof CborNumber).toBeTruthy();
         expect(parsedList.getValue()[0].getValue()).toBe(1);
@@ -417,7 +417,7 @@ describe('testing mdoc', () => {
         const deviceAuthenticationBytes = Buffer.from("d818590271847444657669636541757468656e7469636174696f6e83d8185858a20063312e30018201d818584ba4010220012158205a88d182bce5f42efa59943f33359d2e8a968ff289d93e5fa444b624343167fe225820b16e8cf858ddc7690407ba61d4c338237a8cfcf3de6aa672fc60a557aa32fc67d818584ba40102200121582060e3392385041f51403051f2415531cb56dd3f999c71687013aac6768bc8187e225820e58deb8fdbe907f7dd5368245551a34796f7d2215c440c339bb0f7b67beccdfa8258c391020f487315d10209616301013001046d646f631a200c016170706c69636174696f6e2f766e642e626c7565746f6f74682e6c652e6f6f6230081b28128b37282801021c015c1e580469736f2e6f72673a31383031333a646576696365656e676167656d656e746d646f63a20063312e30018201d818584ba4010220012158205a88d182bce5f42efa59943f33359d2e8a968ff289d93e5fa444b624343167fe225820b16e8cf858ddc7690407ba61d4c338237a8cfcf3de6aa672fc60a557aa32fc6758cd91022548721591020263720102110204616301013000110206616301036e6663005102046163010157001a201e016170706c69636174696f6e2f766e642e626c7565746f6f74682e6c652e6f6f6230081b28078080bf2801021c021107c832fff6d26fa0beb34dfcd555d4823a1c11010369736f2e6f72673a31383031333a6e66636e6663015a172b016170706c69636174696f6e2f766e642e7766612e6e616e57030101032302001324fec9a70b97ac9684a4e326176ef5b981c5e8533e5f00298cfccbc35e700a6b020414756f72672e69736f2e31383031332e352e312e6d444cd81841a0", 'hex');
         const deviceAuthenticationEncodedDataElement = CborDecoder.decode(deviceAuthenticationBytes);
         const deviceAuthenticationDataElement = (<CborEncodedDataItem>deviceAuthenticationEncodedDataElement).decode();
-        const deviceAuthentication = CborDataItem2.to(DeviceAuthentication, <ListElement>deviceAuthenticationDataElement);
+        const deviceAuthentication = CborDataItem.to(DeviceAuthentication, <CborArray>deviceAuthenticationDataElement);
         expect(deviceAuthentication.dataItems[0].getValue().toString()).toBe("DeviceAuthentication");
         const ephemeralMacKey = Buffer.from("dc2b9566fdaaae3c06baa40993cd0451aeba15e7677ef5305f6531f3533c35dd", 'hex');
         expect(await deviceMac.attachPayload(deviceAuthenticationBytes).verify(ephemeralMacKey)).toBe(true);
