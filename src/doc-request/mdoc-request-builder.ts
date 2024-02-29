@@ -3,15 +3,14 @@ import { COSESign1 } from "../cose/cose-sign-1";
 import { CborBoolean } from "../cbor/types/cbor-boolean";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { ItemsRequest } from "./items-request";
 import { MobileDocumentRequest } from "./mobile-document-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { CborEncoder } from '../cbor/cbor-encoder';
 import { CborDecoder } from "../cbor/cbor-decoder";
-import { CborArray } from "../data-element/cbor-array";
+import { CborArray } from "../cbor/types/cbor-array";
 
 export class MDocRequestBuilder {
     
@@ -47,22 +46,22 @@ export class MDocRequestBuilder {
     }
 
     private buildItemsRequest(encodedItemsRequest: CborEncodedDataItem): ItemsRequest {
-        const dataElement = CborDecoder.decode(encodedItemsRequest.getValue());
-        const mapElement = <CborMap>dataElement;
-        const docType = mapElement.get(new MapKey('docType'));
-        const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
+        const dataItem = CborDecoder.decode(encodedItemsRequest.getValue());
+        const cborMap = <CborMap>dataItem;
+        const docType = cborMap.get('docType');
+        const nameSpaces = cborMap.get('nameSpaces');
         return new ItemsRequest((<CborTextString>docType).getValue(), <CborMap>nameSpaces);
     }
     
     private buildEncodedItemsRequest(): CborEncodedDataItem {
-        const outerMap = new Map<MapKey, CborDataItem>();
+        const outerMap = new Map<string | number, CborDataItem>();
         for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
             const value = this.itemRequestsNameSpaces.get(nameSpace);
-            const innerMap = new Map<MapKey, CborDataItem>();
+            const innerMap = new Map<string | number, CborDataItem>();
             for (const elementIdentifier of value.keys()) {
-                innerMap.set(new MapKey(elementIdentifier), new CborBoolean(value.get(elementIdentifier)));
+                innerMap.set(elementIdentifier, new CborBoolean(value.get(elementIdentifier)));
             }
-            outerMap.set(new MapKey(nameSpace), new CborMap(innerMap));
+            outerMap.set(nameSpace, new CborMap(innerMap));
         }
         const itemsRequest = new ItemsRequest(this.docType, new CborMap(outerMap));
         return CborEncodedDataItem.encode(itemsRequest.toMapElement());

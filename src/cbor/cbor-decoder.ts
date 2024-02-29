@@ -1,19 +1,18 @@
 import * as CBOR from 'cbor';
 import { CborNil } from './types/cbor-nil';
-import { MapKey } from '../data-element/map-key';
-import { CborMap } from '../data-element/cbor-map';
+import { CborMap } from './types/cbor-map';
 import { CborDataItem } from './cbor-data-item';
 import { CborByteString } from './types/cbor-byte-string';
 import { CborTextString } from './types/cbor-text-string';
 import { CborEncodedDataItem } from './types/cbor-encoded-data-item';
 import { CborNumber } from './types/cbor-number';
 import { CborBoolean } from './types/cbor-boolean';
-import { CborFullDate } from '../data-element/cbor-full-date';
-import { TDateElement } from '../data-element/tdate-element';
+import { CborFullDate } from './types/cbor-full-date';
+import { TDateElement } from './types/tdate-element';
 import { COSESign1 } from '../cose/cose-sign-1';
 import { MobileSecurityObject } from '../mdoc/mobile-security-object';
 import { CborEncoder } from './cbor-encoder';
-import { CborArray } from '../data-element/cbor-array';
+import { CborArray } from './types/cbor-array';
 
 export class CborDecoder {
 
@@ -40,11 +39,9 @@ export class CborDecoder {
         } else if (object instanceof ArrayBuffer) {
             return new CborByteString(object);
         } else if (object instanceof Map) {
-            const map = new Map<MapKey, CborDataItem>();
-            for (const [key, value] of object.entries()) {
-                map.set(new MapKey(key), CborDecoder.deserialize(value));
-            }
-            return new CborMap(map);
+            const cborMap = new CborMap();
+            for (const [key, value] of object.entries()) cborMap.set(key, CborDecoder.deserialize(value));
+            return cborMap;
         } else {
             if (object.tag === 24) { // ENCODED_CBOR = 24L
                 if (object.value instanceof ArrayBuffer || object.value instanceof Buffer) return new CborEncodedDataItem(object.value);
@@ -59,9 +56,9 @@ export class CborDecoder {
             } else if (object.tag === 18) { // COSE_SIGN1 = 18L
                 const cborArray = new CborArray();
                 cborArray.push(new CborByteString(object.value[0]));
-                const map = new Map<MapKey, CborDataItem>();
-                map.set(new MapKey(33), new CborByteString(object.value[1].get(33)));
-                cborArray.push(new CborMap(map));
+                const cborMap = new CborMap();
+                cborMap.set(33, new CborByteString(object.value[1].get(33)));
+                cborArray.push(cborMap);
                 cborArray.push(new CborByteString(object.value[2]));
                 cborArray.push(new CborByteString(object.value[3]));
                 let message = CborDataItem.to(COSESign1, cborArray);
@@ -74,14 +71,14 @@ export class CborDecoder {
             } else if (object !== null && new Date(object) instanceof Date && !isNaN(new Date(object).valueOf())) {
                 return new TDateElement(new Date(object));
             } else {
-                const map = new Map<MapKey, CborDataItem>();
+                const cborMap = new CborMap();
                 if (object.attribute && object.attribute.type === 8 && object._value && object._value instanceof Map) { // TODO: What this type?
                     object = object._value;
                 }
                 for (const [key, value] of Object.entries(object)) {
-                    map.set(new MapKey(key), CborDecoder.deserialize(value));
+                    cborMap.set(key, CborDecoder.deserialize(value));
                 }
-                return new CborMap(map);
+                return cborMap;
             }
         }
         throw new Error("Not implemented");

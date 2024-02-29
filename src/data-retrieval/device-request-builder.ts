@@ -2,10 +2,9 @@ import { DeviceRequest } from "./device-request";
 import { MobileDocumentRequest } from "../doc-request/mobile-document-request";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { MapKey } from "../data-element/map-key";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborBoolean } from "../cbor/types/cbor-boolean";
-import { CborMap } from "../data-element/cbor-map";
+import { CborMap } from "../cbor/types/cbor-map";
 import { ItemsRequest } from "../doc-request/items-request";
 
 export class DeviceRequestBuilder {
@@ -68,14 +67,14 @@ export namespace DeviceRequestBuilder {
         }
 
         private buildEncodedItemsRequest(): CborEncodedDataItem {
-            const outerMap = new Map<MapKey, CborDataItem>();
+            const outerMap = new Map<string | number, CborDataItem>();
             for (const nameSpace of this.itemRequestsNameSpaces.keys()) {
                 const value = this.itemRequestsNameSpaces.get(nameSpace);
-                const innerMap = new Map<MapKey, CborDataItem>();
+                const innerMap = new Map<string | number, CborDataItem>();
                 for (const elementIdentifier of value.keys()) {
-                    innerMap.set(new MapKey(elementIdentifier), new CborBoolean(value.get(elementIdentifier)));
+                    innerMap.set(elementIdentifier, new CborBoolean(value.get(elementIdentifier)));
                 }
-                outerMap.set(new MapKey(nameSpace), new CborMap(innerMap));
+                outerMap.set(nameSpace, new CborMap(innerMap));
             }
             const itemsRequest = new ItemsRequest(this.docType, new CborMap(outerMap));
             return CborEncodedDataItem.encode(itemsRequest.toMapElement());

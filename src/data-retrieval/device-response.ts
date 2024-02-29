@@ -1,12 +1,11 @@
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { MobileDocument } from "../mobile-document";
 import { DeviceResponseStatus } from "./device-response-status.enum";
 import { CborConvertible } from "../cbor/cbor-convertible";
-import { CborArray } from "../data-element/cbor-array";
+import { CborArray } from "../cbor/types/cbor-array";
 
 export class DeviceResponse implements CborConvertible {
 
@@ -26,8 +25,8 @@ export class DeviceResponse implements CborConvertible {
     }
 
     fromCborDataItem(dataItem: CborDataItem): DeviceResponse {
-        const mapElement = <CborMap>dataItem;
-        const documentDataItems = <CborArray>mapElement.get(new MapKey('documents'));
+        const cborMap = <CborMap>dataItem;
+        const documentDataItems = <CborArray>cborMap.get('documents');
         const mobileDocuments = [];
         
         for (const documentDataItem of documentDataItems) {
@@ -35,22 +34,22 @@ export class DeviceResponse implements CborConvertible {
         }
 
         return new DeviceResponse(mobileDocuments, 
-                                  mapElement.get(new MapKey('version')).getValue(), 
-                                  (<CborNumber>mapElement.get(new MapKey('status'))).getValue(), 
-                                  <CborMap>mapElement.get(new MapKey('documentErrors')));
+                                  cborMap.get('version').getValue(), 
+                                  (<CborNumber>cborMap.get('status')).getValue(), 
+                                  <CborMap>cborMap.get('documentErrors'));
     }
 
     toCborDataItem(): CborDataItem {
-        const map = new Map<MapKey, CborDataItem>();
+        const cborMap = new CborMap();
         const documents = new CborArray();
         for (const document of this.documents) {
             documents.push(CborDataItem.from(document));
         }
-        map.set(new MapKey('version'), new CborTextString(this.version));
-        map.set(new MapKey('documents'), documents);
-        map.set(new MapKey('status'), new CborNumber(this.status));
-        if (this.documentErrors) map.set(new MapKey('documentErrors'), this.documentErrors);
-        return new CborMap(map);
+        cborMap.set('version', new CborTextString(this.version));
+        cborMap.set('documents', documents);
+        cborMap.set('status', new CborNumber(this.status));
+        if (this.documentErrors) cborMap.set('documentErrors', this.documentErrors);
+        return cborMap;
     }
 
 }

@@ -1,9 +1,9 @@
-import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborBoolean } from "../cbor/types/cbor-boolean";
-import { CborByteString } from "../cbor/types/cbor-byte-string";
-import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { CborNil } from "../cbor/types/cbor-nil";
-import { CborNumber } from "../cbor/types/cbor-number";
+import { CborDataItem } from "../cbor-data-item";
+import { CborBoolean } from "./cbor-boolean";
+import { CborByteString } from "./cbor-byte-string";
+import { CborEncodedDataItem } from "./cbor-encoded-data-item";
+import { CborNil } from "./cbor-nil";
+import { CborNumber } from "./cbor-number";
 import { CborMap } from "./cbor-map";
 
 /*

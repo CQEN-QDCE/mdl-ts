@@ -1,8 +1,6 @@
-import { Cbor } from "../cbor/cbor";
 import { CoseKey } from "../cose/cose-key";
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 
 export class DeviceKeyInfo {
 
@@ -18,18 +16,18 @@ export class DeviceKeyInfo {
         this.keyInfo = keyInfo;
     }
 
-    static fromMapElement(element: CborMap): DeviceKeyInfo {
-        const deviceKey = element.get(new MapKey('deviceKey'));
-        const keyAuthorizations = element.get(new MapKey('keyAuthorizations'));
-        const keyInfo = element.get(new MapKey('keyInfo'));
+    static fromMapElement(cborMap: CborMap): DeviceKeyInfo {
+        const deviceKey = cborMap.get('deviceKey');
+        const keyAuthorizations = cborMap.get('keyAuthorizations');
+        const keyInfo = cborMap.get('keyInfo');
         return new DeviceKeyInfo(deviceKey.getValue() === null ? null : CborDataItem.to(CoseKey, <CborMap>deviceKey), <CborMap>keyAuthorizations, <CborMap>keyInfo);
     }
     
     toMapElement(): CborMap {
-        const map = new Map<MapKey, CborDataItem>();
-        map.set(new MapKey('deviceKey'), CborDataItem.from(this.deviceKey));
-        if (this.keyAuthorizations) map.set(new MapKey('keyAuthorizations'), this.keyAuthorizations);
-        if (this.keyInfo) map.set(new MapKey('keyInfo'), this.keyInfo);
-        return new CborMap(map);
+        const cborMap = new CborMap();
+        cborMap.set('deviceKey', CborDataItem.from(this.deviceKey));
+        if (this.keyAuthorizations) cborMap.set('keyAuthorizations', this.keyAuthorizations);
+        if (this.keyInfo) cborMap.set('keyInfo', this.keyInfo);
+        return cborMap;
     }
 }

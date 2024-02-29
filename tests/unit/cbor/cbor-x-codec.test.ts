@@ -1,4 +1,4 @@
-import { CborArray } from "../../../src/data-element/cbor-array";
+import { CborArray } from "../../../src/cbor/types/cbor-array";
 import { CborBoolean } from "../../../src/cbor/types/cbor-boolean";
 import { CborByteString } from "../../../src/cbor/types/cbor-byte-string";
 import { CborDataItem } from "../../../src/cbor/cbor-data-item";

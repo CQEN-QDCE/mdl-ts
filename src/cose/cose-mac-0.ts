@@ -2,8 +2,7 @@ import { Crypto } from "@peculiar/webcrypto";
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncoder } from "../cbor/cbor-encoder";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
@@ -12,7 +11,7 @@ import { COSEObject } from "./cose-object";
 import { CoseAlgorithm } from "./cose-algorithm.enum";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborConvertible } from "../cbor/cbor-convertible";
-import { CborArray } from "../data-element/cbor-array";
+import { CborArray } from "../cbor/types/cbor-array";
 
 export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
    
@@ -84,9 +83,9 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
     }
 
     private encodeProtectedHeaders(): ArrayBuffer {
-        let map = new Map<MapKey, CborDataItem>();
-        map.set(new MapKey(CoseHeaderLabel.ALG), new CborNumber(this.headers.algorithm.value));
-        return CborEncoder.encode(new CborMap(map));
+        const cborMap = new CborMap();
+        cborMap.set(CoseHeaderLabel.ALG, new CborNumber(this.headers.algorithm.value));
+        return CborEncoder.encode(cborMap);
     }
 
     private decodeProtectedHeaders(protectedHeaders: CborByteString, message: COSEMac0): void {
@@ -101,7 +100,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
 
     private decodeUnprotectedHeaders(unprotectedHeaders: CborMap, message: COSEMac0): void {
         for(const [key, value] of unprotectedHeaders.getValue()) {
-            switch(key.int) {
+            switch(key) {
                 case CoseHeaderLabel.ALG:
                     throw new Error('Algorithm must be in protected headers');
                  case CoseHeaderLabel.X5_CHAIN:
@@ -125,11 +124,11 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
     toCborDataItem(): CborDataItem {
         const cborArray = new CborArray();
         cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
-        let map = new Map<MapKey, CborDataItem>();
+        let map = new Map<string | number, CborDataItem>();
         if (this.headers.x5Chain.value) {
-            map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new CborByteString(this.headers.x5Chain.value));
+            map.set(CoseHeaderLabel.X5_CHAIN, new CborByteString(this.headers.x5Chain.value));
         }
-        cborArray.push(new CborMap(new Map<MapKey, CborDataItem>()));
+        cborArray.push(new CborMap());
         cborArray.push(new CborByteString(this.content));
         cborArray.push(new CborByteString(this.tag));
         return cborArray;

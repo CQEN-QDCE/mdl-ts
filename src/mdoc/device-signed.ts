@@ -1,8 +1,7 @@
 import { CborConvertible } from "../cbor/cbor-convertible";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { DeviceAuth } from "./device-auth";
 
 export class DeviceSigned implements CborConvertible {
@@ -18,16 +17,16 @@ export class DeviceSigned implements CborConvertible {
 
     fromCborDataItem(dataItem: CborDataItem): DeviceSigned {
         const mapElement = <CborMap>dataItem;
-        const nameSpaces = mapElement.get(new MapKey('nameSpaces')) as CborEncodedDataItem;
-        const deviceAuth = mapElement.get(new MapKey('deviceAuth'));
+        const nameSpaces = mapElement.get('nameSpaces') as CborEncodedDataItem;
+        const deviceAuth = mapElement.get('deviceAuth');
         return new DeviceSigned(nameSpaces, DeviceAuth.fromMapElement(<CborMap>deviceAuth));
     }
 
     toCborDataItem(): CborDataItem {
-        const map = new Map<MapKey, CborDataItem>();
-        map.set(new MapKey('nameSpaces'), this.nameSpaces);
-        map.set(new MapKey('deviceAuth'), this.deviceAuth.toMapElement());
-        return new CborMap(map);
+        const cborMap = new CborMap();
+        cborMap.set('nameSpaces', this.nameSpaces);
+        cborMap.set('deviceAuth', this.deviceAuth.toMapElement());
+        return cborMap;
     }
 
 }

@@ -5,8 +5,7 @@ import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { Base64 } from "../utils/base64";
@@ -110,71 +109,71 @@ export class CborWebToken {
     } 
 
     private serializeClaims(): CborMap {
-        const payload = new Map<MapKey, CborDataItem>();
+        const payload = new CborMap();
 
         if (this.issuer) {
-            payload.set(new MapKey(CborWebToken.ISS_KEY), new CborTextString(this.issuer));
+            payload.set(CborWebToken.ISS_KEY, new CborTextString(this.issuer));
         }
 
         if (!this.subject) {
             throw new Error('sub is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.SUB_KEY), new CborTextString(this.subject));
+        payload.set(CborWebToken.SUB_KEY, new CborTextString(this.subject));
 
         if (!this.audience) {
             throw new Error('aud is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.AUD_KEY), new CborTextString(this.audience));
+        payload.set(CborWebToken.AUD_KEY, new CborTextString(this.audience));
 
 
         if (!this.expiration) {
             throw new Error('exp is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.EXP_KEY), new CborNumber(this.expiration));
+        payload.set(CborWebToken.EXP_KEY, new CborNumber(this.expiration));
 
         if (!this.notBefore) {
             throw new Error('nbf is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.NBF_KEY), new CborNumber(this.notBefore));
+        payload.set(CborWebToken.NBF_KEY, new CborNumber(this.notBefore));
 
         if (!this.issuedAt) {
             throw new Error('iat is mandatory');
         }
-        payload.set(new MapKey(CborWebToken.IAT_KEY), new CborNumber(this.issuedAt));
+        payload.set(CborWebToken.IAT_KEY, new CborNumber(this.issuedAt));
         
         if (this.cwtId) {
-            payload.set(new MapKey(CborWebToken.CTI_KEY), new CborByteString(this.cwtId));
+            payload.set(CborWebToken.CTI_KEY, new CborByteString(this.cwtId));
         }
 
         if (this.nonce) {
-            payload.set(new MapKey(CborWebToken.NONCE_KEY), new CborByteString(this.nonce));
+            payload.set(CborWebToken.NONCE_KEY, new CborByteString(this.nonce));
         }
-        return new CborMap(payload);
+        return payload;
     }
 
     private deserializeClaims(payload: CborMap): void {
-        const issStringElement = payload.get(new MapKey(CborWebToken.ISS_KEY));
+        const issStringElement = payload.get(CborWebToken.ISS_KEY);
         if (issStringElement) this.issuer = issStringElement.getValue();
 
-        const subStringElement = payload.get(new MapKey(CborWebToken.SUB_KEY));
+        const subStringElement = payload.get(CborWebToken.SUB_KEY);
         if (subStringElement) this.subject = subStringElement.getValue();
 
-        const audStringElement = payload.get(new MapKey(CborWebToken.AUD_KEY));
+        const audStringElement = payload.get(CborWebToken.AUD_KEY);
         if (audStringElement) this.audience = audStringElement.getValue();
 
-        const expNumberElement = payload.get(new MapKey(CborWebToken.EXP_KEY));
+        const expNumberElement = payload.get(CborWebToken.EXP_KEY);
         if (expNumberElement) this.expiration = expNumberElement.getValue();
 
-        const nbfNumberElement = payload.get(new MapKey(CborWebToken.NBF_KEY));
+        const nbfNumberElement = payload.get(CborWebToken.NBF_KEY);
         if (nbfNumberElement) this.notBefore = nbfNumberElement.getValue();
 
-        const iatNumberElement = payload.get(new MapKey(CborWebToken.IAT_KEY));
+        const iatNumberElement = payload.get(CborWebToken.IAT_KEY);
         if (iatNumberElement) this.issuedAt = iatNumberElement.getValue();
        
-        const ctiByteStringElement = payload.get(new MapKey(CborWebToken.CTI_KEY));
+        const ctiByteStringElement = payload.get(CborWebToken.CTI_KEY);
         if (ctiByteStringElement) this.cwtId = ctiByteStringElement.getValue();
 
-        const nonceByteStringElement = payload.get(new MapKey(CborWebToken.NONCE_KEY));
+        const nonceByteStringElement = payload.get(CborWebToken.NONCE_KEY);
         if (nonceByteStringElement) this.nonce = nonceByteStringElement.getValue();
     }
 }

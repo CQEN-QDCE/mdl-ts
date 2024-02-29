@@ -4,14 +4,12 @@ import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { MDocRequestVerificationParams } from "./mdoc-request-verification-params";
 import { ItemsRequest } from "./items-request";
 import { ReaderAuthentication } from "../reader-authentication";
 import { Lazy } from "../utils/lazy";
-import { Cbor } from "../cbor/cbor";
 
 export class MobileDocumentRequest {
 
@@ -43,11 +41,11 @@ export class MobileDocumentRequest {
     getRequestedItemsFor(nameSpace: string): Map<string, boolean> {
         const itemsRequest = this.itemsRequest;
         const nameSpaces = itemsRequest.namespaces;
-        const nameSpace2 = nameSpaces.get(new MapKey(nameSpace));
+        const nameSpace2 = nameSpaces.get(nameSpace);
         const response: Map<string, boolean> = new Map<string, boolean>();
         if (!nameSpace2) return response;
         for (const [key, value] of nameSpace2.getValue()) {
-            response.set(key.str, value.getValue());
+            response.set(key as string, value.getValue());
         }
         return response;
     }
@@ -75,10 +73,10 @@ export class MobileDocumentRequest {
     }
 
     toMapElement(): CborMap {
-        const map = new Map<MapKey, CborDataItem>();
-        map.set(new MapKey('itemsRequest'), this.itemsRequestBytes);
-        if (this.readerAuthentication) map.set(new MapKey('readerAuth'), CborDataItem.from(this.readerAuthentication));
-        return new CborMap(map);
+        const cborMap = new CborMap();
+        cborMap.set('itemsRequest', this.itemsRequestBytes);
+        if (this.readerAuthentication) cborMap.set('readerAuth', CborDataItem.from(this.readerAuthentication));
+        return cborMap;
     }
 
     private getReaderSignedPayload(readerAuthentication: ReaderAuthentication): ArrayBuffer {
@@ -86,17 +84,17 @@ export class MobileDocumentRequest {
     }
     
     private initItemsRequest(): ItemsRequest {
-        const dataElement = CborDecoder.decode(this.itemsRequestBytes.getValue());
-        const mapElement = <CborMap>dataElement;
-        const docType = mapElement.get(new MapKey('docType'));
-        const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
+        const dataItem = CborDecoder.decode(this.itemsRequestBytes.getValue());
+        const cborMap = <CborMap>dataItem;
+        const docType = cborMap.get('docType');
+        const nameSpaces = cborMap.get('nameSpaces');
         return new ItemsRequest((<CborTextString>docType).getValue(), <CborMap>nameSpaces);
     }
 
     private initNamespaces(): string[] {
         const nameSpaces: string[] = [];
         for (const [key, value] of this.itemsRequest.namespaces.getValue()) {
-            nameSpaces.push(key.str);
+            nameSpaces.push(key as string);
         }
         return nameSpaces;
     }

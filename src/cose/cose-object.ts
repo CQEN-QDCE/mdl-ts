@@ -1,8 +1,7 @@
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { CoseHeaders } from "./cose-headers";
@@ -42,7 +41,7 @@ export abstract class COSEObject<T> {
     get algorithm(): number {
         if (this.dataElements.length !== 4) throw 'Invalid COSE_Sign1/COSE_Mac0 array.';
         const protectedHeaderMapElement = <CborMap>CborDecoder.decode(this.protectedHeader);
-        const numberElement = <CborNumber>protectedHeaderMapElement.get(new MapKey(CoseHeaderLabel.ALG));
+        const numberElement = <CborNumber>protectedHeaderMapElement.get(CoseHeaderLabel.ALG);
         return numberElement.getValue();
     }
 

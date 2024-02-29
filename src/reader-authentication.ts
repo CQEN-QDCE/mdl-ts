@@ -3,7 +3,7 @@ import { CborEncodedDataItem } from "./cbor/types/cbor-encoded-data-item";
 import { CborTextString } from "./cbor/types/cbor-text-string";
 import { CborEncoder } from './cbor/cbor-encoder';
 import { ItemsRequest } from "./doc-request/items-request";
-import { CborArray } from "./data-element/cbor-array";
+import { CborArray } from "./cbor/types/cbor-array";
 
 export class ReaderAuthentication {
 

@@ -1,10 +1,9 @@
 import cbor, { Tagged } from 'cbor';
-import { CborMap } from '../data-element/cbor-map';
+import { CborMap } from './types/cbor-map';
 import { CborDataItem } from './cbor-data-item';
-import { MapKeyType } from '../data-element/map-key-type.enum';
 import { CborEncodedDataItem } from './types/cbor-encoded-data-item';
-import { TDateElement } from '../data-element/tdate-element';
-import { CborArray } from '../data-element/cbor-array';
+import { TDateElement } from './types/tdate-element';
+import { CborArray } from './types/cbor-array';
 
 export class CborEncoder {
 
@@ -29,10 +28,9 @@ export class CborEncoder {
 
     private static convertToMap(cborMap: CborMap): Map<string | number, any> {
         const map = new Map<string | number, any>();
-        for (const [mapKey, dataElement] of cborMap.getValue()) {
-            if (dataElement === null) continue;
-            if (mapKey.type == MapKeyType.string) map.set(mapKey.str, CborEncoder.convertToPlainObject(dataElement));
-            if (mapKey.type == MapKeyType.int) map.set(mapKey.int, CborEncoder.convertToPlainObject(dataElement));
+        for (const [key, dataItem] of cborMap) {
+            if (dataItem === null) continue;
+            map.set(key, CborEncoder.convertToPlainObject(dataItem));
         }
         return map;
     }

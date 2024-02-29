@@ -1,7 +1,6 @@
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborMap } from "../data-element/cbor-map";
-import { MapKey } from "../data-element/map-key";
+import { CborMap } from "../cbor/types/cbor-map";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { SecureRandom } from "../utils/secure-random";
@@ -23,19 +22,19 @@ export class IssuerSignedItem {
     }
     
     toMapElement(): CborMap {
-        const map = new Map<MapKey, CborDataItem>();
-        map.set(new MapKey('digestID'), new CborNumber(this.digestID));
-        map.set(new MapKey('random'), new CborByteString(this.randomSalt));
-        map.set(new MapKey('elementIdentifier'), new CborTextString(this.elementIdentifier));
-        map.set(new MapKey('elementValue'), this.elementValue);
-        return new CborMap(map);
+        const cborMap = new CborMap();
+        cborMap.set('digestID', new CborNumber(this.digestID));
+        cborMap.set('random', new CborByteString(this.randomSalt));
+        cborMap.set('elementIdentifier', new CborTextString(this.elementIdentifier));
+        cborMap.set('elementValue', this.elementValue);
+        return cborMap;
     }
 
-    static fromMapElement(element: CborMap): IssuerSignedItem {
-        const digestID = element.get(new MapKey('digestID'));
-        const random = element.get(new MapKey('random'));
-        const elementIdentifier = element.get(new MapKey('elementIdentifier'));
-        const elementValue = element.get(new MapKey('elementValue'));
+    static fromMapElement(cborMap: CborMap): IssuerSignedItem {
+        const digestID = cborMap.get('digestID');
+        const random = cborMap.get('random');
+        const elementIdentifier = cborMap.get('elementIdentifier');
+        const elementValue = cborMap.get('elementValue');
         return new IssuerSignedItem(digestID.getValue(), random.getValue(), elementIdentifier.getValue(), elementValue);
     }
 
