@@ -61,14 +61,15 @@ export class MobileSecurityObject implements CborConvertible {
     }
 
     fromCborDataItem(dataItem: CborDataItem): MobileSecurityObject {
-        const cborMap = <CborMap>dataItem;
-        const version = <CborTextString>cborMap.get('version');
-        const digestAlgorithm = <CborTextString>cborMap.get('digestAlgorithm');
-        const valueDigests = <CborMap>cborMap.get('valueDigests');
-        const deviceKeyInfo = DeviceKeyInfo.fromMapElement(<CborMap>cborMap.get('deviceKeyInfo'));
-        const docType = <CborTextString>cborMap.get('docType');
-        const validityInfo = ValidityInfo.fromMapElement(<CborMap>cborMap.get('validityInfo'));
+        const cborMap = dataItem as CborMap;
+        const version = cborMap.get('version') as CborTextString;
+        const digestAlgorithm = cborMap.get('digestAlgorithm') as CborTextString;
+        const valueDigests = cborMap.get('valueDigests') as CborMap;
+        const deviceKeyInfo = CborDataItem.to(DeviceKeyInfo, cborMap.get('deviceKeyInfo') as CborMap);
+        const docType = cborMap.get('docType') as CborTextString;
+        const validityInfo = CborDataItem.to(ValidityInfo, cborMap.get('validityInfo') as CborMap);
 
+        // TODO: Nettoyer ce code.
         let valueDigests2 = new Map<string, Map<number, ArrayBuffer>>;
         for(const [key, value] of valueDigests.getValue()) {
             const digestMap = new Map<number, ArrayBuffer>();
@@ -81,7 +82,7 @@ export class MobileSecurityObject implements CborConvertible {
         }
 
         return new MobileSecurityObject(version.getValue(), 
-                                        <DigestAlgorithm>digestAlgorithm.getValue(), 
+                                        digestAlgorithm.getValue() as DigestAlgorithm, 
                                         valueDigests2, 
                                         deviceKeyInfo, 
                                         docType.getValue(), 
@@ -101,9 +102,9 @@ export class MobileSecurityObject implements CborConvertible {
         cborMap.set('version', new CborTextString(this.version));
         cborMap.set('digestAlgorithm', new CborTextString(this.digestAlgorithm));
         cborMap.set('valueDigests', new CborMap(valueDigestNamespaces));
-        cborMap.set('deviceKeyInfo', this.deviceKeyInfo.toMapElement());
+        cborMap.set('deviceKeyInfo', CborDataItem.from(this.deviceKeyInfo));
         cborMap.set('docType', new CborTextString(this.docType));
-        cborMap.set('validityInfo', this.validity.toMapElement());
+        cborMap.set('validityInfo', CborDataItem.from(this.validity));
         return cborMap;
     }
 

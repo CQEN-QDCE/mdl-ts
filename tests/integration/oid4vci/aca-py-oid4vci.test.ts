@@ -9,7 +9,6 @@ describe("ACA-py OID4VC Tests", () => {
 //    let localhost2: string = 'http://localhost:8081';
 
     let localhost1: string = 'https://mdl-issuer-admin.apps.exp.openshift.cqen.ca';
-    let localhost2: string = 'https://mdl-issuer-oid4vci.apps.exp.openshift.cqen.ca';
 
     let client: AxiosInstance;
     
@@ -30,7 +29,7 @@ describe("ACA-py OID4VC Tests", () => {
         let exchangeCreateRequest: any = {
             "did": did.did,
 //            "supported_cred_id": "18ebd91e-9e76-4f88-94b7-6fd1fd34d190",  
-            "supported_cred_id": "e048673c-2888-4fc3-86d8-7c167628c5ae",
+            "supported_cred_id": "0bf0348e-49ec-4a28-81d5-97ce57431b57",
             "claims": {
                 "org.iso.18013.5.1": { 
                     "given_name": "Mascetti", 
@@ -76,7 +75,7 @@ describe("ACA-py OID4VC Tests", () => {
             method: 'POST',
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data,
-            url: `${localhost2}/token`,
+            url: `${credentialIssuerUrl}/token`,
         };
           
         const accessTokenResponse: AxiosResponse = await client(options);
@@ -92,7 +91,7 @@ describe("ACA-py OID4VC Tests", () => {
             }
         };
 
-        const credentialResponse: AxiosResponse = await client.post(`${localhost2}/credential`, credentialRequest, { headers: { 'Authorization': 'BEARER ' + accessToken.access_token } });  
+        const credentialResponse: AxiosResponse = await client.post(`${credentialIssuerUrl}/credential`, credentialRequest, { headers: { 'Authorization': 'BEARER ' + accessToken.access_token } });  
 
         //const exchange2 = credentialResponse.data;
 

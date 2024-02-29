@@ -211,7 +211,7 @@ describe('testing mdoc', () => {
         const encodedCBORElement = CborDecoder.decode(test.getValue());
         const de = CborDecoder.decode(encodedCBORElement.getValue() as ArrayBuffer);
         const test1 = CborDecoder.decode(de[2].getValue() as ArrayBuffer);
-        const readerAuthentication = new ReaderAuthentication(de[1], ItemsRequest.fromMapElement(<CborMap>test1));
+        const readerAuthentication = new ReaderAuthentication(de[1], CborDataItem.to(ItemsRequest, test1 as CborMap));
         expect((<CborTextString>readerAuthentication.dataItems[0]).getValue()).toBe('ReaderAuthentication');
         const certificateDER = deviceRequest.mobileDocumentRequests[0].readerAuthentication.x5Chain;
         const cert = new x509.X509Certificate(Hex.encode(certificateDER));

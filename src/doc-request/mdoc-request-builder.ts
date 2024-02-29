@@ -64,6 +64,6 @@ export class MDocRequestBuilder {
             outerMap.set(nameSpace, new CborMap(innerMap));
         }
         const itemsRequest = new ItemsRequest(this.docType, new CborMap(outerMap));
-        return CborEncodedDataItem.encode(itemsRequest.toMapElement());
+        return CborEncodedDataItem.encode(CborDataItem.from(itemsRequest));
     }
 }

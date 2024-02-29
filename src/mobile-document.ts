@@ -77,7 +77,7 @@ export class MobileDocument implements CborConvertible {
 
     private verifyValidity(): boolean {
         const validityInfo = this.mso.validity;
-        return validityInfo.validFrom.getValue() <= new Date() && validityInfo.validUntil.getValue() >= new Date();
+        return validityInfo.validFrom <= new Date() && validityInfo.validUntil >= new Date();
     }
 
     private verifyDocType(): boolean {

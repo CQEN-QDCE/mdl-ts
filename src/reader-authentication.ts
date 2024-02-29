@@ -12,7 +12,7 @@ export class ReaderAuthentication {
     constructor(sessionTranscript: CborArray, itemsRequest: ItemsRequest) {
         this.dataItems.push(new CborTextString('ReaderAuthentication'));
         this.dataItems.push(sessionTranscript);
-        const encodedItemsRequest = new CborEncodedDataItem(CborEncoder.encode(itemsRequest.toMapElement()));
+        const encodedItemsRequest = new CborEncodedDataItem(CborEncoder.encode(CborDataItem.from(itemsRequest)));
         this.dataItems.push(encodedItemsRequest);
     }
 
