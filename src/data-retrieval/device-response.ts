@@ -42,12 +42,12 @@ export class DeviceResponse implements CborConvertible {
 
     toCborDataItem(): CborDataItem {
         const map = new Map<MapKey, CborDataItem>();
-        const documents = [];
+        const documents = new CborArray();
         for (const document of this.documents) {
             documents.push(CborDataItem.from(document));
         }
         map.set(new MapKey('version'), new CborTextString(this.version));
-        map.set(new MapKey('documents'), new CborArray(documents));
+        map.set(new MapKey('documents'), documents);
         map.set(new MapKey('status'), new CborNumber(this.status));
         if (this.documentErrors) map.set(new MapKey('documentErrors'), this.documentErrors);
         return new MapElement(map);

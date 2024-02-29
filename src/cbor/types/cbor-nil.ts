@@ -1,15 +1,20 @@
 import { CborDataItem } from "../cbor-data-item";
 
-export class CborNil extends CborDataItem {
-    
-    private readonly value: null = null;
+export class CborNil implements CborDataItem {
+
+    readonly majorType: number;
 
     constructor() {
-        super(new CborDataItem.Attribute(CborDataItem.Type.nil));
-    }
-    
-    public getValue(): null {
-        return this.value;
+        this.majorType = 0;
     }
 
+    get type(): CborDataItem.Type {
+        return new CborDataItem.Attribute(CborDataItem.Type.nil).type;
+    }
+
+    public getValue(): null {
+        return null;
+    }
+    
 }
+

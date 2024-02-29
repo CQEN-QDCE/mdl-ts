@@ -24,9 +24,9 @@ export class CborDecoder {
 
     private static deserialize(object: any): CborDataItem {
         if (Array.isArray(object)) {
-            const list: CborDataItem[] = [];
-            for (const value of object) list.push(CborDecoder.deserialize(value));
-            return new CborArray(list);
+            const cborArray = new CborArray();
+            for (const value of object) cborArray.push(CborDecoder.deserialize(value));
+            return cborArray;
         } else if (typeof object === 'boolean' || object instanceof Boolean) {
             return new CborBoolean(<boolean>object);
         } else if (typeof object === 'number' || object instanceof Number) {
@@ -57,14 +57,14 @@ export class CborDecoder {
             } else if (object.tag === 0 || object.tag === 1) { // Cbor TDATE = 0L or TIME = 1L
                 throw new Error("Not implemented");
             } else if (object.tag === 18) { // COSE_SIGN1 = 18L
-                const list: CborDataItem[] = []
-                list.push(new CborByteString(object.value[0]));
+                const cborArray = new CborArray();
+                cborArray.push(new CborByteString(object.value[0]));
                 const map = new Map<MapKey, CborDataItem>();
                 map.set(new MapKey(33), new CborByteString(object.value[1].get(33)));
-                list.push(new MapElement(map));
-                list.push(new CborByteString(object.value[2]));
-                list.push(new CborByteString(object.value[3]));
-                let message = CborDataItem.to(COSESign1, new CborArray(list));
+                cborArray.push(new MapElement(map));
+                cborArray.push(new CborByteString(object.value[2]));
+                cborArray.push(new CborByteString(object.value[3]));
+                let message = CborDataItem.to(COSESign1, cborArray);
                 let payload = message.payload;
                 let test = CborDecoder.decode(payload);
                 let mso = MobileSecurityObject.fromMapElement(<MapElement>test);

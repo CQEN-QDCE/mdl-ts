@@ -1,13 +1,20 @@
 import { CborDataItem } from "../cbor-data-item";
 
-export class CborTextString extends CborDataItem {
+export class CborTextString extends String implements CborDataItem {
 
-    constructor(private value: string) {
-        super(new CborDataItem.Attribute(CborDataItem.Type.textString));
+    readonly majorType: number;
+
+    constructor(value: string) {
+        super(value);
+        this.majorType = 0;
+    }
+
+    get type(): CborDataItem.Type {
+        return new CborDataItem.Attribute(CborDataItem.Type.textString).type;
+    }
+
+    public getValue(): string {
+        return this.valueOf();
     }
     
-    public getValue(): string {
-        return this.value;
-    }
-
 }

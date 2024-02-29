@@ -44,10 +44,10 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
 
         const cborArray = new CborArray();
 
-        cborArray.add(new CborTextString(this.context));
-        cborArray.add(new CborByteString(this.encodeProtectedHeaders()));
-        cborArray.add(new CborByteString(new ArrayBuffer(0)));
-        cborArray.add(new CborByteString(this.content));
+        cborArray.push(new CborTextString(this.context));
+        cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
+        cborArray.push(new CborByteString(new ArrayBuffer(0)));
+        cborArray.push(new CborByteString(this.content));
 
         this.signature = await crypto.subtle.sign(algo, privateKey, CborEncoder.encode(cborArray));
     }
@@ -63,10 +63,10 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
 
         const cborArray = new CborArray();
 
-        cborArray.add(new CborTextString(this.context));
-        cborArray.add(new CborByteString(this.encodeProtectedHeaders()));
-        cborArray.add(new CborByteString(new ArrayBuffer(0)));
-        cborArray.add(new CborByteString(this.content));
+        cborArray.push(new CborTextString(this.context));
+        cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
+        cborArray.push(new CborByteString(new ArrayBuffer(0)));
+        cborArray.push(new CborByteString(this.content));
 
         return await crypto.subtle.verify(algo, publicKey, this.signature, CborEncoder.encode(cborArray));
     }
@@ -112,14 +112,14 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
 
     toCborDataItem(): CborDataItem {
         const cborArray = new CborArray();
-        cborArray.add(new CborByteString(this.encodeProtectedHeaders()));
+        cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
         let map = new Map<MapKey, CborDataItem>();
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new CborByteString(this.headers.x5Chain.value));
         }
-        cborArray.add(new MapElement(new Map<MapKey, CborDataItem>()));
-        cborArray.add(new CborByteString(this.content));
-        cborArray.add(new CborByteString(this.signature));
+        cborArray.push(new MapElement(new Map<MapKey, CborDataItem>()));
+        cborArray.push(new CborByteString(this.content));
+        cborArray.push(new CborByteString(this.signature));
         return cborArray;
     }
 }

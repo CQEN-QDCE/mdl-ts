@@ -1,13 +1,22 @@
 import { CborDataItem } from "../cbor-data-item";
 
-export class CborByteString extends CborDataItem {
+export class CborByteString implements CborDataItem {
+
+    readonly majorType: number;
     
-    constructor(private readonly value: ArrayBuffer) {
-        super(new CborDataItem.Attribute(CborDataItem.Type.byteString));
+    private data: ArrayBuffer;
+
+    constructor(value: ArrayBuffer) {
+        this.data = value;
+        this.majorType = 0;
+    }
+
+    get type(): CborDataItem.Type {
+        return new CborDataItem.Attribute(CborDataItem.Type.byteString).type;
     }
 
     public getValue(): ArrayBuffer {
-        return this.value;
+        return this.data;
     }
-   
+    
 }

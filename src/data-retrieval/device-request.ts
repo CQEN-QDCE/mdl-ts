@@ -22,7 +22,7 @@ export class DeviceRequest implements CborConvertible {
             for (const mdocRequest of docRequests.getValue()) {
                 const itemsRequest = <CborEncodedDataItem>mdocRequest.get(new MapKey('itemsRequest'));
                 const readerAuth = <CborArray>mdocRequest.get(new MapKey('readerAuth'));
-                docRequests2.push(new MobileDocumentRequest(itemsRequest, readerAuth ? CborDataItem.to(COSESign1, new CborArray(readerAuth.getValue())) : null));
+                docRequests2.push(new MobileDocumentRequest(itemsRequest, readerAuth ? CborDataItem.to(COSESign1, readerAuth) : null));
             }
         }
         let version = mapElement.get(new MapKey('version'));
@@ -32,9 +32,9 @@ export class DeviceRequest implements CborConvertible {
 
     toCborDataItem(): CborDataItem {
         const map = new Map<MapKey, CborDataItem>();
-        const mdocRequests: MapElement[] = [];
+        const mdocRequests = new CborArray();
         for (const mdocRequest of this.mobileDocumentRequests) mdocRequests.push(mdocRequest.toMapElement());
-        map.set(new MapKey('docRequests'), new CborArray(mdocRequests));
+        map.set(new MapKey('docRequests'), mdocRequests);
         map.set(new MapKey('version'), new CborTextString(this.version));
         return new MapElement(map);
     }

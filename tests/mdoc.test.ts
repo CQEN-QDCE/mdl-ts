@@ -11,7 +11,6 @@ import { SimpleCOSECryptoProvider } from "../src/simple-cose-crypto-provider";
 import { SimpleCOSECryptoProviderKeyInfo } from "../src/simple-cose-crypto-provider-key-info";
 import { MobileDocumentBuilder } from "../src/mobile-document-builder";
 import { ValidityInfo } from "../src/mso/validity-info";
-import { CborTextString } from "../src/cbor/types/cbor-text-string";
 import { CborFullDate } from "../src/data-element/cbor-full-date";
 import { MapKey } from "../src/data-element/map-key";
 import { CborNumber } from "../src/cbor/types/cbor-number";
@@ -37,6 +36,7 @@ import { COSECryptoProvider } from "../src/cose/cose-crypto-provider";
 import { DigestAlgorithm } from "../src/mdoc/digest-algorithm.enum";
 import { Cbor } from "../src/cbor/cbor";
 import { CborArray } from "../src/data-element/cbor-array";
+import { CborTextString } from "../src/cbor/types/cbor-text-string";
 
 describe('testing mdoc', () => {
     
@@ -117,9 +117,9 @@ describe('testing mdoc', () => {
 
         const ephemeralReaderCoseKey = await CoseKey.new(ephemeralReaderKeyPair.publicKey, ephemeralReaderKeyPair.privateKey);
 
-        const deviceAuthentication = new DeviceAuthentication(new CborArray([new CborNil(), 
-                                                                               CborEncodedDataItem.encode(CborDataItem.from(ephemeralReaderCoseKey)), 
-                                                                               new CborNil()]), 
+        const deviceAuthentication = new DeviceAuthentication(new CborArray(new CborNil(), 
+                                                                            CborEncodedDataItem.encode(CborDataItem.from(ephemeralReaderCoseKey)), 
+                                                                            new CborNil()), 
                                                               mdoc.docType, 
                                                               CborEncodedDataItem.encode(new MapElement(new Map<MapKey, CborDataItem>())));
         
@@ -370,10 +370,10 @@ describe('testing mdoc', () => {
 
     test('Array of any', () => {
         
-        const cborArray = new CborArray([new CborNumber(1), 
-                                         new MapElement(new Map<MapKey, CborDataItem>([[new MapKey('a'), new CborNumber(1)]])),
-                                         new CborNil(),
-                                         new CborByteString(Int8Array.from([1,-2]).buffer)]);
+        const cborArray = new CborArray(new CborNumber(1), 
+                                        new MapElement(new Map<MapKey, CborDataItem>([[new MapKey('a'), new CborNumber(1)]])),
+                                        new CborNil(),
+                                        new CborByteString(Int8Array.from([1,-2]).buffer));
         const encodedCborArray = CborEncoder.encode(cborArray);
         const decodedCborArray = CborDecoder.decode(encodedCborArray) as CborArray;
         expect(decodedCborArray.length).toBe(4);

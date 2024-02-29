@@ -28,7 +28,7 @@ export class DeviceAuth {
         if (!deviceMac) deviceMac = null;
         let deviceSignature = mapElement.get(new MapKey('deviceSignature'));
         if (!deviceSignature) deviceSignature = null;
-        return new DeviceAuth(CborDataItem.to(COSEMac0, new CborArray(deviceMac.getValue())), 
-                              deviceSignature ? CborDataItem.to(COSESign1, new CborArray(deviceSignature.getValue())) : null);
+        return new DeviceAuth(CborDataItem.to(COSEMac0, <CborArray>deviceMac), 
+                              deviceSignature ? CborDataItem.to(COSESign1, <CborArray>deviceSignature) : null);
     }
 }

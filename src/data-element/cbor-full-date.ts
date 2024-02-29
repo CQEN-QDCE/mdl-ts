@@ -1,11 +1,15 @@
 import { CborDataItem } from "../cbor/cbor-data-item";
 
-export class CborFullDate extends CborDataItem {
+export class CborFullDate implements CborDataItem {
 
-    constructor(private value: Date, mode: CborDataItem.FullDateMode = CborDataItem.FullDateMode.string) {
-        super(new CborDataItem.FullDateAttribute(mode));
+    constructor(private value: Date, private mode: CborDataItem.FullDateMode = CborDataItem.FullDateMode.string) {
     }
+    majorType: number;
     
+    get type(): CborDataItem.Type {
+        return new CborDataItem.FullDateAttribute(this.mode).type;
+    }
+
     public getValue(): Date {
         return this.value;
     }

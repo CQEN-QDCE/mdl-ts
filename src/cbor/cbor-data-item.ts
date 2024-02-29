@@ -1,12 +1,18 @@
 import { CborConvertible } from "./cbor-convertible";
 
+export interface CborDataItem {
+    readonly majorType: number;
+    get type(): CborDataItem.Type;
+    getValue(): any;
+}
+
 export abstract class CborDataItem {
 
-    protected attribute: CborDataItem.Attribute;
+//    protected attribute: CborDataItem.Attribute;
 
-    constructor(attribute: CborDataItem.Attribute) {
-        this.attribute = attribute;
-    }
+//    constructor(attribute: CborDataItem.Attribute) {
+//        this.attribute = attribute;
+//    }
 
     public static from(object: CborConvertible): CborDataItem {
         return (<CborConvertible>object).toCborDataItem();
@@ -19,17 +25,9 @@ export abstract class CborDataItem {
         return instance;
     }
 
-    get type(): CborDataItem.Type {
-        return this.attribute.type;
-    }
-
-    public abstract getValue(): any;
-
-    equals(other: any): boolean {
-        if (!other) return false;
-        if (other instanceof CborDataItem)
-        return true;
-    }
+//    get type(): CborDataItem.Type {
+//        return this.attribute.type;
+//    }
 
 }
 

@@ -27,8 +27,8 @@ describe('testing CborXCodec', () => {
             let t = 1;
         
         }
-        cborArray.add(cborBoolean);
-        cborArray.add(cborBoolean);
+        cborArray.push(cborBoolean);
+        cborArray.push(cborBoolean);
         cborArray[1] = cborBoolean;
         for (let i of cborArray) {
             let t = i;

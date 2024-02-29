@@ -31,7 +31,7 @@ export class IssuerSigned implements CborConvertible {
             }
             nameSpaces2.set(key.str, issuerSignedItems);
         }
-        return new IssuerSigned(nameSpaces2, CborDataItem.to(COSESign1, new CborArray(issuerAuth.getValue())));
+        return new IssuerSigned(nameSpaces2, CborDataItem.to(COSESign1, <CborArray>issuerAuth));
     }
 
     toCborDataItem(): CborDataItem {

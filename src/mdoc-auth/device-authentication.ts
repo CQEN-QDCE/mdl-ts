@@ -21,6 +21,10 @@ export class DeviceAuthentication implements CborConvertible {
     }
 
     toCborDataItem(): CborDataItem {
-        return new CborArray(this.dataItems);
+        const cborArray = new CborArray();
+        for (const dataItem of this.dataItems) {
+            cborArray.push(dataItem);
+        }
+        return cborArray;
     }
 }

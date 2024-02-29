@@ -1,61 +1,42 @@
 import { CborDataItem } from "../cbor/cbor-data-item";
+import { CborBoolean } from "../cbor/types/cbor-boolean";
+import { CborByteString } from "../cbor/types/cbor-byte-string";
+import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
+import { CborNil } from "../cbor/types/cbor-nil";
+import { CborNumber } from "../cbor/types/cbor-number";
+import { MapElement } from "./map-element";
 
-export class CborArray extends CborDataItem implements Iterable<CborDataItem> {
-
-    constructor(private value: CborDataItem[] = []) {
-        super(new CborDataItem.Attribute(CborDataItem.Type.list));
-        return new Proxy(this, {
-            get: (target, propKey, receiver) => {
-              if (typeof propKey === "string" && this.isSafeArrayIndex(propKey)) {
-                return Reflect.get(this.value, propKey);
-              }
-              return Reflect.get(target, propKey, receiver);
-            },
-            set: (target, propKey, value, receiver) => {
-              if (typeof propKey === "string" && this.isSafeArrayIndex(propKey)) {
-                return Reflect.set(this.value, propKey, value);
-              }
-              //return Reflect.set(target, propKey, value, receiver);
-              throw new Error("Invalid index");
-            },
-        });
+/*
+export class CborArray extends Array<CborArray | CborNumber | CborBoolean | CborNil | CborByteString | CborByteString | CborEncodedDataItem | MapElement> implements CborDataItem {
+    majorType: number;
+    constructor(...value: (CborArray | CborNumber | CborBoolean | CborNil | CborByteString | CborByteString | CborEncodedDataItem | MapElement)[]) {
+        super();
+        this.push(...value);
+        this.majorType = 0;
     }
 
-    _(): CborDataItem[] {
-        return this.value;
-    }
-    
-    get [Symbol.toStringTag]() {
-        return "ObjectHandler";
-    }
-
- //   [index: number]: CborDataItem2 
-
-    *[Symbol.iterator](): Iterator<CborDataItem, any, undefined> {
-        for(let i of this.value) {
-            yield i;
-        }
-    }
-
-//    get<T extends CborDataItem>(index: number): T {
-//        return this.value[index] as T;
-//    }
-
-    add(value: CborDataItem): void {
-        this.value.push(value);
+    get type(): CborDataItem.Type {
+        return new CborDataItem.Attribute(CborDataItem.Type.list).type;
     }
 
     public getValue(): CborDataItem[] {
-        return this.value;
+        return this;
+    }
+}
+*/
+export class CborArray extends Array<CborDataItem> implements CborDataItem {
+    majorType: number;
+    constructor(...value: (CborArray | CborNumber | CborBoolean | CborNil | CborByteString | CborByteString | CborEncodedDataItem | MapElement)[]) {
+        super();
+        this.push(...value);
+        this.majorType = 0;
     }
 
-    get length(): number {
-        return this.value.length;
+    get type(): CborDataItem.Type {
+        return new CborDataItem.Attribute(CborDataItem.Type.list).type;
     }
- 
-    private isSafeArrayIndex(propKey: string): boolean {
-        const uint = Number.parseInt(propKey, 10);
-        const s = uint + "";
-        return propKey === s && uint !== 0xffffffff && uint < this.value.length;
+
+    public getValue(): CborDataItem[] {
+        return this;
     }
 }

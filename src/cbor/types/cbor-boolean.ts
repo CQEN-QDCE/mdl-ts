@@ -1,17 +1,20 @@
 import { CborDataItem } from "../cbor-data-item";
 
-export class CborBoolean extends CborDataItem implements Boolean {
+export class CborBoolean extends Boolean implements CborDataItem {
 
-    constructor(private value: boolean) {
-        super(new CborDataItem.Attribute(CborDataItem.Type.boolean));
+    readonly majorType: number;
+
+    constructor(value: boolean) {
+        super(value);
+        this.majorType = 0;
     }
 
-    valueOf(): boolean {
-        return this.value;
+    get type(): CborDataItem.Type {
+        return new CborDataItem.Attribute(CborDataItem.Type.boolean).type;
     }
 
     public getValue(): boolean {
-        return this.value;
+        return this.valueOf();
     }
     
 }

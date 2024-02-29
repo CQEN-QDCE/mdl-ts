@@ -45,10 +45,10 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
 
         const cborArray = new CborArray();
 
-        cborArray.add(new CborTextString(this.context));
-        cborArray.add(new CborByteString(this.encodeProtectedHeaders()));
-        cborArray.add(new CborByteString(externalData));
-        cborArray.add(new CborByteString(this.content));
+        cborArray.push(new CborTextString(this.context));
+        cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
+        cborArray.push(new CborByteString(externalData));
+        cborArray.push(new CborByteString(this.content));
 
         this.digest = await crypto.subtle.sign(algorithm, key, CborEncoder.encode(cborArray));
     }
@@ -70,12 +70,14 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
 
         const key = await crypto.subtle.importKey('raw', sharedSecret, algorithm, false, ["sign", "verify"]);
 
-        const cborArray = [];
+        const cborArray = new CborArray();
+
         cborArray.push(new CborTextString(this.context));
         cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
         cborArray.push(new CborByteString(externalData));
         cborArray.push(new CborByteString(this.content));
-        const data = CborEncoder.encode(new CborArray(cborArray));
+
+        const data = CborEncoder.encode(cborArray);
 
         const tag = await crypto.subtle.sign(algorithm, key, data);
         return ArrayBufferComparer.equals(this.tag, tag);
@@ -121,15 +123,15 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
     }
 
     toCborDataItem(): CborDataItem {
-        let list: CborDataItem[] = [];
-        list.push(new CborByteString(this.encodeProtectedHeaders()));
+        const cborArray = new CborArray();
+        cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
         let map = new Map<MapKey, CborDataItem>();
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new CborByteString(this.headers.x5Chain.value));
         }
-        list.push(new MapElement(new Map<MapKey, CborDataItem>()));
-        list.push(new CborByteString(this.content));
-        list.push(new CborByteString(this.tag));
-        return new CborArray(list);
+        cborArray.push(new MapElement(new Map<MapKey, CborDataItem>()));
+        cborArray.push(new CborByteString(this.content));
+        cborArray.push(new CborByteString(this.tag));
+        return cborArray;
     }
 }
