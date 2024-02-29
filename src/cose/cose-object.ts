@@ -21,10 +21,6 @@ export abstract class COSEObject<T> {
         return this.coseHeaders;
     }
 
-    public setContent(content: ArrayBuffer): void {
-        this.content = content;
-    }
-
     get payload(): ArrayBuffer | null {
         return this.content;
     }

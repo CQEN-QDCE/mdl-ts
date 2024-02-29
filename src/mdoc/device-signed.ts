@@ -19,13 +19,13 @@ export class DeviceSigned implements CborConvertible {
         const mapElement = <CborMap>dataItem;
         const nameSpaces = mapElement.get('nameSpaces') as CborEncodedDataItem;
         const deviceAuth = mapElement.get('deviceAuth');
-        return new DeviceSigned(nameSpaces, DeviceAuth.fromMapElement(<CborMap>deviceAuth));
+        return new DeviceSigned(nameSpaces, CborDataItem.to(DeviceAuth, <CborMap>deviceAuth));
     }
 
     toCborDataItem(): CborDataItem {
         const cborMap = new CborMap();
         cborMap.set('nameSpaces', this.nameSpaces);
-        cborMap.set('deviceAuth', this.deviceAuth.toMapElement());
+        cborMap.set('deviceAuth', CborDataItem.from(this.deviceAuth));
         return cborMap;
     }
 
