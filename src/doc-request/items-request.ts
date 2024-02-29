@@ -1,7 +1,7 @@
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { CborTextString } from "../data-element/cbor-text-string";
+import { CborTextString } from "../cbor/types/cbor-text-string";
 
 export class ItemsRequest {
 

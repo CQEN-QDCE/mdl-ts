@@ -1,8 +1,8 @@
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { CborNumber } from "../data-element/cbor-number";
-import { CborTextString } from "../data-element/cbor-text-string";
+import { CborNumber } from "../cbor/types/cbor-number";
+import { CborTextString } from "../cbor/types/cbor-text-string";
 import { MobileDocument } from "../mobile-document";
 import { DeviceResponseStatus } from "./device-response-status.enum";
 import { CborConvertible } from "../cbor/cbor-convertible";

@@ -1,9 +1,9 @@
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
+import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { CborTextString } from "../data-element/cbor-text-string";
+import { CborTextString } from "../cbor/types/cbor-text-string";
 import { DeviceKeyInfo } from "../mso/device-key-info";
 import { IssuerSignedItem } from "../issuer-signed/issuer-signed-item";
 import { ValidityInfo } from "../mso/validity-info";

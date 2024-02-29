@@ -1,7 +1,7 @@
 import { DeviceRequest } from "./device-request";
 import { MobileDocumentRequest } from "../doc-request/mobile-document-request";
 import { COSESign1 } from "../cose/cose-sign-1";
-import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
+import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
 import { MapKey } from "../data-element/map-key";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborBoolean } from "../cbor/types/cbor-boolean";

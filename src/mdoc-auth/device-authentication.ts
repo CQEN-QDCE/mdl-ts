@@ -1,7 +1,7 @@
 import { CborConvertible } from "../cbor/cbor-convertible";
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
-import { CborTextString } from "../data-element/cbor-text-string";
+import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
+import { CborTextString } from "../cbor/types/cbor-text-string";
 import { CborArray } from "../data-element/cbor-array";
 
 export class DeviceAuthentication implements CborConvertible {

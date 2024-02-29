@@ -2,7 +2,7 @@ import { CborConvertible } from "../cbor/cbor-convertible";
 import { COSESign1 } from "../cose/cose-sign-1";
 import { CborArray } from "../data-element/cbor-array";
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborEncodedDataItem } from "../data-element/cbor-encoded-data-item";
+import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
 import { IssuerSignedItem } from "./issuer-signed-item";

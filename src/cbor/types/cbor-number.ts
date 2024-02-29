@@ -1,4 +1,4 @@
-import { CborDataItem } from "../cbor/cbor-data-item";
+import { CborDataItem } from "../cbor-data-item";
 
 export class CborNumber extends CborDataItem {
 

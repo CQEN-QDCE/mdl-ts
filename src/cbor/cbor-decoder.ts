@@ -1,20 +1,18 @@
 import * as CBOR from 'cbor';
-import { CborNil } from '../data-element/cbor-nil';
+import { CborNil } from './types/cbor-nil';
 import { MapKey } from '../data-element/map-key';
 import { MapElement } from '../data-element/map-element';
 import { CborDataItem } from './cbor-data-item';
 import { CborByteString } from './types/cbor-byte-string';
-import { CborTextString } from '../data-element/cbor-text-string';
-import { CborEncodedDataItem } from '../data-element/cbor-encoded-data-item';
-import { CborNumber } from '../data-element/cbor-number';
+import { CborTextString } from './types/cbor-text-string';
+import { CborEncodedDataItem } from './types/cbor-encoded-data-item';
+import { CborNumber } from './types/cbor-number';
 import { CborBoolean } from './types/cbor-boolean';
 import { CborFullDate } from '../data-element/cbor-full-date';
 import { TDateElement } from '../data-element/tdate-element';
-import { Hex } from '../utils/hex';
 import { COSESign1 } from '../cose/cose-sign-1';
 import { MobileSecurityObject } from '../mdoc/mobile-security-object';
 import { CborEncoder } from './cbor-encoder';
-import { Cbor } from './cbor';
 import { CborArray } from '../data-element/cbor-array';
 
 export class CborDecoder {
@@ -87,11 +85,6 @@ export class CborDecoder {
             }
         }
         throw new Error("Not implemented");
-    }
-
-    static fromCBORHex(encoded: string): CborDataItem {
-        const buffer = Hex.decode(encoded);
-        return CborDecoder.decode(buffer);
     }
 
     private static deserializeFullDate(object: any, tag: number): CborFullDate {

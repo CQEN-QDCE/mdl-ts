@@ -3,7 +3,7 @@ import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { CborNumber } from "../data-element/cbor-number";
+import { CborNumber } from "../cbor/types/cbor-number";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { CoseHeaders } from "./cose-headers";
 

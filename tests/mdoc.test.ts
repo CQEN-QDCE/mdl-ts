@@ -1,6 +1,6 @@
 import * as x509 from "@peculiar/x509";
 import { CborDecoder } from "../src/cbor/cbor-decoder";
-import { CborEncodedDataItem } from "../src/data-element/cbor-encoded-data-item";
+import { CborEncodedDataItem } from "../src/cbor/types/cbor-encoded-data-item";
 import { MapElement } from "../src/data-element/map-element";
 import { DeviceResponse } from "../src/data-retrieval/device-response";
 import { MDocRequestBuilder } from "../src/doc-request/mdoc-request-builder";
@@ -11,10 +11,10 @@ import { SimpleCOSECryptoProvider } from "../src/simple-cose-crypto-provider";
 import { SimpleCOSECryptoProviderKeyInfo } from "../src/simple-cose-crypto-provider-key-info";
 import { MobileDocumentBuilder } from "../src/mobile-document-builder";
 import { ValidityInfo } from "../src/mso/validity-info";
-import { CborTextString } from "../src/data-element/cbor-text-string";
+import { CborTextString } from "../src/cbor/types/cbor-text-string";
 import { CborFullDate } from "../src/data-element/cbor-full-date";
 import { MapKey } from "../src/data-element/map-key";
-import { CborNumber } from "../src/data-element/cbor-number";
+import { CborNumber } from "../src/cbor/types/cbor-number";
 import { MobileDocument } from "../src/mobile-document";
 import { IssuerSigned } from "../src/issuer-signed/issuer-signed";
 import { DeviceSigned } from "../src/mdoc/device-signed";
@@ -28,7 +28,7 @@ import { CborEncoder } from "../src/cbor/cbor-encoder";
 import { DeviceKeyInfo } from "../src/mso/device-key-info";
 import { CborDataItem } from "../src/cbor/cbor-data-item";
 import { CborByteString } from "../src/cbor/types/cbor-byte-string";
-import { CborNil } from "../src/data-element/cbor-nil";
+import { CborNil } from "../src/cbor/types/cbor-nil";
 import { MDL } from "../src/mdl";
 import { CoseKey } from "../src/cose/cose-key";
 import { ItemsRequest } from "../src/doc-request/items-request";
@@ -211,8 +211,8 @@ describe('testing mdoc', () => {
         const test = new CborEncodedDataItem(readerAuthenticationBytes);
         const encodedCBORElement = CborDecoder.decode(test.getValue());
         const de = CborDecoder.decode(encodedCBORElement.getValue() as ArrayBuffer);
-        const test1 = de.getValue()[2].decode();
-        const readerAuthentication = new ReaderAuthentication(de.getValue()[1], ItemsRequest.fromMapElement(<MapElement>test1));
+        const test1 = CborDecoder.decode(de[2].getValue() as ArrayBuffer);
+        const readerAuthentication = new ReaderAuthentication(de[1], ItemsRequest.fromMapElement(<MapElement>test1));
         expect((<CborTextString>readerAuthentication.dataItems[0]).getValue()).toBe('ReaderAuthentication');
         const certificateDER = deviceRequest.mobileDocumentRequests[0].readerAuthentication.x5Chain;
         const cert = new x509.X509Certificate(Hex.encode(certificateDER));
@@ -368,19 +368,20 @@ describe('testing mdoc', () => {
         // expect(parsedMDocRequest.decodedItemsRequest.nameSpaces.value).toBe(mdocRequest.decodedItemsRequest.nameSpaces.value);
     });
 
-    test('List of any', () => {
-        const list = new CborArray([new CborNumber(1), 
-                                      new MapElement(new Map<MapKey, CborDataItem>([[new MapKey('a'), new CborNumber(1)]])),
-                                      new CborNil(),
-                                      new CborByteString(Int8Array.from([1,-2]).buffer)]);
-        const cborHex = Hex.encode(CborEncoder.encode(list));
-        const parsedList = <CborArray>CborDecoder.fromCBORHex(cborHex);
-        expect(parsedList.getValue().length).toBe(4);
-        expect(parsedList.getValue()[0] instanceof CborNumber).toBeTruthy();
-        expect(parsedList.getValue()[0].getValue()).toBe(1);
-        expect(parsedList.getValue()[1] instanceof MapElement).toBeTruthy();
-        expect(parsedList.getValue()[2] instanceof CborNil).toBeTruthy();
-        expect(parsedList.getValue()[3] instanceof CborByteString).toBeTruthy();
+    test('Array of any', () => {
+        
+        const cborArray = new CborArray([new CborNumber(1), 
+                                         new MapElement(new Map<MapKey, CborDataItem>([[new MapKey('a'), new CborNumber(1)]])),
+                                         new CborNil(),
+                                         new CborByteString(Int8Array.from([1,-2]).buffer)]);
+        const encodedCborArray = CborEncoder.encode(cborArray);
+        const decodedCborArray = CborDecoder.decode(encodedCborArray) as CborArray;
+        expect(decodedCborArray.length).toBe(4);
+        expect(decodedCborArray[0] instanceof CborNumber).toBeTruthy();
+        expect(decodedCborArray[0].getValue()).toBe(1);
+        expect(decodedCborArray[1] instanceof MapElement).toBeTruthy();
+        expect(decodedCborArray[2] instanceof CborNil).toBeTruthy();
+        expect(decodedCborArray[3] instanceof CborByteString).toBeTruthy();
     });
 
     test('Device request deserialization', () => {

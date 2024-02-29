@@ -4,8 +4,8 @@ import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { CborNumber } from "../data-element/cbor-number";
-import { CborTextString } from "../data-element/cbor-text-string";
+import { CborNumber } from "../cbor/types/cbor-number";
+import { CborTextString } from "../cbor/types/cbor-text-string";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { COSEObject } from "./cose-object";
@@ -112,11 +112,11 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
     fromCborDataItem(dataItem: CborDataItem): COSEMac0 {
         const cborArray = <CborArray>dataItem;
         const message = new COSEMac0();
-        this.decodeProtectedHeaders(cborArray.getValue()[0] as CborByteString, message);
-        this.decodeUnprotectedHeaders(<MapElement>cborArray.getValue()[1], message);
+        this.decodeProtectedHeaders(cborArray[0] as CborByteString, message);
+        this.decodeUnprotectedHeaders(<MapElement>cborArray[1], message);
         message.dataElements = cborArray.getValue();
-        message.content = cborArray.getValue()[2].getValue();
-        message.digest = cborArray.getValue()[3].getValue();
+        message.content = cborArray[2].getValue();
+        message.digest = cborArray[3].getValue();
         return message;
     }
 

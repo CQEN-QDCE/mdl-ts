@@ -7,8 +7,8 @@ import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapElement } from "../data-element/map-element";
 import { MapKey } from "../data-element/map-key";
-import { CborNumber } from "../data-element/cbor-number";
-import { CborTextString } from "../data-element/cbor-text-string";
+import { CborNumber } from "../cbor/types/cbor-number";
+import { CborTextString } from "../cbor/types/cbor-text-string";
 import { Base64 } from "../utils/base64";
 
 export class CborWebToken {

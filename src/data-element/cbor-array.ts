@@ -21,6 +21,9 @@ export class CborArray extends CborDataItem implements Iterable<CborDataItem> {
         });
     }
 
+    _(): CborDataItem[] {
+        return this.value;
+    }
     
     get [Symbol.toStringTag]() {
         return "ObjectHandler";
@@ -34,9 +37,9 @@ export class CborArray extends CborDataItem implements Iterable<CborDataItem> {
         }
     }
 
-    get<T extends CborDataItem>(index: number): T {
-        return this.value[index] as T;
-    }
+//    get<T extends CborDataItem>(index: number): T {
+//        return this.value[index] as T;
+//    }
 
     add(value: CborDataItem): void {
         this.value.push(value);
@@ -48,12 +51,6 @@ export class CborArray extends CborDataItem implements Iterable<CborDataItem> {
 
     get length(): number {
         return this.value.length;
-    }
-
-    private values(): CborDataItem[] {
-        const values:CborDataItem[] = [];
-        for (const i of Object.keys(this).map(Number)) if (!isNaN(i)) values.push(this[i]);
-        return values;
     }
  
     private isSafeArrayIndex(propKey: string): boolean {

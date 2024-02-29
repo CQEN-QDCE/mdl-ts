@@ -2,13 +2,30 @@ import { CborArray } from "../../../src/data-element/cbor-array";
 import { CborBoolean } from "../../../src/cbor/types/cbor-boolean";
 import { CborByteString } from "../../../src/cbor/types/cbor-byte-string";
 import { CborDataItem } from "../../../src/cbor/cbor-data-item";
+import { ExtendedArray } from "../../../src/data-element/test";
+import { CborArray2, CborBoolean2, CborDataItem2, CborNumber2 } from "../../../src/cbor/cbor-types";
 
 describe('testing CborXCodec', () => {
     test('Serialization', async () => {
         let cborBoolean = new CborBoolean(true);
         let cborArray = new CborArray();
+
+        let cborNumber2 = new CborNumber2(4);
+        let cborBoolean2 = new CborBoolean2(true);
+        let dataItem2: CborDataItem2 = cborBoolean2;
+        if (dataItem2 instanceof CborBoolean2) {
+            let t = 1;
+        }
+        let cborArray2 = new CborArray2(cborNumber2, cborNumber2, cborBoolean2);
+        cborArray2[100] = cborNumber2;
+        //cborArray2.push(9)
+        
+        let myProxy = new ExtendedArray();
+        myProxy[5] = 7;
+        
         if (cborArray instanceof CborDataItem) {
             let t = 1;
+        
         }
         cborArray.add(cborBoolean);
         cborArray.add(cborBoolean);

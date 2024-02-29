@@ -1,5 +1,5 @@
-import { CborDataItem } from "../cbor/cbor-data-item";
-import { CborEncoder } from "../cbor/cbor-encoder";
+import { CborDataItem } from "../cbor-data-item";
+import { CborEncoder } from "../cbor-encoder";
 
 export class CborEncodedDataItem extends CborDataItem {
     

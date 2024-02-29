@@ -4,7 +4,7 @@ import { Base64 } from '../utils/base64';
 import { MapElement } from '../data-element/map-element';
 import { CborDataItem } from '../cbor/cbor-data-item';
 import { MapKey } from '../data-element/map-key';
-import { CborNumber } from '../data-element/cbor-number';
+import { CborNumber } from '../cbor/types/cbor-number';
 import { CborByteString } from '../cbor/types/cbor-byte-string';
 import { CborConvertible } from "../cbor/cbor-convertible";
 
