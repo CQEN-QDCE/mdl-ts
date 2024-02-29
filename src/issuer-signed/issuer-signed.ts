@@ -26,7 +26,7 @@ export class IssuerSigned implements CborConvertible {
         for (const [key, value] of (<CborMap>nameSpaces).getValue()) {
             const issuerSignedItems: IssuerSignedItem[] = [];
             for (const encodedCborElement of <CborEncodedDataItem[]>value.getValue()) {
-                issuerSignedItems.push(IssuerSignedItem.fromMapElement(<CborMap>CborDecoder.decode(encodedCborElement.getValue())));
+                issuerSignedItems.push(CborDataItem.to(IssuerSignedItem, <CborMap>CborDecoder.decode(encodedCborElement.getValue())));
             }
             nameSpaces2.set(key as string, issuerSignedItems);
         }

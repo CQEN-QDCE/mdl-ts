@@ -43,7 +43,7 @@ export class MobileDocumentBuilder {
 
     public async sign(validityInfo: ValidityInfo, deviceKeyInfo: DeviceKeyInfo, cryptoProvider: COSECryptoProvider, keyID: string | null = null): Promise<MobileDocument> {
         const mso = await MobileSecurityObject.build(this.issuerNamespaces, deviceKeyInfo, this.docType, validityInfo);
-        const payload = CborEncoder.encode(CborEncodedDataItem.encode(mso.toMapElement()));
+        const payload = CborEncoder.encode(CborEncodedDataItem.encode(CborDataItem.from(mso)));
         const issuerAuth = await cryptoProvider.sign1(payload, keyID);
         return this.build(issuerAuth);
     }

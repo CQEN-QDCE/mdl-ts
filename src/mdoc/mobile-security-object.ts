@@ -10,9 +10,10 @@ import { DigestAlgorithm } from "./digest-algorithm.enum";
 import { Crypto } from "@peculiar/webcrypto";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
+import { CborConvertible } from "../cbor/cbor-convertible";
 
 // Mobile security object (MSO), representing the payload of the issuer signature, for the issuer signed part of the mdoc.
-export class MobileSecurityObject {
+export class MobileSecurityObject implements CborConvertible {
 
     public readonly version: string;
     public readonly digestAlgorithm: DigestAlgorithm;
@@ -24,7 +25,7 @@ export class MobileSecurityObject {
     public readonly validity: ValidityInfo;
     private readonly deviceKeyInfo: DeviceKeyInfo;
 
-    private constructor(version: string, 
+    public constructor(version: string, 
                         digestAlgorithm: DigestAlgorithm,
                         valueDigests: Map<string, Map<number, ArrayBuffer>>,
                         deviceKeyInfo: DeviceKeyInfo,
@@ -59,7 +60,8 @@ export class MobileSecurityObject {
         return mso;
     }
 
-    static fromMapElement(cborMap: CborMap): MobileSecurityObject {
+    fromCborDataItem(dataItem: CborDataItem): MobileSecurityObject {
+        const cborMap = <CborMap>dataItem;
         const version = <CborTextString>cborMap.get('version');
         const digestAlgorithm = <CborTextString>cborMap.get('digestAlgorithm');
         const valueDigests = <CborMap>cborMap.get('valueDigests');
@@ -86,7 +88,7 @@ export class MobileSecurityObject {
                                         validityInfo);
     }
 
-    toMapElement(): CborMap {
+    toCborDataItem(): CborDataItem {
         const valueDigestNamespaces = new Map<string | number, CborDataItem>();
         for (const [namespace, valueDigests2] of this.valueDigests) {
             const nameSpaceDigests = new Map<string | number, CborDataItem>();

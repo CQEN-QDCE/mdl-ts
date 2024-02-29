@@ -64,7 +64,7 @@ export class CborDecoder {
                 let message = CborDataItem.to(COSESign1, cborArray);
                 let payload = message.payload;
                 let test = CborDecoder.decode(payload);
-                let mso = MobileSecurityObject.fromMapElement(<CborMap>test);
+                //let mso = MobileSecurityObject.fromMapElement(<CborMap>test);
                 throw new Error("Not implemented");
             } else if (object.tag === 1004 || object.tag === 100) { // Cbor FULL_DATE_STR = 1004L or FULL_DATE_INT = 100L
                 return this.deserializeFullDate(object, object.tag);

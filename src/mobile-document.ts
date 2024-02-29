@@ -179,8 +179,8 @@ export class MobileDocument implements CborConvertible {
     private initMobileSecurityObject(): MobileSecurityObject {
         const payload = this.issuerSigned.issuerAuth.payload;
         const encodedCBORElement = <CborEncodedDataItem>CborDecoder.decode(payload);
-        const mapElement = <CborMap>CborDecoder.decode(encodedCBORElement.getValue());
-        return MobileSecurityObject.fromMapElement(mapElement);
+        const cborMap = <CborMap>CborDecoder.decode(encodedCBORElement.getValue());
+        return CborDataItem.to(MobileSecurityObject, cborMap);
     }
 
     private initIssuerNamespaces(): Set<string> {
