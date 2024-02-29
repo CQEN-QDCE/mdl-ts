@@ -1,7 +1,7 @@
 import * as CBOR from 'cbor';
 import { CborNil } from './types/cbor-nil';
 import { MapKey } from '../data-element/map-key';
-import { MapElement } from '../data-element/map-element';
+import { CborMap } from '../data-element/cbor-map';
 import { CborDataItem } from './cbor-data-item';
 import { CborByteString } from './types/cbor-byte-string';
 import { CborTextString } from './types/cbor-text-string';
@@ -44,7 +44,7 @@ export class CborDecoder {
             for (const [key, value] of object.entries()) {
                 map.set(new MapKey(key), CborDecoder.deserialize(value));
             }
-            return new MapElement(map);
+            return new CborMap(map);
         } else {
             if (object.tag === 24) { // ENCODED_CBOR = 24L
                 if (object.value instanceof ArrayBuffer || object.value instanceof Buffer) return new CborEncodedDataItem(object.value);
@@ -61,13 +61,13 @@ export class CborDecoder {
                 cborArray.push(new CborByteString(object.value[0]));
                 const map = new Map<MapKey, CborDataItem>();
                 map.set(new MapKey(33), new CborByteString(object.value[1].get(33)));
-                cborArray.push(new MapElement(map));
+                cborArray.push(new CborMap(map));
                 cborArray.push(new CborByteString(object.value[2]));
                 cborArray.push(new CborByteString(object.value[3]));
                 let message = CborDataItem.to(COSESign1, cborArray);
                 let payload = message.payload;
                 let test = CborDecoder.decode(payload);
-                let mso = MobileSecurityObject.fromMapElement(<MapElement>test);
+                let mso = MobileSecurityObject.fromMapElement(<CborMap>test);
                 throw new Error("Not implemented");
             } else if (object.tag === 1004 || object.tag === 100) { // Cbor FULL_DATE_STR = 1004L or FULL_DATE_INT = 100L
                 return this.deserializeFullDate(object, object.tag);
@@ -81,7 +81,7 @@ export class CborDecoder {
                 for (const [key, value] of Object.entries(object)) {
                     map.set(new MapKey(key), CborDecoder.deserialize(value));
                 }
-                return new MapElement(map);
+                return new CborMap(map);
             }
         }
         throw new Error("Not implemented");

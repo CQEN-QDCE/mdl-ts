@@ -4,7 +4,7 @@ import { COSEObject } from "./cose-object";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { CoseAlgorithm } from "./cose-algorithm.enum";
-import { MapElement } from "../data-element/map-element";
+import { CborMap } from "../data-element/cbor-map";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { MapKey } from "../data-element/map-key";
 import { CborDataItem } from "../cbor/cbor-data-item";
@@ -74,7 +74,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
     private encodeProtectedHeaders(): ArrayBuffer {
         let map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey(CoseHeaderLabel.ALG), new CborNumber(this.headers.algorithm.value));
-        return CborEncoder.encode(new MapElement(map));
+        return CborEncoder.encode(new CborMap(map));
     }
 
     private decodeProtectedHeaders(protectedHeaders: CborByteString, message: COSESign1): void {
@@ -87,7 +87,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
         };
     }
 
-    private decodeUnprotectedHeaders(unprotectedHeaders: MapElement, message: COSESign1): void {
+    private decodeUnprotectedHeaders(unprotectedHeaders: CborMap, message: COSESign1): void {
         for(const [key, value] of unprotectedHeaders.getValue()) {
             switch(key.int) {
                 case CoseHeaderLabel.ALG:
@@ -103,7 +103,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
         const cborArray = <CborArray>dataItem;
         const message = new COSESign1();
         this.decodeProtectedHeaders(cborArray[0] as CborByteString, message);
-        this.decodeUnprotectedHeaders(<MapElement>cborArray[1], message);
+        this.decodeUnprotectedHeaders(<CborMap>cborArray[1], message);
         message.dataElements = cborArray.getValue();
         message.content = cborArray[2].getValue();
         message.signature = cborArray[3].getValue();
@@ -117,7 +117,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
         if (this.headers.x5Chain.value) {
             map.set(new MapKey(CoseHeaderLabel.X5_CHAIN), new CborByteString(this.headers.x5Chain.value));
         }
-        cborArray.push(new MapElement(new Map<MapKey, CborDataItem>()));
+        cborArray.push(new CborMap(new Map<MapKey, CborDataItem>()));
         cborArray.push(new CborByteString(this.content));
         cborArray.push(new CborByteString(this.signature));
         return cborArray;

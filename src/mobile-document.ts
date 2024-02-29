@@ -4,7 +4,7 @@ import { CborDataItem } from "./cbor/cbor-data-item";
 import { CborDecoder } from "./cbor/cbor-decoder";
 import { CborEncoder } from "./cbor/cbor-encoder";
 import { CborEncodedDataItem } from "./cbor/types/cbor-encoded-data-item";
-import { MapElement } from "./data-element/map-element";
+import { CborMap } from "./data-element/cbor-map";
 import { MapKey } from "./data-element/map-key";
 import { CborNumber } from "./cbor/types/cbor-number";
 import { CborTextString } from "./cbor/types/cbor-text-string";
@@ -142,7 +142,7 @@ export class MobileDocument implements CborConvertible {
 
     public async presentWithDeviceSignature(mDocRequest: MobileDocumentRequest, deviceAuthentication: DeviceAuthentication, cryptoProvider: COSECryptoProvider, keyID: string = null): Promise<MobileDocument> {
         const coseSign1 = (await cryptoProvider.sign1(this.getDeviceSignedPayload(deviceAuthentication), keyID)).detachPayload();
-        const namespaces = CborEncodedDataItem.encode(new MapElement(new Map<MapKey, CborDataItem>));
+        const namespaces = CborEncodedDataItem.encode(new CborMap(new Map<MapKey, CborDataItem>));
         const deviceAuth = new DeviceAuth(null, coseSign1);
         return new MobileDocument(this.docType, 
                                   this.selectDisclosures(mDocRequest),
@@ -156,7 +156,7 @@ export class MobileDocument implements CborConvertible {
         coseMac0.detachPayload();
         return new MobileDocument(this.docType, 
                                   this.selectDisclosures(mobileDocumentRequest), 
-                                  new DeviceSigned(new CborEncodedDataItem(CborEncoder.encode(new MapElement(new Map<MapKey, CborDataItem>))), 
+                                  new DeviceSigned(new CborEncodedDataItem(CborEncoder.encode(new CborMap(new Map<MapKey, CborDataItem>))), 
                                   new DeviceAuth(coseMac0)));
     }
 
@@ -180,7 +180,7 @@ export class MobileDocument implements CborConvertible {
     private initMobileSecurityObject(): MobileSecurityObject {
         const payload = this.issuerSigned.issuerAuth.payload;
         const encodedCBORElement = <CborEncodedDataItem>CborDecoder.decode(payload);
-        const mapElement = <MapElement>CborDecoder.decode(encodedCBORElement.getValue());
+        const mapElement = <CborMap>CborDecoder.decode(encodedCBORElement.getValue());
         return MobileSecurityObject.fromMapElement(mapElement);
     }
 
@@ -189,13 +189,13 @@ export class MobileDocument implements CborConvertible {
     }
 
     fromCborDataItem(dataItem: CborDataItem): MobileDocument {
-        const mapElement = <MapElement>dataItem;
+        const mapElement = <CborMap>dataItem;
         const docType = mapElement.get(new MapKey('docType'));
         const issuerSigned = mapElement.get(new MapKey('issuerSigned'));
         const deviceSigned = mapElement.get(new MapKey('deviceSigned'));
         this.docType = (<CborTextString>docType).getValue();
-        this.issuerSigned = CborDataItem.to(IssuerSigned, <MapElement>issuerSigned);
-        this.deviceSigned = deviceSigned ? CborDataItem.to(DeviceSigned, <MapElement>deviceSigned) : null;
+        this.issuerSigned = CborDataItem.to(IssuerSigned, <CborMap>issuerSigned);
+        this.deviceSigned = deviceSigned ? CborDataItem.to(DeviceSigned, <CborMap>deviceSigned) : null;
         return new MobileDocument(this.docType, this.issuerSigned, this.deviceSigned);
     }
 
@@ -211,10 +211,10 @@ export class MobileDocument implements CborConvertible {
                 for(const [identifier, errorCode] of dataElements) {
                     dataElementsMap.set(new MapKey(identifier), new CborNumber(errorCode));
                 }
-                namespacesMap.set(new MapKey(namespace), new MapElement(dataElementsMap));
+                namespacesMap.set(new MapKey(namespace), new CborMap(dataElementsMap));
             }
-            map.set(new MapKey('errors'), new MapElement(namespacesMap));
+            map.set(new MapKey('errors'), new CborMap(namespacesMap));
         }
-        return new MapElement(map);
+        return new CborMap(map);
     }
 }

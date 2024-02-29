@@ -4,7 +4,7 @@ import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
 import { CborNil } from "../cbor/types/cbor-nil";
 import { CborNumber } from "../cbor/types/cbor-number";
-import { MapElement } from "./map-element";
+import { CborMap } from "./cbor-map";
 
 /*
 export class CborArray extends Array<CborArray | CborNumber | CborBoolean | CborNil | CborByteString | CborByteString | CborEncodedDataItem | MapElement> implements CborDataItem {
@@ -26,7 +26,7 @@ export class CborArray extends Array<CborArray | CborNumber | CborBoolean | Cbor
 */
 export class CborArray extends Array<CborDataItem> implements CborDataItem {
     majorType: number;
-    constructor(...value: (CborArray | CborNumber | CborBoolean | CborNil | CborByteString | CborByteString | CborEncodedDataItem | MapElement)[]) {
+    constructor(...value: (CborArray | CborNumber | CborBoolean | CborNil | CborByteString | CborByteString | CborEncodedDataItem | CborMap)[]) {
         super();
         this.push(...value);
         this.majorType = 0;

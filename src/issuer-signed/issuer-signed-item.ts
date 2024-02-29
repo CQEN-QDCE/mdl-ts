@@ -1,6 +1,6 @@
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
-import { MapElement } from "../data-element/map-element";
+import { CborMap } from "../data-element/cbor-map";
 import { MapKey } from "../data-element/map-key";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
@@ -22,16 +22,16 @@ export class IssuerSignedItem {
                                     elementValue);
     }
     
-    toMapElement(): MapElement {
+    toMapElement(): CborMap {
         const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('digestID'), new CborNumber(this.digestID));
         map.set(new MapKey('random'), new CborByteString(this.randomSalt));
         map.set(new MapKey('elementIdentifier'), new CborTextString(this.elementIdentifier));
         map.set(new MapKey('elementValue'), this.elementValue);
-        return new MapElement(map);
+        return new CborMap(map);
     }
 
-    static fromMapElement(element: MapElement): IssuerSignedItem {
+    static fromMapElement(element: CborMap): IssuerSignedItem {
         const digestID = element.get(new MapKey('digestID'));
         const random = element.get(new MapKey('random'));
         const elementIdentifier = element.get(new MapKey('elementIdentifier'));

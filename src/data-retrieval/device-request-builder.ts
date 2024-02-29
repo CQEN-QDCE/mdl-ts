@@ -5,7 +5,7 @@ import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
 import { MapKey } from "../data-element/map-key";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborBoolean } from "../cbor/types/cbor-boolean";
-import { MapElement } from "../data-element/map-element";
+import { CborMap } from "../data-element/cbor-map";
 import { ItemsRequest } from "../doc-request/items-request";
 
 export class DeviceRequestBuilder {
@@ -75,9 +75,9 @@ export namespace DeviceRequestBuilder {
                 for (const elementIdentifier of value.keys()) {
                     innerMap.set(new MapKey(elementIdentifier), new CborBoolean(value.get(elementIdentifier)));
                 }
-                outerMap.set(new MapKey(nameSpace), new MapElement(innerMap));
+                outerMap.set(new MapKey(nameSpace), new CborMap(innerMap));
             }
-            const itemsRequest = new ItemsRequest(this.docType, new MapElement(outerMap));
+            const itemsRequest = new ItemsRequest(this.docType, new CborMap(outerMap));
             return CborEncodedDataItem.encode(itemsRequest.toMapElement());
         }
     }

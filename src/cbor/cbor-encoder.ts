@@ -1,5 +1,5 @@
 import cbor, { Tagged } from 'cbor';
-import { MapElement } from '../data-element/map-element';
+import { CborMap } from '../data-element/cbor-map';
 import { CborDataItem } from './cbor-data-item';
 import { MapKeyType } from '../data-element/map-key-type.enum';
 import { CborEncodedDataItem } from './types/cbor-encoded-data-item';
@@ -14,7 +14,7 @@ export class CborEncoder {
     }
 
     private static convertToPlainObject(dataItem: CborDataItem): any {
-        if (dataItem instanceof MapElement) {
+        if (dataItem instanceof CborMap) {
             return CborEncoder.convertToMap(dataItem);
         } else if (dataItem instanceof CborArray) {
             return CborEncoder.convertToArray(dataItem);
@@ -27,7 +27,7 @@ export class CborEncoder {
         }
     }
 
-    private static convertToMap(cborMap: MapElement): Map<string | number, any> {
+    private static convertToMap(cborMap: CborMap): Map<string | number, any> {
         const map = new Map<string | number, any>();
         for (const [mapKey, dataElement] of cborMap.getValue()) {
             if (dataElement === null) continue;

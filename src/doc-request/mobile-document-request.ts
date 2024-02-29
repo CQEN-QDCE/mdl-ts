@@ -4,7 +4,7 @@ import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { MapElement } from "../data-element/map-element";
+import { CborMap } from "../data-element/cbor-map";
 import { MapKey } from "../data-element/map-key";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { MDocRequestVerificationParams } from "./mdoc-request-verification-params";
@@ -74,11 +74,11 @@ export class MobileDocumentRequest {
         return true;
     }
 
-    toMapElement(): MapElement {
+    toMapElement(): CborMap {
         const map = new Map<MapKey, CborDataItem>();
         map.set(new MapKey('itemsRequest'), this.itemsRequestBytes);
         if (this.readerAuthentication) map.set(new MapKey('readerAuth'), CborDataItem.from(this.readerAuthentication));
-        return new MapElement(map);
+        return new CborMap(map);
     }
 
     private getReaderSignedPayload(readerAuthentication: ReaderAuthentication): ArrayBuffer {
@@ -87,10 +87,10 @@ export class MobileDocumentRequest {
     
     private initItemsRequest(): ItemsRequest {
         const dataElement = CborDecoder.decode(this.itemsRequestBytes.getValue());
-        const mapElement = <MapElement>dataElement;
+        const mapElement = <CborMap>dataElement;
         const docType = mapElement.get(new MapKey('docType'));
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
-        return new ItemsRequest((<CborTextString>docType).getValue(), <MapElement>nameSpaces);
+        return new ItemsRequest((<CborTextString>docType).getValue(), <CborMap>nameSpaces);
     }
 
     private initNamespaces(): string[] {

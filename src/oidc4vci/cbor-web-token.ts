@@ -5,7 +5,7 @@ import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborEncoder } from "../cbor/cbor-encoder";
-import { MapElement } from "../data-element/map-element";
+import { CborMap } from "../data-element/cbor-map";
 import { MapKey } from "../data-element/map-key";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
@@ -96,7 +96,7 @@ export class CborWebToken {
         const coseMessage = CborDataItem.to(COSEMac0, listElement);
         cwt.coseMacMessage = coseMessage;
         const payload = coseMessage.payload;
-        cwt.deserializeClaims(<MapElement>CborDecoder.decode(payload));
+        cwt.deserializeClaims(<CborMap>CborDecoder.decode(payload));
         return cwt;
     }
 
@@ -109,7 +109,7 @@ export class CborWebToken {
         return CborWebToken.fromListElement(test);
     } 
 
-    private serializeClaims(): MapElement {
+    private serializeClaims(): CborMap {
         const payload = new Map<MapKey, CborDataItem>();
 
         if (this.issuer) {
@@ -149,10 +149,10 @@ export class CborWebToken {
         if (this.nonce) {
             payload.set(new MapKey(CborWebToken.NONCE_KEY), new CborByteString(this.nonce));
         }
-        return new MapElement(payload);
+        return new CborMap(payload);
     }
 
-    private deserializeClaims(payload: MapElement): void {
+    private deserializeClaims(payload: CborMap): void {
         const issStringElement = payload.get(new MapKey(CborWebToken.ISS_KEY));
         if (issStringElement) this.issuer = issStringElement.getValue();
 

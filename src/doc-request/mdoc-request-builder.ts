@@ -3,7 +3,7 @@ import { COSESign1 } from "../cose/cose-sign-1";
 import { CborBoolean } from "../cbor/types/cbor-boolean";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncodedDataItem } from "../cbor/types/cbor-encoded-data-item";
-import { MapElement } from "../data-element/map-element";
+import { CborMap } from "../data-element/cbor-map";
 import { MapKey } from "../data-element/map-key";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { ItemsRequest } from "./items-request";
@@ -48,10 +48,10 @@ export class MDocRequestBuilder {
 
     private buildItemsRequest(encodedItemsRequest: CborEncodedDataItem): ItemsRequest {
         const dataElement = CborDecoder.decode(encodedItemsRequest.getValue());
-        const mapElement = <MapElement>dataElement;
+        const mapElement = <CborMap>dataElement;
         const docType = mapElement.get(new MapKey('docType'));
         const nameSpaces = mapElement.get(new MapKey('nameSpaces'));
-        return new ItemsRequest((<CborTextString>docType).getValue(), <MapElement>nameSpaces);
+        return new ItemsRequest((<CborTextString>docType).getValue(), <CborMap>nameSpaces);
     }
     
     private buildEncodedItemsRequest(): CborEncodedDataItem {
@@ -62,9 +62,9 @@ export class MDocRequestBuilder {
             for (const elementIdentifier of value.keys()) {
                 innerMap.set(new MapKey(elementIdentifier), new CborBoolean(value.get(elementIdentifier)));
             }
-            outerMap.set(new MapKey(nameSpace), new MapElement(innerMap));
+            outerMap.set(new MapKey(nameSpace), new CborMap(innerMap));
         }
-        const itemsRequest = new ItemsRequest(this.docType, new MapElement(outerMap));
+        const itemsRequest = new ItemsRequest(this.docType, new CborMap(outerMap));
         return CborEncodedDataItem.encode(itemsRequest.toMapElement());
     }
 }
