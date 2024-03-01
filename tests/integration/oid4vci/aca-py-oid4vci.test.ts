@@ -2,7 +2,7 @@ import axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { Cbor } from '../../../src/cbor/cbor';
 import { IssuerSigned } from '../../../src/issuer-signed/issuer-signed';
 import { Hex } from '../../../src/utils/hex';
-import { MobileDocument } from '../../../src/mobile-document';
+import { MobileDocument } from '../../../src/mdoc/mobile-document';
 describe("ACA-py OID4VC Tests", () => {
     
 //    let localhost1: string = 'http://localhost:3001';

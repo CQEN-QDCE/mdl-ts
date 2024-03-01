@@ -11,7 +11,7 @@ export class SimpleCOSECryptoProviderKeyInfo {
     constructor(keyID: string,
                 algorithmID: string,  
                 publicKey: CryptoKey,
-                privateKey: CryptoKey,
+                privateKey: CryptoKey | null,
                 x5Chain: x509.X509Certificate[] = [],
                 trustedRootCAs: x509.X509Certificate[] = []) {
         this.keyID = keyID;

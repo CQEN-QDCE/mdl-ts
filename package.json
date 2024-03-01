@@ -2,7 +2,8 @@
   "name": "mdl-ts",
   "version": "0.1.0",
   "description": "Typescript mDL library (ISO/IEC 18013-5:2021)",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
     "lint": "eslint . --ext .ts"

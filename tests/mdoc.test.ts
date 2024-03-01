@@ -7,18 +7,13 @@ import { MDocRequestBuilder } from "../src/doc-request/mdoc-request-builder";
 import { DeviceAuthentication } from "../src/mdoc-auth/device-authentication";
 import { TestCertificates } from "./test-certificates";
 import { TestCertificatesBuilder } from "./test-certificates-builder";
-import { SimpleCOSECryptoProvider } from "../src/simple-cose-crypto-provider";
-import { SimpleCOSECryptoProviderKeyInfo } from "../src/simple-cose-crypto-provider-key-info";
-import { MobileDocumentBuilder } from "../src/mobile-document-builder";
 import { ValidityInfo } from "../src/mso/validity-info";
 import { CborFullDate } from "../src/cbor/types/cbor-full-date";
 import { CborNumber } from "../src/cbor/types/cbor-number";
-import { MobileDocument } from "../src/mobile-document";
 import { IssuerSigned } from "../src/issuer-signed/issuer-signed";
 import { DeviceSigned } from "../src/mdoc/device-signed";
 import { DeviceRequest } from "../src/data-retrieval/device-request";
 import { Hex } from "../src/utils/hex";
-import { ReaderAuthentication } from "../src/reader-authentication";
 import { MDocRequestVerificationParams } from "../src/doc-request/mdoc-request-verification-params";
 import { VerificationType } from "../src/mdoc/verification-type.enum";
 import { MDocVerificationParams } from "../src/mdoc/mdoc-verification-params";
@@ -27,7 +22,6 @@ import { DeviceKeyInfo } from "../src/mso/device-key-info";
 import { CborDataItem } from "../src/cbor/cbor-data-item";
 import { CborByteString } from "../src/cbor/types/cbor-byte-string";
 import { CborNil } from "../src/cbor/types/cbor-nil";
-import { MDL } from "../src/mdl";
 import { CoseKey } from "../src/cose/cose-key";
 import { ItemsRequest } from "../src/doc-request/items-request";
 import { CoseAlgorithm } from "../src/cose/cose-algorithm.enum";
@@ -36,6 +30,12 @@ import { DigestAlgorithm } from "../src/mdoc/digest-algorithm.enum";
 import { Cbor } from "../src/cbor/cbor";
 import { CborArray } from "../src/cbor/types/cbor-array";
 import { CborTextString } from "../src/cbor/types/cbor-text-string";
+import { MobileDocument } from "../src/mdoc/mobile-document";
+import { MobileDocumentBuilder } from "../src/mdoc/mobile-document-builder";
+import { MDL } from "../src/mdoc/mdl";
+import { SimpleCOSECryptoProviderKeyInfo } from "../src/cose/simple-cose-crypto-provider-key-info";
+import { SimpleCOSECryptoProvider } from "../src/cose/simple-cose-crypto-provider";
+import { ReaderAuthentication } from "../src/mdoc-auth/reader-authentication";
 
 describe('testing mdoc', () => {
     
@@ -156,12 +156,13 @@ describe('testing mdoc', () => {
             const mdocMapElement = <CborMap>documentElement;
             const issuerSigned = CborDataItem.to(IssuerSigned, <CborMap>mdocMapElement.get('issuerSigned'));
             const deviceSigned = CborDataItem.to(DeviceSigned, <CborMap>mdocMapElement.get('deviceSigned'));
-            const mdoc2 = new MobileDocument(mdocMapElement.get('docType').getValue() as string, issuerSigned, deviceSigned);
+            const mdoc2 = new MobileDocument(mdocMapElement.get('docType')?.getValue() as string, issuerSigned, deviceSigned);
             mdocs.push(mdoc2);
         }
 
         const deviceResponse = new DeviceResponse(mdocs, versionElement.getValue(), statusElement.getValue());
-        const certificateDER = Buffer.from(deviceResponse.documents[0].issuerSigned.issuerAuth.x5Chain);
+        const x5Chain = deviceResponse.documents[0].issuerSigned.issuerAuth.x5Chain;
+        const certificateDER = Buffer.from(x5Chain ? x5Chain : new ArrayBuffer(0));
         const cert = new x509.X509Certificate(certificateDER.toString('hex'));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
             'ECDSA_256',
@@ -213,8 +214,9 @@ describe('testing mdoc', () => {
         const test1 = CborDecoder.decode(de[2].getValue() as ArrayBuffer);
         const readerAuthentication = new ReaderAuthentication(de[1], CborDataItem.to(ItemsRequest, test1 as CborMap));
         expect((<CborTextString>readerAuthentication.dataItems[0]).getValue()).toBe('ReaderAuthentication');
-        const certificateDER = deviceRequest.mobileDocumentRequests[0].readerAuthentication.x5Chain;
-        const cert = new x509.X509Certificate(Hex.encode(certificateDER));
+        const mdr = deviceRequest.mobileDocumentRequests[0].readerAuthentication;
+        const certificateDER = mdr ? mdr.x5Chain : new ArrayBuffer(0);
+        const cert = new x509.X509Certificate(Hex.encode(certificateDER ? certificateDER : new ArrayBuffer(0)));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(READER_KEY_ID, 
                                                                 'ECDSA_256',
                                                                 await cert.publicKey.export(), 
@@ -250,7 +252,8 @@ describe('testing mdoc', () => {
         expect(Array.from(nameSpaces)).toEqual([MDL.Namespace]);
         const issuerSignedItems = presentedMdoc.getIssuerSignedItems(MDL.Namespace);
         expect(issuerSignedItems.map((item) => item.elementIdentifier)).toEqual(['family_name', 'document_number']);
-        const certificateDER = Buffer.from(mdoc.issuerSigned.issuerAuth.x5Chain);
+        const x5Chain = mdoc.issuerSigned.issuerAuth.x5Chain;
+        const certificateDER = Buffer.from(x5Chain ? x5Chain : new ArrayBuffer(0));
         const cert = new x509.X509Certificate(certificateDER.toString('hex'));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
                                                                 'ECDSA_256',

@@ -7,7 +7,7 @@ import { CborMap } from "../cbor/types/cbor-map";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { ItemsRequest } from "./items-request";
 import { MobileDocumentRequest } from "./mobile-document-request";
-import { ReaderAuthentication } from "../reader-authentication";
+import { ReaderAuthentication } from "../mdoc-auth/reader-authentication";
 import { CborEncoder } from '../cbor/cbor-encoder';
 import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborArray } from "../cbor/types/cbor-array";

@@ -1,10 +1,10 @@
 import * as x509 from "@peculiar/x509";
-import { COSECryptoProvider } from "./cose/cose-crypto-provider";
-import { COSESign1 } from "./cose/cose-sign-1";
+import { COSECryptoProvider } from "./cose-crypto-provider";
+import { COSESign1 } from "./cose-sign-1";
 import { SimpleCOSECryptoProviderKeyInfo } from "./simple-cose-crypto-provider-key-info";
 import { Crypto } from "@peculiar/webcrypto";
-import { ArrayBufferComparer } from './utils/array-buffer-comparer';
-import { CoseAlgorithm } from './cose/cose-algorithm.enum';
+import { ArrayBufferComparer } from '../utils/array-buffer-comparer';
+import { CoseAlgorithm } from './cose-algorithm.enum';
 
 export class SimpleCOSECryptoProvider implements COSECryptoProvider {
 
