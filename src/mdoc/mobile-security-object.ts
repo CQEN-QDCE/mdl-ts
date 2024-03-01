@@ -71,14 +71,14 @@ export class MobileSecurityObject implements CborConvertible {
 
         // TODO: Nettoyer ce code.
         let valueDigests2 = new Map<string, Map<number, ArrayBuffer>>;
-        for(const [key, value] of valueDigests.getValue()) {
+        for(const [namespace, value] of valueDigests.getValue()) {
             const digestMap = new Map<number, ArrayBuffer>();
             for (const [key2, value2] of (<CborMap>value).getValue()) {
                 if (value2 instanceof CborByteString) {
                     digestMap.set(key2 as number, value2.getValue());
                 }
             }
-            valueDigests2.set(key as string, digestMap);
+            valueDigests2.set(namespace as string, digestMap);
         }
 
         return new MobileSecurityObject(version.getValue(), 

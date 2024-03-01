@@ -82,47 +82,11 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
         return ArrayBufferComparer.equals(this.tag, tag);
     }
 
-    private encodeProtectedHeaders(): ArrayBuffer {
-        const cborMap = new CborMap();
-        cborMap.set(CoseHeaderLabel.ALG, new CborNumber(this.headers.algorithm.value));
-        return CborEncoder.encode(cborMap);
-    }
-
-    private decodeProtectedHeaders(protectedHeaders: CborByteString, message: COSEMac0): void {
-        for(const [key, value] of CborDecoder.decode(protectedHeaders.getValue()).getValue()) {
-            switch(key.int) {
-                case CoseHeaderLabel.ALG:
-                    message.headers.algorithm.value = <CoseAlgorithm>value.getValue();
-                    break;
-            }
-        };
-    }
-
-    private encodeUnprotectedHeaders(): CborMap {
-        const cborMap = new CborMap();
-        if (this.headers.x5Chain.value) {
-            cborMap.set(CoseHeaderLabel.X5_CHAIN, new CborByteString(this.headers.x5Chain.value));
-        }
-        return cborMap;
-    }
-
-    private decodeUnprotectedHeaders(unprotectedHeaders: CborMap, message: COSEMac0): void {
-        for(const [key, value] of unprotectedHeaders.getValue()) {
-            switch(key) {
-                case CoseHeaderLabel.ALG:
-                    throw new Error('Algorithm must be in protected headers');
-                 case CoseHeaderLabel.X5_CHAIN:
-                    message.headers.x5Chain.value = value.getValue();
-                    break;
-                }
-        };
-    }
-
     fromCborDataItem(dataItem: CborDataItem): COSEMac0 {
         const cborArray = dataItem as CborArray;
         const message = new COSEMac0();
-        this.decodeProtectedHeaders(cborArray[0] as CborByteString, message);
-        this.decodeUnprotectedHeaders(cborArray[1] as CborMap, message);
+        message.decodeProtectedHeaders(cborArray[0] as CborByteString);
+        message.decodeUnprotectedHeaders(cborArray[1] as CborMap);
         message.dataElements = cborArray.getValue();
         message.content = cborArray[2].getValue();
         message.digest = cborArray[3].getValue();
