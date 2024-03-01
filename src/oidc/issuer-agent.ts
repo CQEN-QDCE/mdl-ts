@@ -1,5 +1,6 @@
 import { IssuedCredentialResult, Issuer } from "./issuer";
 import { CredentialRepresentation } from "./vc/credential-representation.enum";
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export class IssuerAgent implements Issuer {
 

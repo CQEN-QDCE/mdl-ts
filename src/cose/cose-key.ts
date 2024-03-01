@@ -1,4 +1,5 @@
 import { Crypto } from "@peculiar/webcrypto";
+import { CryptoKey } from "@peculiar/webcrypto";
 import { KeyKeys } from "./key-keys.enum";
 import { Base64 } from '../utils/base64';
 import { CborMap } from '../cbor/types/cbor-map';

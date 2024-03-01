@@ -1,4 +1,5 @@
 import * as x509 from "@peculiar/x509";
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export class SimpleCOSECryptoProviderKeyInfo {
     keyID: string;

@@ -1,6 +1,7 @@
 import { JsonStringifier } from "../../utils/json.stringifier";
 import { Jwt } from "../Jwt";
 import { OidcClient } from "./oidc-client";
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export class OidcServerRetrievalProcess {
 

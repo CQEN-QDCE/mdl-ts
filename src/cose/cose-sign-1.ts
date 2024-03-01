@@ -1,4 +1,5 @@
 import { Crypto } from "@peculiar/webcrypto";
+import { CryptoKey } from "@peculiar/webcrypto";
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { COSEObject } from "./cose-object";
 import { CoseAlgorithm } from "./cose-algorithm.enum";

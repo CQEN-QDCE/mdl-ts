@@ -9,6 +9,7 @@ import { CborMap } from "../cbor/types/cbor-map";
 import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { Base64 } from "../utils/base64";
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export class CborWebToken {
   

@@ -1,5 +1,6 @@
 import { CredentialRepresentation } from "./vc/credential-representation.enum";
 import { CredentialScheme } from "./vc/credential-scheme";
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export interface Issuer {
     

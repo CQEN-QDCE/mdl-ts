@@ -1,6 +1,7 @@
 import { Base64 } from "../utils/base64";
 import * as x509 from "@peculiar/x509";
 import { Crypto } from "@peculiar/webcrypto";
+import { CryptoKey } from "@peculiar/webcrypto";
 import { JsonStringifier } from "../utils/json.stringifier";
 
 export class Jwt {

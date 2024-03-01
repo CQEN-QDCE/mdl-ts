@@ -1,4 +1,5 @@
 import * as x509 from "@peculiar/x509";
+import { CryptoKey } from "@peculiar/webcrypto";
 import { CredentialTypeRepository } from "../credential-type/credential-type-repository";
 import { ServerRequest2 } from "./server-request2";
 import { Jwt } from "../Jwt";

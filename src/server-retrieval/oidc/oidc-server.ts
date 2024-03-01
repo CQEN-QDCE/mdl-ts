@@ -6,6 +6,7 @@ import { EphemeralStorageEngine } from '../storage/ephemeral-storage-engine';
 import { JsonStringifier } from '../../utils/json.stringifier';
 import { Jwt } from '../Jwt';
 import { ServerRetrievalUtil } from '../server-retrieval-utils';
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export class OidcServer {
 

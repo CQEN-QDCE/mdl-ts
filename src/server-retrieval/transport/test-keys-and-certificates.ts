@@ -1,5 +1,6 @@
 import * as x509 from "@peculiar/x509";
 import { Crypto } from "@peculiar/webcrypto";
+import { CryptoKey } from "@peculiar/webcrypto";
 
 export class TestKeysAndCertificates {
 
