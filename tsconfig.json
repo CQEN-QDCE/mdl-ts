@@ -4,6 +4,7 @@
     "target": "ES2017",
     "declaration": true,
     "sourceMap": true,
+    "lib": [],
     "esModuleInterop": true,
     "outDir": "./dist",
     "experimentalDecorators": true,

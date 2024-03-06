@@ -66,9 +66,9 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
 //                                               CborEncoder.encode(cborArray));
     }
 
-    private getAlgorithm(): AlgorithmIdentifier | RsaPssParams | EcdsaParams {
-        return CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
-    }
+//    private getAlgorithm(): AlgorithmIdentifier | RsaPssParams | EcdsaParams {
+//        return CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
+//    }
 
     public fromCborDataItem(dataItem: CborDataItem): COSESign1 {
         const cborArray = dataItem as CborArray;

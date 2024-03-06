@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class CodeService {
     private localStorage: any;
     constructor(private readonly validCodes: Set<string> = new Set<string>()) {
-        if (typeof localStorage === "undefined" || localStorage === null) {
+        if (typeof this.localStorage === "undefined" || this.localStorage === null) {
             let LocalStorage = require('node-localstorage').LocalStorage;
             this.localStorage = new LocalStorage('./codes');
         }

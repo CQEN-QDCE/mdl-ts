@@ -21,6 +21,7 @@ export enum CoseAlgorithm {
 }
 
 export namespace CoseAlgorithm {
+    /*
     export function toSubtleCryptoAlgorithm(value: CoseAlgorithm): AlgorithmIdentifier | RsaPssParams | EcdsaParams {
         switch (value) {
             case CoseAlgorithm.HMAC256_64:
@@ -87,12 +88,12 @@ export namespace CoseAlgorithm {
                 f.algorithm = "RSASSA-PKCS1-v1_5";
                 f.hash = "SHA-1";
                 break;
-*/
+
             default:
                 throw new Error("Algorithm not supported");
         }
     }
-
+*/
     export function toJsRsaSignAlgorithm(value: CoseAlgorithm): string {
         switch (value) {
             case CoseAlgorithm.HMAC256_64:

@@ -60,13 +60,13 @@ export class TestKeysAndCertificates {
             }
         );
 
-        const chain = new x509.X509ChainBuilder({
-            certificates: [
-                this.jwtSignerCertificate
-            ],
-          });
+//        const chain = new x509.X509ChainBuilder({
+//            certificates: [
+//                this.jwtSignerCertificate
+//            ],
+//          });
 
-        const items = await chain.build(this.caCertificate);
+//        const items = await chain.build(this.caCertificate);
 
         this.jwtCertificateChain.push(this.jwtSignerCertificate);
         this.jwtCertificateChain.push(this.caCertificate);

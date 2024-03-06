@@ -34,7 +34,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
 
     public async mac(secret: ArrayBuffer, externalData: ArrayBuffer = new ArrayBuffer(0)): Promise<void> {
         
-        const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
+        //const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
 
         const cborArray = new CborArray();
 
@@ -61,7 +61,7 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
             throw 'Algorithm currently not supported, only supported algorithm is HMAC256.';
         }
         
-        const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
+        //const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
 
         const cborArray = new CborArray();
 
