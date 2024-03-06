@@ -7,10 +7,11 @@ import { DeviceKeyInfo } from "../mso/device-key-info";
 import { IssuerSignedItem } from "../issuer-signed/issuer-signed-item";
 import { ValidityInfo } from "../mso/validity-info";
 import { DigestAlgorithm } from "./digest-algorithm.enum";
-import { Crypto } from "@peculiar/webcrypto";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 import { CborConvertible } from "../cbor/cbor-convertible";
+import rs from "jsrsasign";
+import { Hex } from "../utils/hex";
 
 // Mobile security object (MSO), representing the payload of the issuer signature, for the issuer signed part of the mdoc.
 export class MobileSecurityObject implements CborConvertible {
@@ -134,8 +135,10 @@ export class MobileSecurityObject implements CborConvertible {
 
     private static async digestItem(issuerSignedItem: IssuerSignedItem, digestAlgorithm: DigestAlgorithm): Promise<ArrayBuffer> {
         const encodedItem = new CborEncodedDataItem(CborEncoder.encode(issuerSignedItem.toMapElement()));
-        const crypto = new Crypto();
-        const hash = await crypto.subtle.digest(digestAlgorithm, CborEncoder.encode(encodedItem));
-        return hash
-    }
+        
+        const md = new rs.KJUR.crypto.MessageDigest({"alg": "sha256"});
+        md.updateHex(Hex.encode(CborEncoder.encode(encodedItem)));
+        const hashValueHex = md.digest();
+        return Hex.decode(hashValueHex);
+     }
 }

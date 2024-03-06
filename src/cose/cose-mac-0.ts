@@ -1,22 +1,18 @@
-import { Crypto } from "@peculiar/webcrypto";
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborEncoder } from "../cbor/cbor-encoder";
 import { CborMap } from "../cbor/types/cbor-map";
-import { CborNumber } from "../cbor/types/cbor-number";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
-import { CoseHeaderLabel } from "./cose-header-label.enum";
 import { COSEObject } from "./cose-object";
 import { CoseAlgorithm } from "./cose-algorithm.enum";
-import { CborDecoder } from "../cbor/cbor-decoder";
 import { CborConvertible } from "../cbor/cbor-convertible";
 import { CborArray } from "../cbor/types/cbor-array";
+import rs from "jsrsasign";
+import { Hex } from "../utils/hex";
 
 export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
    
-    private readonly crypto = new Crypto();
-
     private readonly context = 'MAC0';
 
     private digest: ArrayBuffer | null = null;
@@ -40,8 +36,6 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
         
         const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
 
-        const key = await this.crypto.subtle.importKey('raw', secret, algorithm, false, ["sign", "verify"]);
-
         const cborArray = new CborArray();
 
         cborArray.push(new CborTextString(this.context));
@@ -49,7 +43,9 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
         cborArray.push(new CborByteString(externalData));
         cborArray.push(new CborByteString(this.content));
 
-        this.digest = await this.crypto.subtle.sign(algorithm, key, CborEncoder.encode(cborArray));
+        const mac = new rs.KJUR.crypto.Mac({alg: "HmacSHA256", "pass": {"hex": Hex.encode(secret)}});
+        mac.updateHex(Hex.encode(CborEncoder.encode(cborArray)));
+        this.digest = Hex.decode(mac.doFinal());
     }
 
     get tag(): ArrayBuffer {
@@ -67,8 +63,6 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
         
         const algorithm = CoseAlgorithm.toSubtleCryptoAlgorithm(this.headers.algorithm.value);
 
-        const key = await this.crypto.subtle.importKey('raw', sharedSecret, algorithm, false, ["sign", "verify"]);
-
         const cborArray = new CborArray();
 
         cborArray.push(new CborTextString(this.context));
@@ -78,7 +72,10 @@ export class COSEMac0 extends COSEObject<COSEMac0> implements CborConvertible {
 
         const data = CborEncoder.encode(cborArray);
 
-        const tag = await this.crypto.subtle.sign(algorithm, key, data);
+        const mac1 = new rs.KJUR.crypto.Mac({alg: "HmacSHA256", "pass": {"hex":  Hex.encode(sharedSecret)}});
+        mac1.updateHex(Hex.encode(data));
+        const tag = Hex.decode(mac1.doFinal());
+
         return ArrayBufferComparer.equals(this.tag, tag);
     }
 

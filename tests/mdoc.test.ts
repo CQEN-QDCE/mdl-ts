@@ -1,4 +1,3 @@
-import * as x509 from "@peculiar/x509";
 import { CborDecoder } from "../src/cbor/cbor-decoder";
 import { CborEncodedDataItem } from "../src/cbor/types/cbor-encoded-data-item";
 import { CborMap } from "../src/cbor/types/cbor-map";
@@ -36,6 +35,7 @@ import { MDL } from "../src/mdoc/mdl";
 import { SimpleCOSECryptoProviderKeyInfo } from "../src/cose/simple-cose-crypto-provider-key-info";
 import { SimpleCOSECryptoProvider } from "../src/cose/simple-cose-crypto-provider";
 import { ReaderAuthentication } from "../src/mdoc-auth/reader-authentication";
+import rs from "jsrsasign";
 
 describe('testing mdoc', () => {
     
@@ -54,22 +54,22 @@ describe('testing mdoc', () => {
 
         const issuerKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
             'ECDSA_256',
-            testCertificates.issuerKeyPair.publicKey, 
-            testCertificates.issuerKeyPair.privateKey, 
+            testCertificates.issuerKeyPair.pubKeyObj, 
+            testCertificates.issuerKeyPair.prvKeyObj, 
             [testCertificates.issuerCertificate],
             [testCertificates.caCertificate]);
 
         const deviceKeyInfo = new SimpleCOSECryptoProviderKeyInfo(DEVICE_KEY_ID, 
             'ECDSA_256',
-            testCertificates.deviceKeyPair.publicKey, 
-            testCertificates.deviceKeyPair.privateKey);
+            testCertificates.deviceKeyPair.pubKeyObj, 
+            testCertificates.deviceKeyPair.prvKeyObj);
 
         coseCryptoProvider = new SimpleCOSECryptoProvider([issuerKeyInfo, deviceKeyInfo]);
     });
 
     test('Sign mDL', async () => {
 
-        const coseKey = await CoseKey.new(testCertificates.issuerKeyPair.publicKey);
+        const coseKey = await CoseKey.new(testCertificates.issuerKeyPair.pubKeyObj);
 
         const deviceKeyInfo = new DeviceKeyInfo(coseKey)
 
@@ -152,7 +152,7 @@ describe('testing mdoc', () => {
 
         const mdocs: MobileDocument[] = [];
 
-        for (const documentElement of documentsElement.getValue()) {
+        for (const documentElement of documentsElement) {
             const mdocMapElement = <CborMap>documentElement;
             const issuerSigned = CborDataItem.to(IssuerSigned, <CborMap>mdocMapElement.get('issuerSigned'));
             const deviceSigned = CborDataItem.to(DeviceSigned, <CborMap>mdocMapElement.get('deviceSigned'));
@@ -163,10 +163,12 @@ describe('testing mdoc', () => {
         const deviceResponse = new DeviceResponse(mdocs, versionElement.getValue(), statusElement.getValue());
         const x5Chain = deviceResponse.documents[0].issuerSigned.issuerAuth.x5Chain;
         const certificateDER = Buffer.from(x5Chain ? x5Chain : new ArrayBuffer(0));
-        const cert = new x509.X509Certificate(certificateDER.toString('hex'));
+        const cert = new rs.X509();
+        const pem = rs.KJUR.asn1.ASN1Util.getPEMStringFromHex(certificateDER.toString('hex'), 'CERTIFICATE');
+        cert.readCertPEM(pem);
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
             'ECDSA_256',
-            await cert.publicKey.export(), 
+            cert.getPublicKey() as rs.KJUR.crypto.ECDSA, 
             null, 
             [cert]);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([certKeyInfo]);
@@ -181,8 +183,8 @@ describe('testing mdoc', () => {
     test('Create, parse, verify mDL request', async () => {
         const readerKeyInfo = new SimpleCOSECryptoProviderKeyInfo(READER_KEY_ID, 
                                                                   'ECDSA_256',
-                                                                  testCertificates.readerKeyPair.publicKey, 
-                                                                  testCertificates.readerKeyPair.privateKey);
+                                                                  testCertificates.readerKeyPair.pubKeyObj, 
+                                                                  testCertificates.readerKeyPair.prvKeyObj);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([readerKeyInfo]);
         const sessionTranscript = new CborArray();
         const mdocRequest = await new MDocRequestBuilder(MDL.DocType).addItemRequest(MDL.Namespace, 'family_name', true)
@@ -216,10 +218,14 @@ describe('testing mdoc', () => {
         expect((<CborTextString>readerAuthentication.dataItems[0]).getValue()).toBe('ReaderAuthentication');
         const mdr = deviceRequest.mobileDocumentRequests[0].readerAuthentication;
         const certificateDER = mdr ? mdr.x5Chain : new ArrayBuffer(0);
-        const cert = new x509.X509Certificate(Hex.encode(certificateDER ? certificateDER : new ArrayBuffer(0)));
+        const cert = new rs.X509();
+        const pem = rs.KJUR.asn1.ASN1Util.getPEMStringFromHex(Hex.encode(certificateDER ? certificateDER : new ArrayBuffer(0)), 'CERTIFICATE');
+        cert.readCertPEM(pem);
+
+ //       const cert = new rs.KJUR.asn1.x509.Certificate(Hex.encode(certificateDER ? certificateDER : new ArrayBuffer(0)));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(READER_KEY_ID, 
                                                                 'ECDSA_256',
-                                                                await cert.publicKey.export(), 
+                                                                cert.getPublicKey() as rs.KJUR.crypto.ECDSA, 
                                                                 null, 
                                                                 [cert]);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([certKeyInfo]);
@@ -253,11 +259,15 @@ describe('testing mdoc', () => {
         const issuerSignedItems = presentedMdoc.getIssuerSignedItems(MDL.Namespace);
         expect(issuerSignedItems.map((item) => item.elementIdentifier)).toEqual(['family_name', 'document_number']);
         const x5Chain = mdoc.issuerSigned.issuerAuth.x5Chain;
-        const certificateDER = Buffer.from(x5Chain ? x5Chain : new ArrayBuffer(0));
-        const cert = new x509.X509Certificate(certificateDER.toString('hex'));
+        const certificateDER = x5Chain ? x5Chain : new ArrayBuffer(0);
+        const cert = new rs.X509();
+        const pem = rs.KJUR.asn1.ASN1Util.getPEMStringFromHex(Hex.encode(certificateDER), 'CERTIFICATE');
+        cert.readCertPEM(pem);
+        var pubKey = rs.KEYUTIL.getKey(pem);
+       // const cert = new rs.KJUR.asn1.x509.Certificate(certificateDER.toString('hex'));
         const certKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
                                                                 'ECDSA_256',
-                                                                await cert.publicKey.export(), 
+                                                                pubKey as rs.KJUR.crypto.ECDSA, 
                                                                 null, 
                                                                 [cert]);
         const coseCryptoProvider = new SimpleCOSECryptoProvider([certKeyInfo]);
@@ -282,15 +292,15 @@ describe('testing mdoc', () => {
         // Part 2: Data objects and encoding rules for generic eID-System
         const issuerKeyInfo = new SimpleCOSECryptoProviderKeyInfo(ISSUER_KEY_ID, 
             'ECDSA_256',
-            testCertificates.issuerKeyPair.publicKey, 
-            testCertificates.issuerKeyPair.privateKey, 
+            testCertificates.issuerKeyPair.pubKeyObj, 
+            testCertificates.issuerKeyPair.prvKeyObj, 
             [testCertificates.issuerCertificate],
             [testCertificates.caCertificate]);
 
         const deviceKeyInfo = new SimpleCOSECryptoProviderKeyInfo(DEVICE_KEY_ID, 
             'ECDSA_256',
-            testCertificates.deviceKeyPair.publicKey, 
-            testCertificates.deviceKeyPair.privateKey);
+            testCertificates.deviceKeyPair.pubKeyObj, 
+            testCertificates.deviceKeyPair.prvKeyObj);
 
         const coseCryptoProvider = new SimpleCOSECryptoProvider([issuerKeyInfo, deviceKeyInfo]);
 

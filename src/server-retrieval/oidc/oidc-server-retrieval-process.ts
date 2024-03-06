@@ -1,12 +1,12 @@
 import { JsonStringifier } from "../../utils/json.stringifier";
 import { Jwt } from "../Jwt";
 import { OidcClient } from "./oidc-client";
-import { CryptoKey } from "@peculiar/webcrypto";
+import rs from "jsrsasign";
 
 export class OidcServerRetrievalProcess {
 
     constructor(private readonly oidcClient: OidcClient,
-                private readonly privateKey: CryptoKey) {
+                private readonly privateKey: rs.KJUR.crypto.ECDSA) {
 
     }
 

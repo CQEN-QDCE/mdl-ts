@@ -1,12 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import * as x509 from "@peculiar/x509";
 import { CredentialTypeRepository } from '../credential-type/credential-type-repository';
 import { StorageEngine } from '../storage/storage-engine';
 import { EphemeralStorageEngine } from '../storage/ephemeral-storage-engine';
 import { JsonStringifier } from '../../utils/json.stringifier';
 import { Jwt } from '../Jwt';
 import { ServerRetrievalUtil } from '../server-retrieval-utils';
-import { CryptoKey } from "@peculiar/webcrypto";
+import rs from "jsrsasign";
 
 export class OidcServer {
 
@@ -17,8 +16,8 @@ export class OidcServer {
     private readonly storageEngine: StorageEngine = new EphemeralStorageEngine();
 
     constructor(private readonly baseUrl: string, 
-                private readonly privateKey: CryptoKey,
-                private readonly certificateChain: x509.X509Certificate[] = [],
+                private readonly privateKey: rs.KJUR.crypto.ECDSA,
+                private readonly certificateChain: rs.KJUR.asn1.x509.Certificate[] = [],
                 private readonly credentialTypeRepository: CredentialTypeRepository) {
         
         let mdocCredentialType = credentialTypeRepository.getMdocCredentialType(OidcServer.MDL_DOCTYPE);

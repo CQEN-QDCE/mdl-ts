@@ -1,5 +1,4 @@
-import { Crypto } from "@peculiar/webcrypto";
-import { CryptoKey } from "@peculiar/webcrypto";
+import rs from "jsrsasign";
 import { CborByteString } from "../cbor/types/cbor-byte-string";
 import { COSEObject } from "./cose-object";
 import { CoseAlgorithm } from "./cose-algorithm.enum";
@@ -9,11 +8,10 @@ import { CborDataItem } from "../cbor/cbor-data-item";
 import { CborTextString } from "../cbor/types/cbor-text-string";
 import { CborConvertible } from "../cbor/cbor-convertible";
 import { CborArray } from "../cbor/types/cbor-array";
+import { Hex } from "../utils/hex";
 
 export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible {
    
-    private readonly crypto = new Crypto();
-
     private readonly context = 'Signature1';
 
     private signature: ArrayBuffer | null = null;
@@ -32,7 +30,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
         return this;
     }
 
-    public async sign(privateKey: CryptoKey): Promise<void> {
+    public async sign(privateKey: rs.KJUR.crypto.ECDSA): Promise<void> {
 
         const cborArray = new CborArray();
 
@@ -41,22 +39,31 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
         cborArray.push(new CborByteString());
         cborArray.push(new CborByteString(this.content));
 
-        this.signature = await this.crypto.subtle.sign(this.getAlgorithm(), privateKey, CborEncoder.encode(cborArray));
+        const signature = new rs.KJUR.crypto.Signature({"alg": "SHA256withECDSA"});
+        signature.init(<rs.KJUR.crypto.ECDSA>privateKey);
+        signature.updateHex(Hex.encode(CborEncoder.encode(cborArray)));
+        this.signature = Hex.decode(rs.KJUR.crypto.ECDSA.asn1SigToConcatSig(signature.sign()));
     }
 
-    public async verify(publicKey: CryptoKey): Promise<boolean> {
+    public async verify(publicKey: rs.KJUR.crypto.ECDSA): Promise<boolean> {
 
         const cborArray = new CborArray();
-
         cborArray.push(new CborTextString(this.context));
         cborArray.push(new CborByteString(this.encodeProtectedHeaders()));
-        cborArray.push(new CborByteString());
+        cborArray.push(new CborByteString()); //externalAAD
         cborArray.push(new CborByteString(this.content));
 
-        return await this.crypto.subtle.verify(this.getAlgorithm(), 
-                                               publicKey, 
-                                               this.signature, 
-                                               CborEncoder.encode(cborArray));
+        const signature = new rs.KJUR.crypto.Signature({"alg": "SHA256withECDSA"});
+        signature.init(<rs.KJUR.crypto.ECDSA>publicKey);
+        signature.updateHex(Hex.encode(CborEncoder.encode(cborArray)));
+        // Patch: https://stackoverflow.com/questions/70558358/jsrsasign-with-ecdsa-verifying-issue
+        const signature2 = this.signature.byteLength === 64 ? rs.KJUR.crypto.ECDSA.concatSigToASN1Sig(Hex.encode(this.signature)) : Hex.encode(this.signature);
+        const response = signature.verify(signature2);
+        return response;
+//        return await this.crypto.subtle.verify(this.getAlgorithm(), 
+//                                               publicKey, 
+//                                               this.signature, 
+//                                               CborEncoder.encode(cborArray));
     }
 
     private getAlgorithm(): AlgorithmIdentifier | RsaPssParams | EcdsaParams {

@@ -29,8 +29,10 @@
   "dependencies": {
     "@peculiar/webcrypto": "^1.4.3",
     "@peculiar/x509": "^1.9.6",
+    "@sphereon/isomorphic-webcrypto": "^2.4.0-unstable.4",
     "@types/cose-js": "^0.8.3",
     "@types/crypto-js": "^4.2.1",
+    "@types/jsrsasign": "^10.5.12",
     "axios": "^1.6.5",
     "cbor": "^9.0.1",
     "cbor-web": "^9.0.1",
@@ -40,6 +42,7 @@
     "express": "^4.18.2",
     "jest-environment-node": "^29.7.0",
     "js-sha256": "^0.10.1",
+    "jsrsasign": "^11.1.0",
     "node-localstorage": "^3.0.5",
     "supertest": "^6.3.4",
     "ts-opaque": "^3.0.1",

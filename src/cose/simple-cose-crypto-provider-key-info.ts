@@ -1,20 +1,19 @@
-import * as x509 from "@peculiar/x509";
-import { CryptoKey } from "@peculiar/webcrypto";
+import rs from "jsrsasign";
 
 export class SimpleCOSECryptoProviderKeyInfo {
     keyID: string;
     //algorithmID: AlgorithmID,
-    publicKey: CryptoKey;
-    privateKey: CryptoKey = null;
-    x5Chain: x509.X509Certificate[] = [];
-    trustedRootCAs: x509.X509Certificate[] = [];
+    publicKey: rs.KJUR.crypto.ECDSA;
+    privateKey: rs.KJUR.crypto.ECDSA = null;
+    x5Chain: rs.X509[] = [];
+    trustedRootCAs: rs.X509[] = [];
 
     constructor(keyID: string,
                 algorithmID: string,  
-                publicKey: CryptoKey,
-                privateKey: CryptoKey | null,
-                x5Chain: x509.X509Certificate[] = [],
-                trustedRootCAs: x509.X509Certificate[] = []) {
+                publicKey: rs.KJUR.crypto.ECDSA,
+                privateKey: rs.KJUR.crypto.ECDSA | null,
+                x5Chain: rs.X509[] = [],
+                trustedRootCAs: rs.X509[] = []) {
         this.keyID = keyID;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
