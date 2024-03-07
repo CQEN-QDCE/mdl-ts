@@ -6,6 +6,7 @@ import { JsonStringifier } from '../../utils/json.stringifier';
 import { Jwt } from '../Jwt';
 import { ServerRetrievalUtil } from '../server-retrieval-utils';
 import rs from "jsrsasign";
+import { Text } from '../../utils/text';
 
 export class OidcServer {
 
@@ -202,8 +203,8 @@ export class OidcServer {
         data.scope = scope;
         data.authorizationId = authorizationId;
         data.serverRetrievalToken = serverRetrievalToken;
-        let textEncoder = new TextEncoder();
-        let buffer = textEncoder.encode(JsonStringifier.stringify(data));
+        //let textEncoder = new TextEncoder();
+        let buffer = Text.encode(JsonStringifier.stringify(data));
         this.storageEngine.put(clientId, buffer);
     }
 

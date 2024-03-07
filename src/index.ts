@@ -1,4 +1,4 @@
-export * from './app';
+//export * from './app';
 export * from './cbor/cbor';
 export * from './cbor/cbor-convertible';
 export * from './cbor/cbor-data-item';
@@ -69,7 +69,6 @@ export * from './oidc/vc/format-holder';
 export * from './oidc/vc/mobile-driving-licence-data-elements.enum';
 export * from './oidc4vci/authorization-details';
 export * from './oidc4vci/cbor-web-token';
-export * from './oidc4vci/cbor-web-token2';
 export * from './oidc4vci/code-service';
 export * from './oidc4vci/credential-format.enum';
 export * from './oidc4vci/credential-issuance.types';

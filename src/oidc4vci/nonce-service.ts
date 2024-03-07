@@ -4,8 +4,8 @@ export class NonceService {
     private localStorage: any;
     constructor(private readonly validNonces: Set<string> = new Set<string>()) {
         if (typeof this.localStorage === "undefined" || this.localStorage === null) {
-            let LocalStorage = require('node-localstorage').LocalStorage;
-            this.localStorage = new LocalStorage('./nonces');
+//            let LocalStorage = require('node-localstorage').LocalStorage;
+//            this.localStorage = new LocalStorage('./nonces');
         }
     }
 

@@ -2,6 +2,7 @@ import { Base64 } from "../utils/base64";
 import { JsonStringifier } from "../utils/json.stringifier";
 import rs from "jsrsasign";
 import { Hex } from "../utils/hex";
+import { Text } from "../utils/text";
 
 export class Jwt {
     
@@ -27,11 +28,11 @@ export class Jwt {
         const signature = Base64.urlDecode(decoded[2]);
 
 
-        const enc = new TextEncoder();
+        //const enc = new TextEncoder();
 
         const verifier = new rs.KJUR.crypto.Signature({"alg": "SHA256withECDSA"});
         verifier.init(<rs.KJUR.crypto.ECDSA>publicKey);
-        verifier.updateHex(Hex.encode(enc.encode(decoded[0] + '.' + decoded[1])));
+        verifier.updateHex(Hex.encode(Text.encode(decoded[0] + '.' + decoded[1])));
         const response = verifier.verify(Hex.encode(signature));
 
         return response;
@@ -64,14 +65,14 @@ export class Jwt {
         }
         let oldStringify = JSON.stringify;
         JSON.stringify = (obj, replacer, space) => oldStringify(obj, replacer || ((key, value) => {if(key && value === obj) return "[recursive]"; return value;}), space)
-        const enc = new TextEncoder(); 
-        const headerBase64 = Base64.urlEncode(enc.encode(JSON.stringify(headerJson)));
+        //const enc = new TextEncoder(); 
+        const headerBase64 = Base64.urlEncode(Text.encode(JSON.stringify(headerJson)));
         let v = JsonStringifier.stringify(payload);
-        const payloadBase64 = Base64.urlEncode(enc.encode(JSON.stringify(payload)));
+        const payloadBase64 = Base64.urlEncode(Text.encode(JSON.stringify(payload)));
 
         const signature = new rs.KJUR.crypto.Signature({"alg": "SHA256withECDSA"});
         signature.init(<rs.KJUR.crypto.ECDSA>privateKey);
-        signature.updateHex(Hex.encode(enc.encode(headerBase64 + '.' + payloadBase64)));
+        signature.updateHex(Hex.encode(Text.encode(headerBase64 + '.' + payloadBase64)));
         const signatureBase64 = Base64.urlEncode(Hex.decode(signature.sign()));
 
         return headerBase64 + '.' + payloadBase64 + '.' + signatureBase64;

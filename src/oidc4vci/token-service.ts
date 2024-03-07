@@ -4,8 +4,8 @@ export class TokenService {
     private localStorage: any;
     constructor(private readonly validTokens: Set<string> = new Set<string>()) {
         if (typeof this.localStorage === "undefined" || this.localStorage === null) {
-            let LocalStorage = require('node-localstorage').LocalStorage;
-            this.localStorage = new LocalStorage('./tokens');
+//            let LocalStorage = require('node-localstorage').LocalStorage;
+//            this.localStorage = new LocalStorage('./tokens');
         }
     }
 
