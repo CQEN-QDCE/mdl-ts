@@ -282,6 +282,7 @@ describe('testing mdoc', () => {
         params.mDocRequest = mdocRequest;
         params.issuerKeyID = ISSUER_KEY_ID;
         const mdocVerified = await presentedMdoc.verify(params, coseCryptoProvider);
+        
         expect(mdocVerified).toBeTruthy();
     });
 
