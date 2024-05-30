@@ -55,6 +55,7 @@ export class COSESign1 extends COSEObject<COSESign1> implements CborConvertible 
 
         const signature = new rs.KJUR.crypto.Signature({"alg": "SHA256withECDSA"});
         signature.init(<rs.KJUR.crypto.ECDSA>publicKey);
+        var test = CborEncoder.encode(cborArray);
         signature.updateHex(Hex.encode(CborEncoder.encode(cborArray)));
         // Patch: https://stackoverflow.com/questions/70558358/jsrsasign-with-ecdsa-verifying-issue
         const signature2 = this.signature.byteLength === 64 ? rs.KJUR.crypto.ECDSA.concatSigToASN1Sig(Hex.encode(this.signature)) : Hex.encode(this.signature);

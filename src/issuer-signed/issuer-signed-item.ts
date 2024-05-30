@@ -32,14 +32,6 @@ export class IssuerSignedItem implements CborConvertible {
         return cborMap;
     }
 
-    static fromMapElement(cborMap: CborMap): IssuerSignedItem {
-        const digestID = cborMap.get('digestID');
-        const random = cborMap.get('random');
-        const elementIdentifier = cborMap.get('elementIdentifier');
-        const elementValue = cborMap.get('elementValue');
-        return new IssuerSignedItem(digestID.getValue(), random.getValue(), elementIdentifier.getValue(), elementValue);
-    }
-
     fromCborDataItem(dataItem: CborDataItem): IssuerSignedItem {
         const cborMap = <CborMap>dataItem;
         const digestID = cborMap.get('digestID');

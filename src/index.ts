@@ -70,7 +70,7 @@ export * from './oidc/vc/mobile-driving-licence-data-elements.enum';
 export * from './oidc4vci/authorization-details';
 export * from './oidc4vci/cbor-web-token';
 export * from './oidc4vci/code-service';
-export * from './oidc4vci/vc-holder';
+export * from './oidc4vci/oid4vci-client';
 export * from './oidc4vci/credential-format.enum';
 export * from './oidc4vci/credential-issuance.types';
 export * from './oidc4vci/credential-request-parameters';

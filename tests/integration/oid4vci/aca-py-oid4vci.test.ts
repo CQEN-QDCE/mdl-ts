@@ -11,9 +11,9 @@ import { DIDDocument } from 'did-resolver';
 describe("ACA-py OID4VC Tests", () => {
     
     let localhost1: string = 'http://127.0.0.1:3001';
-//    let localhost2: string = 'http://localhost:8081';
+    let localhost2: string = 'http://localhost:8081';
 
-    //let localhost1: string = 'https://mdl-issuer-admin.apps.exp.openshift.cqen.ca';
+    //let localhost1: string = 'https://mdl-issuer-agent-admin.apps.exp.openshift.cqen.ca';
 
     let client: AxiosInstance;
     
@@ -77,7 +77,7 @@ describe("ACA-py OID4VC Tests", () => {
         let exchangeCreateRequest: any = {
             "did": did.did,
 //            "supported_cred_id": "18ebd91e-9e76-4f88-94b7-6fd1fd34d190",  
-            "supported_cred_id": "d70fd027-54f6-4c11-b306-43028c5ee37e",
+            "supported_cred_id": "7240b572-5735-4cf6-900a-cd28d1daa5b8",
             //"supported_cred_id": "30c5fd6a-3896-4fbb-bdde-d3a7671ed9cb",
             "claims": {
                 "org.iso.18013.5.1": { 
@@ -95,7 +95,7 @@ describe("ACA-py OID4VC Tests", () => {
 
         const credentialOfferResponse: AxiosResponse = await client.get(`${localhost1}/oid4vci/credential-offer?exchange_id=${exchange.exchange_id}`);
         const credentialOffer = credentialOfferResponse.data;
-        const credentialIssuerUrl = credentialOffer.credential_issuer;
+        let credentialIssuerUrl = credentialOffer.credential_issuer;
         const credentials = credentialOffer.credentials;
         const grants = credentialOffer.grants;
         let pre: string = ''; 
@@ -119,7 +119,10 @@ describe("ACA-py OID4VC Tests", () => {
         const data = Object.keys(accessTokenRequest)
             .map((key) => `${key}=${encodeURIComponent(accessTokenRequest[key])}`)
             .join('&');
-          
+        if (credentialIssuerUrl.includes('localhost')) {
+            credentialIssuerUrl = credentialIssuerUrl.replace('localhost', '127.0.0.1');
+        }
+
         const options = {
             method: 'POST',
             headers: { 'content-type': 'application/x-www-form-urlencoded' },

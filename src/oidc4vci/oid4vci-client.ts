@@ -9,7 +9,7 @@ import { Text } from "../utils/text";
 import { ArrayBufferComparer } from "../utils/array-buffer-comparer";
 import { Base58 } from "../utils/base58";
 
-export class VcHolder {
+export class OpenID4VCIClient {
     private holderKeys: KeyPairRequirements;
     private signer: didJWT.Signer;
     private jwk: any;

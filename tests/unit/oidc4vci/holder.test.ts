@@ -1,4 +1,4 @@
-import { VcHolder } from "../../../src/oidc4vci/vc-holder";
+import { OpenID4VCIClient } from "../../../src/oidc4vci/oid4vci-client";
 import axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { setDefaultResultOrder } from "dns";
 import { Cbor } from "../../../src/cbor/cbor";
@@ -8,7 +8,7 @@ setDefaultResultOrder("ipv4first");
 
 describe('Holder', () => {
 
-    let localhost1: string = 'http://localhost:3001';
+    let localhost1: string = 'http://127.0.0.1:3001';
     let client: AxiosInstance;
 
     beforeAll(async () => {
@@ -16,7 +16,7 @@ describe('Holder', () => {
     });
 
     test('Get credential', async () => {
-        const holder = new VcHolder({kid: "123", did: "did:example:123", privKeyHex: "123"});
+        const holder = new OpenID4VCIClient({kid: "123", did: "did:example:123", privKeyHex: "123"});
         const credentialOffer = 'openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fmdl-issuer-oid4vci.apps.exp.openshift.cqen.ca%22%2C%22credentials%22%3A%5B%22MobileDrivingLicense%22%5D%2C%22grants%22%3A%7B%22urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Apre-authorized_code%22%3A%7B%22pre-authorized_code%22%3A%22hl-GWAeiPVWZav24NMrALg%22%2C%22user_pin_required%22%3Afalse%7D%7D%7D';
         const credentials = await holder.getCredentialFromOffer(credentialOffer);
         const test = 1;
@@ -24,7 +24,7 @@ describe('Holder', () => {
 
     test('Get credential 2', async () => {
 
-        const holder = new VcHolder({kid: "123", did: "did:example:123", privKeyHex: "123"});
+        const holder = new OpenID4VCIClient({kid: "123", did: "did:example:123", privKeyHex: "123"});
 
         let createDidRequest: any = {
             "method": "key"
@@ -36,7 +36,7 @@ describe('Holder', () => {
 
         let exchangeCreateRequest: any = {
             "did": did.did,
-            "supported_cred_id": "d70fd027-54f6-4c11-b306-43028c5ee37e",
+            "supported_cred_id": "d613d4c7-049c-4777-9901-a6d0d1a39490",
             "claims": {
                 "org.iso.18013.5.1": { 
                     "given_name": "Mascetti", 

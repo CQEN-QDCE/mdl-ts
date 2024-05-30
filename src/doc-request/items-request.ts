@@ -15,19 +15,6 @@ export class ItemsRequest implements CborConvertible {
         this.namespaces = nameSpaces;
     }
 
-    static fromMapElement(cborMap: CborMap): ItemsRequest {
-        const docType = <CborTextString>cborMap.get('docType');
-        const nameSpaces = <CborMap>cborMap.get('nameSpaces');
-        return new ItemsRequest(docType.getValue(), nameSpaces);
-    }
-
-    toMapElement(): CborMap {
-        const cborMap = new CborMap();
-        cborMap.set('docType', new CborTextString(this.docType));
-        cborMap.set('nameSpaces', this.namespaces);
-        return new CborMap(cborMap);
-    }
-
     fromCborDataItem(dataItem: CborDataItem): ItemsRequest {
         const cborMap = dataItem as CborMap;
         const docType = <CborTextString>cborMap.get('docType');
