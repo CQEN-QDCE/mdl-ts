@@ -14,9 +14,9 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn pack --filename=mdl-ts.tgz
     - uses: butlerlogic/action-autotag@stable
-      id: update_tag
-      with:
+      env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      with:
         tag_prefix: "v"
     - name: Create Release
       if: steps.update_tag.outputs.tagname
