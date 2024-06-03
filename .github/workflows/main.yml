@@ -13,10 +13,11 @@ jobs:
         node-version: '18.x'
     - run: yarn install --frozen-lockfile
     - run: yarn pack --filename=mdl-ts.tgz
-    - uses: anothrNick/github-tag-action@1.36.0
+    - uses: anothrNick/github-tag-action@latest
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
+        DRY_RUN: true
     - name: Create Release
       if: steps.update_tag.outputs.tagname
       uses: actions/create-release@v1
