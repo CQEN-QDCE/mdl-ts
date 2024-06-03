@@ -13,11 +13,10 @@ jobs:
         node-version: '18.x'
     - run: yarn install --frozen-lockfile
     - run: yarn pack --filename=mdl-ts.tgz
-    - uses: butlerlogic/action-autotag@stable
+    - uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      with:
-        tag_prefix: "v"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
     - name: Create Release
       if: steps.update_tag.outputs.tagname
       uses: actions/create-release@v1
