@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "prepack": "yarn build",
     "test": "jest",
     "lint": "eslint . --ext .ts"
   },
